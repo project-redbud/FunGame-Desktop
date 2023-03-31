@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Company>Milimoe</Company>
-    <BaseOutputPath>..\bin</BaseOutputPath>
+    <BaseOutputPath>..\bin\</BaseOutputPath>
     <Authors>Milimoe</Authors>
     <Title>Implement</Title>
     <PackageOutputPath>..\bin</PackageOutputPath>
@@ -22,5 +22,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>embedded</DebugType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="FunGame.Core">
+      <HintPath>..\..\FunGame.Core\bin\Debug\net7.0\FunGame.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
 
 </Project>

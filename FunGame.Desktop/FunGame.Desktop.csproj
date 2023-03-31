@@ -10,7 +10,7 @@
     <Copyright></Copyright>
     <PackageIcon>logo.ico</PackageIcon>
     <Company>Milimoe</Company>
-    <BaseOutputPath>..\bin</BaseOutputPath>
+    <BaseOutputPath>..\bin\</BaseOutputPath>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
     <SignAssembly>False</SignAssembly>
     <Authors>Milimoe</Authors>
@@ -32,6 +32,17 @@
 
   <ItemGroup>
     <Content Include="Images\logo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FunGame.Implement\FunGame.Implement.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FunGame.Core">
+      <HintPath>..\..\FunGame.Core\bin\Debug\net7.0\FunGame.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

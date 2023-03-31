@@ -1,5 +1,6 @@
 ﻿using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
+using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.UI;
@@ -112,7 +113,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                RunTime.WriteGameInfo(e.GetErrorInfo());
+                Main.GetMessage(e.GetErrorInfo());
             }
         }
     }
