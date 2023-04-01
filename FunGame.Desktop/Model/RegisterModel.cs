@@ -12,8 +12,6 @@ namespace Milimoe.FunGame.Desktop.Model
     public class RegisterModel : BaseModel
     {
         private readonly Register Register;
-        private SocketObject Work;
-        private bool Working = false;
 
         public RegisterModel(Register reg) : base(RunTime.Socket)
         {
@@ -128,12 +126,6 @@ namespace Milimoe.FunGame.Desktop.Model
                 RunTime.WritelnSystemInfo(e.GetErrorInfo());
             }
             return (success, msg);
-        }
-
-        private void SetWorking()
-        {
-            Working = true;
-            Work = default;
         }
     }
 }

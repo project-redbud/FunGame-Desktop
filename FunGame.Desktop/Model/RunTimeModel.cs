@@ -28,18 +28,20 @@ namespace Milimoe.FunGame.Desktop.Model
 
         #region 公开方法
 
-        public void Disconnect()
+        public bool Disconnect()
         {
+            bool result = false;
+
             try
             {
-                Socket?.Send(SocketMessageType.Disconnect, "");
+                result = Socket?.Send(SocketMessageType.Disconnect, "") == SocketResult.Success;
             }
             catch (Exception e)
             {
                 Main.GetMessage(e.GetErrorInfo());
-                Main.OnFailedDisconnectEvent(new GeneralEventArgs());
-                Main.OnAfterDisconnectEvent(new GeneralEventArgs());
             }
+
+            return result;
         }
 
         public void Disconnected()
@@ -47,7 +49,7 @@ namespace Milimoe.FunGame.Desktop.Model
             Disconnect();
         }
 
-        public bool GetServerConnection()
+        public void GetServerConnection()
         {
             try
             {
@@ -58,9 +60,8 @@ namespace Milimoe.FunGame.Desktop.Model
                     string[] s = ipaddress.Split(':');
                     if (s != null && s.Length > 1)
                     {
-                        Constant.Server_Address = s[0];
+                        Constant.Server_IP = s[0];
                         Constant.Server_Port = Convert.ToInt32(s[1]);
-                        if (Connect() == ConnectResult.Success) return true; // 连接服务器
                     }
                 }
                 else
@@ -74,18 +75,13 @@ namespace Milimoe.FunGame.Desktop.Model
             {
                 Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
-
-            return false;
         }
 
-        public ConnectResult Connect()
+        public async Task<ConnectResult> Connect()
         {
-            if (Main.OnBeforeConnectEvent(new GeneralEventArgs()) == EventResult.Fail) return ConnectResult.ConnectFailed;
-            if (Constant.Server_Address == "" || Constant.Server_Port <= 0)
+            if (Constant.Server_IP == "" || Constant.Server_Port <= 0)
             {
                 ShowMessage.ErrorMessage("查找可用的服务器失败！");
-                Main.OnFailedConnectEvent(new GeneralEventArgs());
-                Main.OnAfterConnectEvent(new GeneralEventArgs());
                 return ConnectResult.FindServerFailed;
             }
             try
@@ -94,8 +90,6 @@ namespace Milimoe.FunGame.Desktop.Model
                 {
                     Main.GetMessage("正在连接服务器，请耐心等待。");
                     Config.FunGame_isRetrying = false;
-                    Main.OnFailedConnectEvent(new GeneralEventArgs());
-                    Main.OnAfterConnectEvent(new GeneralEventArgs());
                     return ConnectResult.CanNotConnect;
                 }
                 if (!Config.FunGame_isConnected)
@@ -111,7 +105,7 @@ namespace Milimoe.FunGame.Desktop.Model
                     // 与服务器建立连接
                     Socket?.Close();
                     Config.FunGame_isRetrying = true;
-                    Socket = Socket.Connect(Constant.Server_Address, Constant.Server_Port);
+                    Socket = Socket.Connect(Constant.Server_IP, Constant.Server_Port);
                     if (Socket != null && Socket.Connected)
                     {
                         // 设置可复用Socket
@@ -119,35 +113,32 @@ namespace Milimoe.FunGame.Desktop.Model
                         // 发送连接请求
                         if (Socket.Send(SocketMessageType.Connect) == SocketResult.Success)
                         {
-                            Task t = Task.Factory.StartNew(() =>
+                            SocketMessageType Result = Receiving();
+                            if (Result == SocketMessageType.Connect)
                             {
-                                if (Receiving() == SocketMessageType.Connect)
+                                Main.GetMessage("连接服务器成功，请登录账号以体验FunGame。");
+                                Main.UpdateUI(MainInvokeType.Connected);
+                                StartReceiving();
+                                await Task.Factory.StartNew(() =>
                                 {
-                                    Main.GetMessage("连接服务器成功，请登录账号以体验FunGame。");
-                                    Main.UpdateUI(MainInvokeType.Connected);
-                                    StartReceiving();
                                     while (true)
                                     {
                                         if (IsReceiving)
                                         {
-                                            Main.OnSucceedConnectEvent(new GeneralEventArgs());
-                                            Main.OnAfterConnectEvent(new GeneralEventArgs());
                                             break;
                                         }
                                     }
-                                }
-                                else
-                                {
-                                    Config.FunGame_isRetrying = false;
-                                    Socket.Close();
-                                }
-                            });
-                            return ConnectResult.Success;
+                                });
+                                return ConnectResult.Success;
+                            }
                         }
-                        Socket?.Close();
                         Config.FunGame_isRetrying = false;
-                        throw new CanNotConnectException();
+                        Socket.Close();
+                        return ConnectResult.ConnectFailed;
                     }
+                    Socket?.Close();
+                    Config.FunGame_isRetrying = false;
+                    throw new CanNotConnectException();
                 }
                 else
                 {
@@ -160,14 +151,8 @@ namespace Milimoe.FunGame.Desktop.Model
                 Main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 Main.UpdateUI(MainInvokeType.SetRed);
                 Config.FunGame_isRetrying = false;
-                Task.Factory.StartNew(() =>
-                {
-                    Main.OnFailedConnectEvent(new GeneralEventArgs());
-                    Main.OnAfterConnectEvent(new GeneralEventArgs());
-                });
                 return ConnectResult.ConnectFailed;
             }
-            return ConnectResult.CanNotConnect;
         }
 
         public bool Close()
@@ -198,7 +183,7 @@ namespace Milimoe.FunGame.Desktop.Model
         {
             Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             Main.UpdateUI(MainInvokeType.Disconnected);
-            Main.OnFailedConnectEvent(new GeneralEventArgs());
+            Main.OnFailedConnectEvent(new ConnectEventArgs(Constant.Server_IP, Constant.Server_Port));
             Close();
         }
 

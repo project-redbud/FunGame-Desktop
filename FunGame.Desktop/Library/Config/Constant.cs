@@ -13,7 +13,7 @@ namespace Milimoe.FunGame.Desktop.Library
         /**
          * Socket Configs
          */
-        public static string Server_Address { get; set; } = ""; // 服务器IP地址
+        public static string Server_IP { get; set; } = ""; // 服务器IP地址
         public static int Server_Port { get; set; } = 0; // 服务器端口号
         public static Encoding Default_Encoding { get; } = General.DefaultEncoding;
 

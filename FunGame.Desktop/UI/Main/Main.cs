@@ -107,7 +107,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
                         case MainInvokeType.SetGreenAndPing:
                             Config.FunGame_isRetrying = false;
-                            SetServerStatusLight((int)LightType.Green, ping: NetworkUtility.GetServerPing(Constant.Server_Address));
+                            SetServerStatusLight((int)LightType.Green, ping: NetworkUtility.GetServerPing(Constant.Server_IP));
                             SetButtonEnableIfLogon(true, ClientState.Online);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
@@ -1354,7 +1354,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     ErrorType ErrorType = NetworkUtility.IsServerAddress(ip, port);
                     if (ErrorType == Core.Library.Constant.ErrorType.None)
                     {
-                        Constant.Server_Address = ip;
+                        Constant.Server_IP = ip;
                         Constant.Server_Port = port;
                         CurrentRetryTimes = -1;
                         Config.FunGame_isAutoRetry = true;

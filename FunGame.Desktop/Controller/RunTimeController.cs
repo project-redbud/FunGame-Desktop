@@ -9,7 +9,7 @@ namespace Milimoe.FunGame.Desktop.Controller
 {
     public class RunTimeController
     {
-        public bool Connected => Do<bool>(RunTimeInvokeType.Connected);
+        public bool Connected => RunTimeModel.Connected;
 
         private RunTimeModel RunTimeModel { get; }
         private Main Main { get; }
@@ -20,100 +20,100 @@ namespace Milimoe.FunGame.Desktop.Controller
             RunTimeModel = new RunTimeModel(Main);
         }
 
-        /**
-         * 从内部去调用Model的方法，并记录日志。
-         */
-        private T Do<T>(RunTimeInvokeType DoType, params object[] args)
+        public async Task<bool> GetServerConnection()
         {
-            object result = new();
-            switch (DoType)
+            bool result = false;
+
+            try
             {
-                case RunTimeInvokeType.GetServerConnection:
-                    result = RunTimeModel.GetServerConnection();
-                    break;
-
-                case RunTimeInvokeType.Connect:
-                    result = RunTimeModel.Connect();
-                    if ((ConnectResult)result != ConnectResult.Success)
-                    {
-                        Main.OnFailedConnectEvent(new GeneralEventArgs());
-                        Main.OnAfterConnectEvent(new GeneralEventArgs());
-                    }
-                    break;
-
-                case RunTimeInvokeType.Connected:
-                    result = RunTimeModel.Connected;
-                    break;
-
-                case RunTimeInvokeType.Disconnect:
-                    if (Main.OnBeforeDisconnectEvent(new GeneralEventArgs()) == EventResult.Fail) return (T)result;
-                    RunTimeModel.Disconnect();
-                    break;
-
-                case RunTimeInvokeType.Disconnected:
-                    break;
-
-                case RunTimeInvokeType.AutoLogin:
-                    break;
-                    
-                case RunTimeInvokeType.Close:
-                    if (args != null && args.Length > 0)
-                    {
-                        RunTimeModel.Error((Exception)args[0]);
-                        result = true;
-                    }
-                    else
-                        result = RunTimeModel.Close();
-                    break;
-
-                default:
-                    break;
+                RunTimeModel.GetServerConnection();
+                result = await Connect() == ConnectResult.Success;
             }
-            return (T)result;
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return result;
         }
 
-        public bool GetServerConnection()
+        public async Task<ConnectResult> Connect()
         {
-            return Do<bool>(RunTimeInvokeType.GetServerConnection);
+            ConnectResult result = ConnectResult.ConnectFailed;
+
+            try
+            {
+                ConnectEventArgs EventArgs = new(Constant.Server_IP, Constant.Server_Port);
+                if (Main.OnBeforeConnectEvent(EventArgs) == EventResult.Fail) return ConnectResult.ConnectFailed;
+
+                result = await RunTimeModel.Connect();
+
+                if (result == ConnectResult.Success) Main.OnSucceedConnectEvent(EventArgs);
+                else Main.OnFailedConnectEvent(EventArgs);
+                Main.OnAfterConnectEvent(EventArgs);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+            
+            return result;
         }
 
-        public ConnectResult Connect()
+        public bool Disconnect()
         {
-            return Do<ConnectResult>(RunTimeInvokeType.Connect);
+            bool result = false;
+
+            try
+            {
+                if (Main.OnBeforeDisconnectEvent(new GeneralEventArgs()) == EventResult.Fail) return result;
+
+                result = RunTimeModel.Disconnect();
+
+                if (result) Main.OnSucceedDisconnectEvent(new GeneralEventArgs());
+                else Main.OnFailedDisconnectEvent(new GeneralEventArgs());
+                Main.OnAfterDisconnectEvent(new GeneralEventArgs());
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return result;
         }
 
-        public void Disconnect()
+        public bool Close(params object[] args)
         {
-            Do<object>(RunTimeInvokeType.Disconnect);
-        }
+            bool result;
 
-        public void Disconnected()
-        {
-            Do<object>(RunTimeInvokeType.Disconnected);
-        }
+            if (Connected) Disconnect();
 
-        public bool Close()
-        {
-            return Do<bool>(RunTimeInvokeType.Close);
+            if (args != null && args.Length > 0)
+            {
+                RunTimeModel.Error((Exception)args[0]);
+                result = true;
+            }
+            else result = RunTimeModel.Close();
+
+            return result;
         }
 
         public bool Error(Exception e)
         {
-            return Do<bool>(RunTimeInvokeType.Close, e);
+            return Close(e);
         }
 
         public async Task AutoLogin(params object[] objs)
         {
             try
             {
-                Do<object>(RunTimeInvokeType.AutoLogin);
                 LoginController LoginController = new();
                 await LoginController.LoginAccount(objs);
                 LoginController.Dispose();
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo());
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
         }
     }

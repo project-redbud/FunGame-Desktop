@@ -16,8 +16,8 @@ namespace Milimoe.FunGame.Desktop.Model
     /// </summary>
     public class LoginModel : BaseModel
     {
-        private static SocketObject Work;
-        private static bool Working = false;
+        private static new SocketObject Work;
+        private static new bool Working = false;
 
         public LoginModel() : base(RunTime.Socket)
         {
@@ -133,7 +133,7 @@ namespace Milimoe.FunGame.Desktop.Model
             return ds;
         }
 
-        private static void SetWorking()
+        private static new void SetWorking()
         {
             Working = true;
             Work = default;

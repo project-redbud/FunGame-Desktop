@@ -8,12 +8,12 @@ namespace Milimoe.FunGame.Desktop.Library.Base
     public class BaseMain : GeneralForm, IConnectEventHandler, IDisconnectEventHandler, ILoginEventHandler, ILogoutEventHandler, IIntoRoomEventHandler, ISendTalkEventHandler,
         ICreateRoomEventHandler, IQuitRoomEventHandler, IStartMatchEventHandler, IStartGameEventHandler, IOpenInventoryEventHandler, IOpenStoreEventHandler
     {
-        public event IEventHandler.BeforeEventHandler? BeforeConnect;
-        public event IEventHandler.AfterEventHandler? AfterConnect;
-        public event IEventHandler.SucceedEventHandler? SucceedConnect;
-        public event IEventHandler.FailedEventHandler? FailedConnect;
+        public event IConnectEventHandler.BeforeEventHandler? BeforeConnect;
+        public event IConnectEventHandler.AfterEventHandler? AfterConnect;
+        public event IConnectEventHandler.SucceedEventHandler? SucceedConnect;
+        public event IConnectEventHandler.FailedEventHandler? FailedConnect;
 
-        public EventResult OnAfterConnectEvent(GeneralEventArgs e)
+        public EventResult OnAfterConnectEvent(ConnectEventArgs e)
         {
             if (AfterConnect != null)
             {
@@ -22,7 +22,7 @@ namespace Milimoe.FunGame.Desktop.Library.Base
             else return EventResult.NoEventImplement;
         }
 
-        public EventResult OnBeforeConnectEvent(GeneralEventArgs e)
+        public EventResult OnBeforeConnectEvent(ConnectEventArgs e)
         {
             if (BeforeConnect != null)
             {
@@ -31,7 +31,7 @@ namespace Milimoe.FunGame.Desktop.Library.Base
             else return EventResult.NoEventImplement;
         }
 
-        public EventResult OnSucceedConnectEvent(GeneralEventArgs e)
+        public EventResult OnSucceedConnectEvent(ConnectEventArgs e)
         {
             if (SucceedConnect != null)
             {
@@ -40,7 +40,7 @@ namespace Milimoe.FunGame.Desktop.Library.Base
             else return EventResult.NoEventImplement;
         }
 
-        public EventResult OnFailedConnectEvent(GeneralEventArgs e)
+        public EventResult OnFailedConnectEvent(ConnectEventArgs e)
         {
             if (FailedConnect != null)
             {
