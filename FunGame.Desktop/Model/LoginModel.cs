@@ -93,10 +93,7 @@ namespace Milimoe.FunGame.Desktop.Model
             string? msg = "";
             try
             {
-                while (true)
-                {
-                    if (!Working) break;
-                }
+                WaitForWorkDone();
                 // 返回一个确认登录的Key
                 if (Work.Length > 0) key = Work.GetParam<Guid>(0);
                 if (Work.Length > 1) msg = Work.GetParam<string>(1);
@@ -118,10 +115,7 @@ namespace Milimoe.FunGame.Desktop.Model
             DataSet? ds = new();
             try
             {
-                while (true)
-                {
-                    if (!Working) break;
-                }
+                WaitForWorkDone();
                 // 返回构造User对象的DataSet
                 if (Work.Length > 0) ds = Work.GetParam<DataSet>(0);
             }
@@ -137,6 +131,14 @@ namespace Milimoe.FunGame.Desktop.Model
         {
             Working = true;
             Work = default;
+        }
+
+        private static new void WaitForWorkDone()
+        {
+            while (true)
+            {
+                if (!Working) break;
+            }
         }
     }
 }

@@ -6,13 +6,13 @@ using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Component;
 using Milimoe.FunGame.Desktop.UI;
+using System.Collections.Generic;
 
 namespace Milimoe.FunGame.Desktop.Model
 {
     public class MainModel : BaseModel
     {
         private readonly Main Main;
-        private string LastSendTalkMessage = "";
 
         public MainModel(Main main) : base(RunTime.Socket)
         {
@@ -21,55 +21,76 @@ namespace Milimoe.FunGame.Desktop.Model
 
         #region 公开方法
         
-        public bool LogOut()
+        public async Task<bool> LogOut()
         {
             try
             {
                 // 需要当时登录给的Key发回去，确定是账号本人在操作才允许登出
                 if (Config.Guid_LoginKey != Guid.Empty)
                 {
+                    SetWorking();
                     if (RunTime.Socket?.Send(SocketMessageType.Logout, Config.Guid_LoginKey) == SocketResult.Success)
                     {
-                        return true;
+                        string msg = "";
+                        Guid key = Guid.Empty;
+                        (msg, key) = await Task.Factory.StartNew(SocketHandler_LogOut);
+                        if (key != Guid.Empty)
+                        {
+                            Config.Guid_LoginKey = Guid.Empty;
+                            Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
+                            return true;
+                        }
                     }
                 }
-                else throw new CanNotLogOutException();
+                throw new CanNotLogOutException();
             }
             catch (Exception e)
             {
                 ShowMessage.ErrorMessage("无法登出您的账号，请联系服务器管理员。", "登出失败", 5);
                 Main.GetMessage(e.GetErrorInfo());
-                Main.OnFailedLogoutEvent(new GeneralEventArgs());
-                Main.OnAfterLogoutEvent(new GeneralEventArgs());
             }
             return false;
         }
 
-        public bool IntoRoom(string roomid)
+        public async Task<bool> IntoRoom(string roomid)
         {
             try
             {
+                SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.IntoRoom, roomid) == SocketResult.Success)
+                {
+                    roomid = await Task.Factory.StartNew(SocketHandler_IntoRoom);
+                    if (roomid.Trim() != "" && roomid == "-1")
+                    {
+                        Main.GetMessage($"已连接至公共聊天室。");
+                    }
+                    else
+                    {
+                        Config.FunGame_Roomid = roomid;
+                    }
                     return true;
-                else throw new CanNotIntoRoomException();
+                }
+                throw new CanNotIntoRoomException();
             }
             catch (Exception e)
             {
                 Main.GetMessage(e.GetErrorInfo());
-                RoomEventArgs args = new(roomid);
-                Main.OnFailedIntoRoomEvent(args);
-                Main.OnAfterIntoRoomEvent(args);
                 return false;
             }
         }
         
-        public bool UpdateRoom()
+        public async Task<bool> UpdateRoom()
         {
             try
             {
+                SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.UpdateRoom) == SocketResult.Success)
+                {
+                    List<string> list = await Task.Factory.StartNew(SocketHandler_UpdateRoom);
+                    Main.UpdateUI(MainInvokeType.UpdateRoom, list);
                     return true;
-                else throw new GetRoomListException();
+                }
+                throw new GetRoomListException();
             }
             catch (Exception e)
             {
@@ -82,6 +103,7 @@ namespace Milimoe.FunGame.Desktop.Model
         {
             try
             {
+                SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.QuitRoom, roomid) == SocketResult.Success)
                     return true;
                 else throw new QuitRoomException();
@@ -89,9 +111,6 @@ namespace Milimoe.FunGame.Desktop.Model
             catch (Exception e)
             {
                 Main.GetMessage(e.GetErrorInfo());
-                RoomEventArgs args = new(roomid);
-                Main.OnFailedQuitRoomEvent(args);
-                Main.OnAfterQuitRoomEvent(args);
                 return false;
             }
         }
@@ -100,35 +119,38 @@ namespace Milimoe.FunGame.Desktop.Model
         {
             try
             {
+                SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.CreateRoom) == SocketResult.Success)
                     return true;
-                else throw new QuitRoomException();
+                else throw new CreateRoomException();
             }
             catch (Exception e)
             {
                 Main.GetMessage(e.GetErrorInfo());
-                RoomEventArgs args = new();
-                Main.OnFailedCreateRoomEvent(args);
-                Main.OnAfterCreateRoomEvent(args);
                 return false;
             }
         }
 
-        public bool Chat(string msg)
+        public async Task<bool> Chat(string msg)
         {
-            LastSendTalkMessage = msg;
             try
             {
+                SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.Chat, msg) == SocketResult.Success)
-                    return true;
-                else throw new CanNotSendTalkException();
+                {
+                    string user = "";
+                    (user, msg) = await Task.Factory.StartNew(SocketHandler_Chat);
+                    if (user != Usercfg.LoginUserName)
+                    {
+                        Main.GetMessage(msg, TimeType.None);
+                        return true;
+                    }
+                }
+                throw new CanNotSendTalkException();
             }
             catch (Exception e)
             {
                 Main.GetMessage(e.GetErrorInfo());
-                SendTalkEventArgs SendTalkEventArgs = new(LastSendTalkMessage);
-                Main.OnFailedSendTalkEvent(SendTalkEventArgs);
-                Main.OnAfterSendTalkEvent(SendTalkEventArgs);
                 return false;
             }
         }
@@ -137,39 +159,19 @@ namespace Milimoe.FunGame.Desktop.Model
         {
             try
             {
-                switch (SocketObject.SocketType)
+                // 定义接收的通信类型
+                SocketMessageType[] SocketMessageTypes = new SocketMessageType[] { SocketMessageType.GetNotice, SocketMessageType.Logout, SocketMessageType.IntoRoom, SocketMessageType.QuitRoom,
+                    SocketMessageType.Chat, SocketMessageType.UpdateRoom };
+                if (SocketObject.SocketType == SocketMessageType.HeartBeat)
                 {
-                    case SocketMessageType.GetNotice:
-                        SocketHandler_GetNotice(SocketObject);
-                        break;
-
-                    case SocketMessageType.Logout:
-                        SocketHandler_LogOut(SocketObject);
-                        break;
-
-                    case SocketMessageType.HeartBeat:
-                        if ((RunTime.Socket?.Connected ?? false) && Usercfg.LoginUser != null)
-                            Main.UpdateUI(MainInvokeType.SetGreenAndPing);
-                        break;
-
-                    case SocketMessageType.IntoRoom:
-                        SocketHandler_IntoRoom(SocketObject);
-                        break;
-                        
-                    case SocketMessageType.QuitRoom:
-                        break;
-                        
-                    case SocketMessageType.Chat:
-                        SocketHandler_Chat(SocketObject);
-                        break;
-                        
-                    case SocketMessageType.UpdateRoom:
-                        SocketHandler_UpdateRoom(SocketObject);
-                        break;
-
-                    case SocketMessageType.Unknown:
-                    default:
-                        break;
+                    // 心跳包单独处理
+                    if ((RunTime.Socket?.Connected ?? false) && Usercfg.LoginUser != null)
+                        Main.UpdateUI(MainInvokeType.SetGreenAndPing);
+                }
+                else if (SocketMessageTypes.Contains(SocketObject.SocketType))
+                {
+                    Work = SocketObject;
+                    Working = false;
                 }
             }
             catch (Exception e)
@@ -182,73 +184,73 @@ namespace Milimoe.FunGame.Desktop.Model
 
         #region SocketHandler
 
-        private void SocketHandler_GetNotice(SocketObject SocketObject)
+        private (string, Guid) SocketHandler_LogOut()
         {
-            if (SocketObject.Length > 0) Config.FunGame_Notice = SocketObject.GetParam<string>(0)!;
-        }
-
-        private void SocketHandler_LogOut(SocketObject SocketObject)
-        {
-            Guid key = Guid.Empty;
             string? msg = "";
-            // 返回一个Key，如果这个Key是空的，登出失败
-            if (SocketObject.Parameters != null && SocketObject.Length > 0) key = SocketObject.GetParam<Guid>(0);
-            if (SocketObject.Parameters != null && SocketObject.Length > 1) msg = SocketObject.GetParam<string>(1);
-            if (key != Guid.Empty)
+            Guid key = Guid.Empty;
+            try
             {
-                Config.Guid_LoginKey = Guid.Empty;
-                Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
-                Main.OnSucceedLogoutEvent(new GeneralEventArgs());
+                WaitForWorkDone();
+                // 返回一个Key，如果这个Key是空的，登出失败
+                if (Work.Length > 0) key = Work.GetParam<Guid>(0);
+                if (Work.Length > 1) msg = Work.GetParam<string>(1);
             }
-            else
+            catch (Exception e)
             {
-                ShowMessage.ErrorMessage("无法登出您的账号，请联系服务器管理员。", "登出失败", 5);
-                Main.OnFailedLogoutEvent(new GeneralEventArgs());
+                Main.GetMessage(e.GetErrorInfo());
             }
-            Main.OnAfterLogoutEvent(new GeneralEventArgs());
+            msg ??= "";
+            return (msg, key);
         }
         
-        private void SocketHandler_IntoRoom(SocketObject SocketObject)
+        private string SocketHandler_IntoRoom()
         {
-            string roomid = "";
-            if (SocketObject.Length > 0) roomid = SocketObject.GetParam<string>(0)!;
-            if (roomid.Trim() != "" && roomid == "-1")
+            string? roomid = "";
+            try
             {
-                Main.GetMessage($"已连接至公共聊天室。");
+                WaitForWorkDone();
+                if (Work.Length > 0) roomid = Work.GetParam<string>(0);
             }
-            else
+            catch (Exception e)
             {
-                Config.FunGame_Roomid = roomid;
+                Main.GetMessage(e.GetErrorInfo());
             }
-            RoomEventArgs args = new(roomid);
-            Main.OnSucceedIntoRoomEvent(args);
-            Main.OnAfterIntoRoomEvent(args);
+            roomid ??= "";
+            return roomid;
         }
         
-        private void SocketHandler_UpdateRoom(SocketObject SocketObject)
+        private List<string> SocketHandler_UpdateRoom()
         {
-            List<string>? list = SocketObject.GetParam<List<string>>(0);
+            List<string>? list = null;
+            try
+            {
+                WaitForWorkDone();
+                if (Work.Length > 0) list = Work.GetParam<List<string>>(0);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo());
+            }
             list ??= new List<string>();
-            Main.UpdateUI(MainInvokeType.UpdateRoom, list);
+            return list;
         }
         
-        private void SocketHandler_Chat(SocketObject SocketObject)
+        private (string, string) SocketHandler_Chat()
         {
-            SendTalkEventArgs SendTalkEventArgs = new(LastSendTalkMessage);
-            if (SocketObject.Parameters != null && SocketObject.Length > 1)
+            string? user = "", msg = "";
+            try
             {
-                string user = SocketObject.GetParam<string>(0)!;
-                string msg = SocketObject.GetParam<string>(1)!;
-                if (user != Usercfg.LoginUserName)
-                {
-                    Main.GetMessage(msg, TimeType.None);
-                }
-                Main.OnSucceedSendTalkEvent(SendTalkEventArgs);
-                Main.OnAfterSendTalkEvent(SendTalkEventArgs);
-                return;
+                WaitForWorkDone();
+                if (Work.Length > 0) user = Work.GetParam<string>(0);
+                if (Work.Length > 1) msg = Work.GetParam<string>(1);
+            }                               
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo());
             }
-            Main.OnFailedSendTalkEvent(SendTalkEventArgs);
-            Main.OnAfterSendTalkEvent(SendTalkEventArgs);
+            user ??= "";
+            msg ??= "";
+            return (user, msg);
         }
         
         #endregion

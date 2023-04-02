@@ -95,10 +95,7 @@ namespace Milimoe.FunGame.Desktop.Model
             RegInvokeType type = RegInvokeType.None;
             try
             {
-                while (true)
-                {
-                    if (!Working) break;
-                }
+                WaitForWorkDone();
                 if (Work.Length > 0) type = Work.GetParam<RegInvokeType>(0);
             }
             catch (Exception e)
@@ -114,10 +111,7 @@ namespace Milimoe.FunGame.Desktop.Model
             string? msg = "";
             try
             {
-                while (true)
-                {
-                    if (!Working) break;
-                }
+                WaitForWorkDone();
                 if (Work.Length > 0) success = Work.GetParam<bool>(0);
                 if (Work.Length > 1) msg = Work.GetParam<string>(1) ?? "";
             }

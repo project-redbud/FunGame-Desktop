@@ -82,15 +82,15 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
 
-        public bool Close(params object[] args)
+        public bool Close(Exception? e = null)
         {
             bool result;
 
             if (Connected) Disconnect();
 
-            if (args != null && args.Length > 0)
+            if (e != null)
             {
-                RunTimeModel.Error((Exception)args[0]);
+                RunTimeModel.Error(e);
                 result = true;
             }
             else result = RunTimeModel.Close();
@@ -103,12 +103,12 @@ namespace Milimoe.FunGame.Desktop.Controller
             return Close(e);
         }
 
-        public async Task AutoLogin(params object[] objs)
+        public async Task AutoLogin(string Username, string Password, string AutoKey)
         {
             try
             {
                 LoginController LoginController = new();
-                await LoginController.LoginAccount(objs);
+                await LoginController.LoginAccount(Username, Password, AutoKey);
                 LoginController.Dispose();
             }
             catch (Exception e)

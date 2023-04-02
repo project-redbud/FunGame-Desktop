@@ -667,7 +667,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// 发送消息实现
         /// </summary>
         /// <param name="isLeave">是否离开焦点</param>
-        private void SendTalkText_Click(bool isLeave)
+        private async void SendTalkText_Click(bool isLeave)
         {
             // 向消息队列发送消息
             string text = TalkText.Text;
@@ -683,9 +683,9 @@ namespace Milimoe.FunGame.Desktop.UI
                     msg = DateTimeUtility.GetNowShortTime() + " [ " + Usercfg.LoginUserName + " ] 说： " + text;
                 }
                 WritelnGameInfo(msg);
-                if (Usercfg.LoginUser != null && !SwitchTalkMessage(text))
+                if (Usercfg.LoginUser != null && !await SwitchTalkMessage(text))
                 {
-                    MainController?.Chat(" [ " + Usercfg.LoginUserName + " ] 说： " + text);
+                    _ = MainController?.Chat(" [ " + Usercfg.LoginUserName + " ] 说： " + text);
                 }
                 TalkText.Text = "";
                 if (isLeave) TalkText_Leave(); // 回车不离开焦点
@@ -967,11 +967,11 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Logout_Click(object sender, EventArgs e)
+        private async void Logout_Click(object sender, EventArgs e)
         {
             if (ShowMessage.OKCancelMessage("你确定要退出登录吗？", "退出登录") == MessageResult.OK)
             {
-                if (MainController == null || !MainController.LogOut())
+                if (MainController == null || !await MainController.LogOut())
                     ShowMessage.WarningMessage("请求无效：退出登录失败！");
             }
         }
@@ -1152,14 +1152,14 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void PresetText_SelectedIndexChanged(object sender, EventArgs e)
+        private async void PresetText_SelectedIndexChanged(object sender, EventArgs e)
         {
             // 发送快捷消息并执行功能
             if (PresetText.SelectedIndex != 0)
             {
                 string s = PresetText.SelectedItem.ToString();
                 SendTalkText_Click(s);
-                SwitchTalkMessage(s);
+                await SwitchTalkMessage(s);
                 PresetText.SelectedIndex = 0;
             }
         }
@@ -1218,9 +1218,9 @@ namespace Milimoe.FunGame.Desktop.UI
         private EventResult SucceedLoginEvent(object sender, GeneralEventArgs e)
         {
             // 接入-1号房间聊天室
-            MainController?.IntoRoom("-1");
+            _ = MainController?.IntoRoom("-1");
             // 获取在线的房间列表
-            MainController?.UpdateRoom();
+            _ = MainController?.UpdateRoom();
             return EventResult.Success;
         }
 
@@ -1249,7 +1249,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// 判断快捷消息
         /// </summary>
         /// <param name="s"></param>
-        private bool SwitchTalkMessage(string s)
+        private async Task<bool> SwitchTalkMessage(string s)
         {
             switch (s)
             {
@@ -1321,7 +1321,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     if (Config.FunGame_isConnected && MainController != null)
                     {
                         // 先退出登录再断开连接
-                        if (MainController?.LogOut() ?? false) RunTime.Connector?.Disconnect();
+                        if (MainController != null && await MainController.LogOut()) RunTime.Connector?.Disconnect();
                     }
                     break;
                 case Constant.FunGame_DisconnectWhenNotLogin:
