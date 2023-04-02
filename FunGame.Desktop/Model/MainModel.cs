@@ -34,7 +34,7 @@ namespace Milimoe.FunGame.Desktop.Model
                         string msg = "";
                         Guid key = Guid.Empty;
                         (msg, key) = await Task.Factory.StartNew(SocketHandler_LogOut);
-                        if (key != Guid.Empty)
+                        if (key == Config.Guid_LoginKey)
                         {
                             Config.Guid_LoginKey = Guid.Empty;
                             Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
@@ -145,6 +145,7 @@ namespace Milimoe.FunGame.Desktop.Model
                         Main.GetMessage(msg, TimeType.None);
                         return true;
                     }
+                    else return false;
                 }
                 throw new CanNotSendTalkException();
             }
@@ -167,6 +168,20 @@ namespace Milimoe.FunGame.Desktop.Model
                     // 心跳包单独处理
                     if ((RunTime.Socket?.Connected ?? false) && Usercfg.LoginUser != null)
                         Main.UpdateUI(MainInvokeType.SetGreenAndPing);
+                }
+                else if (SocketObject.SocketType == SocketMessageType.ForceLogout)
+                {
+                    // 服务器强制下线登录
+                    Guid key = Guid.Empty;
+                    string? msg = "";
+                    if (SocketObject.Length > 0) key = SocketObject.GetParam<Guid>(0);
+                    if (SocketObject.Length > 1) msg = SocketObject.GetParam<string>(1);
+                    msg ??= "";
+                    if (key == Config.Guid_LoginKey)
+                    {
+                        Config.Guid_LoginKey = Guid.Empty;
+                        Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
+                    }
                 }
                 else if (SocketMessageTypes.Contains(SocketObject.SocketType))
                 {
