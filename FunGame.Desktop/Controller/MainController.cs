@@ -3,14 +3,12 @@ using Milimoe.FunGame.Core.Library.Common.Architecture;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.UI;
-using Milimoe.FunGame.Desktop.Library;
+using Milimoe.FunGame.Core.Library.Exception;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
     public class MainController : BaseController
     {
-        public bool Connected => Do<bool>(MainInvokeType.Connected);
-
         private MainModel MainModel { get; }
         private Main Main { get; }
 
@@ -25,83 +23,127 @@ namespace Milimoe.FunGame.Desktop.Controller
             MainModel.Dispose();
         }
 
-        /**
-         * 从内部去调用Model的方法，并记录日志。
-         */
-        private T Do<T>(MainInvokeType DoType, params object[] args)
+        public async Task<bool> LogOut()
         {
-            object result = new();
-            switch(DoType)
+            bool result = false;
+
+            try
             {
-                case MainInvokeType.LogOut:
-                    if (Main.OnBeforeLogoutEvent(new GeneralEventArgs()) == EventResult.Fail) return (T)result;
-                    result = MainModel.LogOut();
-                    break;
+                GeneralEventArgs EventArgs = new();
+                if (Main.OnBeforeLogoutEvent(EventArgs) == EventResult.Fail) return result;
 
-                case MainInvokeType.IntoRoom:
-                    string roomid = new("-1");
-                    if (args != null && args.Length > 0) roomid = (string)args[0];
-                    if (Main.OnBeforeIntoRoomEvent(new RoomEventArgs(roomid)) == EventResult.Fail) return (T)result;
-                    result = MainModel.IntoRoom(roomid);
-                    break;
+                result = await MainModel.LogOut();
 
-                case MainInvokeType.UpdateRoom:
-                    result = MainModel.UpdateRoom();
-                    break;
-                    
-                case MainInvokeType.QuitRoom:
-                    roomid = new("-1");
-                    if (args != null && args.Length > 0) roomid = (string)args[0];
-                    if (Main.OnBeforeQuitRoomEvent(new RoomEventArgs(roomid)) == EventResult.Fail) return (T)result;
-                    result = MainModel.QuitRoom(roomid);
-                    break;
-                    
-                case MainInvokeType.CreateRoom:
-                    if (Main.OnBeforeCreateRoomEvent(new RoomEventArgs()) == EventResult.Fail) return (T)result;
-                    result = MainModel.CreateRoom();
-                    break;
-                    
-                case MainInvokeType.Chat:
-                    string msg = "";
-                    if (args != null && args.Length > 0) msg = (string)args[0];
-                    if (Main.OnBeforeSendTalkEvent(new SendTalkEventArgs(msg)) == EventResult.Fail) return (T)result;
-                    if (msg.Trim() != "") result = MainModel.Chat(msg);
-                    break;
-
-                default:
-                    break;
+                if (result) Main.OnSucceedLogoutEvent(EventArgs);
+                else Main.OnFailedLogoutEvent(EventArgs);
+                Main.OnAfterLogoutEvent(EventArgs);
             }
-            return (T)result;
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return result;
         }
 
-        public bool LogOut()
+        public async Task<bool> UpdateRoom()
         {
-            return Do<bool>(MainInvokeType.LogOut);
+            return await MainModel.UpdateRoom();
         }
 
-        public bool UpdateRoom()
+        public async Task<bool> IntoRoom(string roomid)
         {
-            return Do<bool>(MainInvokeType.UpdateRoom);
-        }
+            bool result = false;
 
-        public bool IntoRoom(string roomid)
-        {
-            return Do<bool>(MainInvokeType.IntoRoom, roomid);
+            try
+            {
+                RoomEventArgs EventArgs = new(roomid);
+                if (Main.OnBeforeIntoRoomEvent(EventArgs) == EventResult.Fail) return result;
+
+                result = await MainModel.IntoRoom(roomid);
+
+                if (result) Main.OnSucceedIntoRoomEvent(EventArgs);
+                else Main.OnFailedIntoRoomEvent(EventArgs);
+                Main.OnAfterIntoRoomEvent(EventArgs);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return result;
         }
         
         public bool QuitRoom(string roomid)
         {
-            return Do<bool>(MainInvokeType.QuitRoom, roomid);
+            bool result = false;
+
+            try
+            {
+                RoomEventArgs EventArgs = new(roomid);
+                if (Main.OnBeforeQuitRoomEvent(EventArgs) == EventResult.Fail) return result;
+
+                result = MainModel.QuitRoom(roomid);
+
+                if (result) Main.OnSucceedQuitRoomEvent(EventArgs);
+                else Main.OnFailedQuitRoomEvent(EventArgs);
+                Main.OnAfterQuitRoomEvent(EventArgs);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return result;
         }
         
         public bool CreateRoom()
         {
-            return Do<bool>(MainInvokeType.CreateRoom);
+            bool result = false;
+
+            try
+            {
+                RoomEventArgs EventArgs = new();
+                if (Main.OnBeforeCreateRoomEvent(EventArgs) == EventResult.Fail) return result;
+
+                result = MainModel.CreateRoom();
+
+                if (result) Main.OnSucceedCreateRoomEvent(EventArgs);
+                else Main.OnFailedCreateRoomEvent(EventArgs);
+                Main.OnAfterCreateRoomEvent(EventArgs);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return result;
         }
 
-        public bool Chat(string msg)
+        public async Task<bool> Chat(string msg)
         {
-            return Do<bool>(MainInvokeType.Chat, msg);
+            bool result = false;
+
+            try
+            {
+                SendTalkEventArgs EventArgs = new(msg);
+                if (Main.OnBeforeSendTalkEvent(EventArgs) == EventResult.Fail) return result;
+
+                if (msg.Trim() != "")
+                {
+                    result = await MainModel.Chat(msg);
+                }
+
+                if (result) Main.OnSucceedSendTalkEvent(EventArgs);
+                else Main.OnFailedSendTalkEvent(EventArgs);
+                Main.OnAfterSendTalkEvent(EventArgs);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+            
+            return result;
         }
     }
 }
