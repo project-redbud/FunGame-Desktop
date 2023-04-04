@@ -11,11 +11,9 @@ namespace Milimoe.FunGame.Desktop.Model
 {
     public class RegisterModel : BaseModel
     {
-        private readonly Register Register;
-
-        public RegisterModel(Register reg) : base(RunTime.Socket)
+        public RegisterModel() : base(RunTime.Socket)
         {
-            Register = reg;
+            
         }
 
         public override void SocketHandler(SocketObject SocketObject)

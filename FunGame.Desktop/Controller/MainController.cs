@@ -74,7 +74,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
         
-        public bool QuitRoom(string roomid)
+        public async Task<bool> QuitRoom(string roomid)
         {
             bool result = false;
 
@@ -83,7 +83,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 RoomEventArgs EventArgs = new(roomid);
                 if (Main.OnBeforeQuitRoomEvent(EventArgs) == EventResult.Fail) return result;
 
-                result = MainModel.QuitRoom(roomid);
+                result = await MainModel.QuitRoom(roomid);
 
                 if (result) Main.OnSucceedQuitRoomEvent(EventArgs);
                 else Main.OnFailedQuitRoomEvent(EventArgs);

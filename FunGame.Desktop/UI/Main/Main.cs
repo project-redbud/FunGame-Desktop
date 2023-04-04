@@ -935,11 +935,19 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void QuitRoom_Click(object sender, EventArgs e)
+        private async void QuitRoom_Click(object sender, EventArgs e)
         {
-            WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 离开房间");
-            WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已离开房间 -> [ " + Config.FunGame_Roomid + " ]");
-            InMain();
+            if (MainController != null)
+            {
+                if ((await MainController.QuitRoom(Config.FunGame_Roomid)))
+                {
+                    WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 离开房间");
+                    WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已离开房间 -> [ " + Config.FunGame_Roomid + " ]");
+                    InMain();
+                    return;
+                }
+            }
+            ShowMessage.ErrorMessage("无法退出房间！", "退出房间");
         }
 
         /// <summary>

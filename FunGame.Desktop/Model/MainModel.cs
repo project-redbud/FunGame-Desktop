@@ -99,14 +99,20 @@ namespace Milimoe.FunGame.Desktop.Model
             }
         }
         
-        public bool QuitRoom(string roomid)
+        public async Task<bool> QuitRoom(string roomid)
         {
             try
             {
                 SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.QuitRoom, roomid) == SocketResult.Success)
-                    return true;
-                else throw new QuitRoomException();
+                {
+                    bool result = await Task.Factory.StartNew(SocketHandler_QuitRoom);
+                    if (result)
+                    {
+                        Config.FunGame_Roomid = "-1";
+                    }
+                }
+                throw new QuitRoomException();
             }
             catch (Exception e)
             {
@@ -121,8 +127,10 @@ namespace Milimoe.FunGame.Desktop.Model
             {
                 SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.CreateRoom) == SocketResult.Success)
-                    return true;
-                else throw new CreateRoomException();
+                {
+                    
+                }
+                throw new CreateRoomException();
             }
             catch (Exception e)
             {
@@ -234,6 +242,21 @@ namespace Milimoe.FunGame.Desktop.Model
             return roomid;
         }
         
+        private bool SocketHandler_QuitRoom()
+        {
+            bool result = false;
+            try
+            {
+                WaitForWorkDone();
+                if (Work.Length > 0) result = Work.GetParam<bool>(0);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo());
+            }
+            return result;
+        }
+        
         private List<string> SocketHandler_UpdateRoom()
         {
             List<string>? list = null;
@@ -267,7 +290,7 @@ namespace Milimoe.FunGame.Desktop.Model
             msg ??= "";
             return (user, msg);
         }
-        
+
         #endregion
     }
 }
