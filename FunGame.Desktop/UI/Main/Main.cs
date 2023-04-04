@@ -443,30 +443,13 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="isDouble"></param>
         /// <param name="roomid"></param>
-        private void JoinRoom(bool isDouble, string roomid)
+        private async Task<bool> JoinRoom(bool isDouble, string roomid)
         {
             if (!isDouble)
+            {
                 if (!RoomText.Text.Equals("") && !RoomText.ForeColor.Equals(Color.DarkGray))
                 {
-                    if (CheckRoomIDExist(roomid))
-                    {
-                        if (Config.FunGame_Roomid.Equals("-1"))
-                        {
-                            if (ShowMessage.YesNoMessage("已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
-                            {
-                                SetRoomid(roomid);
-                                InRoom();
-                            }
-                        }
-                        else
-                        {
-                            ShowMessage.TipMessage("你需要先退出房间才可以加入新的房间。");
-                        }
-                    }
-                    else
-                    {
-                        ShowMessage.WarningMessage("未找到此房间！");
-                    }
+                    return await JoinRoom_Handler(roomid);
                 }
                 else
                 {
@@ -474,29 +457,46 @@ namespace Milimoe.FunGame.Desktop.UI
                     ShowMessage.TipMessage("请输入房间号。");
                     RoomText.Enabled = true;
                     RoomText.Focus();
+                    return false;
                 }
+            }
             else
             {
-                if (CheckRoomIDExist(roomid))
+                return await JoinRoom_Handler(roomid);
+            }
+        }
+
+        /// <summary>
+        /// 重复处理加入房间的方法
+        /// </summary>
+        /// <param name="roomid"></param>
+        /// <returns></returns>
+        private async Task<bool> JoinRoom_Handler(string roomid)
+        {
+            if (CheckRoomIDExist(roomid))
+            {
+                if (Config.FunGame_Roomid.Equals("-1"))
                 {
-                    if (Config.FunGame_Roomid.Equals("-1"))
+                    if (ShowMessage.YesNoMessage("已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
                     {
-                        if (ShowMessage.YesNoMessage("已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
+                        if (MainController != null && await MainController.IntoRoom(roomid))
                         {
                             SetRoomid(roomid);
                             InRoom();
+                            return true;
                         }
-                    }
-                    else
-                    {
-                        ShowMessage.TipMessage("你需要先退出房间才可以加入新的房间。");
                     }
                 }
                 else
                 {
-                    ShowMessage.WarningMessage("未找到此房间！");
+                    ShowMessage.TipMessage("你需要先退出房间才可以加入新的房间。");
                 }
             }
+            else
+            {
+                ShowMessage.WarningMessage("未找到此房间！");
+            }
+            return false;
         }
 
         /// <summary>
@@ -667,7 +667,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// 发送消息实现
         /// </summary>
         /// <param name="isLeave">是否离开焦点</param>
-        private async void SendTalkText_Click(bool isLeave)
+        private async Task SendTalkText_Click(bool isLeave)
         {
             // 向消息队列发送消息
             string text = TalkText.Text;
@@ -685,7 +685,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 WritelnGameInfo(msg);
                 if (Usercfg.LoginUser != null && !await SwitchTalkMessage(text))
                 {
-                    _ = MainController?.Chat(" [ " + Usercfg.LoginUserName + " ] 说： " + text);
+                    MainController?.Chat(" [ " + Usercfg.LoginUserName + " ] 说： " + text);
                 }
                 TalkText.Text = "";
                 if (isLeave) TalkText_Leave(); // 回车不离开焦点
@@ -762,6 +762,21 @@ namespace Milimoe.FunGame.Desktop.UI
                     WritelnGameInfo(">> 创建" + roomtype + "房间成功！房间号： " + roomid);
                     ShowMessage.Message("创建" + roomtype + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
                     break;
+            }
+        }
+
+        /// <summary>
+        /// 登录成功后的处理
+        /// </summary>
+        /// <returns></returns>
+        private async Task SucceedLoginEvent_Handler()
+        {
+            if (MainController != null)
+            {
+                // 接入-1号房间聊天室
+                await MainController.IntoRoom("-1");
+                // 获取在线的房间列表
+                await MainController.UpdateRoom();
             }
         }
 
@@ -965,9 +980,9 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void QueryRoom_Click(object sender, EventArgs e)
+        private async void QueryRoom_Click(object sender, EventArgs e)
         {
-            JoinRoom(false, RoomText.Text);
+            await JoinRoom(false, RoomText.Text);
         }
 
         /// <summary>
@@ -1012,11 +1027,12 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void RoomList_MouseDoubleClick(object sender, MouseEventArgs e)
+        private async void RoomList_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            #pragma warning disable CS8600, CS8604
             if (RoomList.SelectedItem != null)
-                JoinRoom(true, RoomList.SelectedItem.ToString());
+            {
+                await JoinRoom(true, RoomList.SelectedItem.ToString() ?? "");
+            }
         }
 
         /// <summary>
@@ -1024,9 +1040,9 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SendTalkText_Click(object sender, EventArgs e)
+        private async void SendTalkText_Click(object sender, EventArgs e)
         {
-            SendTalkText_Click(true);
+            await SendTalkText_Click(true);
         }
 
         /// <summary>
@@ -1095,13 +1111,13 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void RoomText_KeyUp(object sender, KeyEventArgs e)
+        private async void RoomText_KeyUp(object sender, KeyEventArgs e)
         {
             RoomText.ForeColor = Color.Black;
             if (e.KeyCode.Equals(Keys.Enter))
             {
                 // 按下回车加入房间
-                JoinRoom(false, RoomText.Text);
+                await JoinRoom(false, RoomText.Text);
             }
         }
 
@@ -1134,13 +1150,13 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void TalkText_KeyUp(object sender, KeyEventArgs e)
+        private async void TalkText_KeyUp(object sender, KeyEventArgs e)
         {
             TalkText.ForeColor = Color.Black;
             if (e.KeyCode.Equals(Keys.Enter))
             {
                 // 按下回车发送
-                SendTalkText_Click(false);
+                await SendTalkText_Click(false);
             }
         }
 
@@ -1165,7 +1181,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 发送快捷消息并执行功能
             if (PresetText.SelectedIndex != 0)
             {
-                string s = PresetText.SelectedItem.ToString();
+                string s = PresetText.SelectedItem.ToString() ?? "";
                 SendTalkText_Click(s);
                 await SwitchTalkMessage(s);
                 PresetText.SelectedIndex = 0;
@@ -1225,10 +1241,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         private EventResult SucceedLoginEvent(object sender, GeneralEventArgs e)
         {
-            // 接入-1号房间聊天室
-            _ = MainController?.IntoRoom("-1");
-            // 获取在线的房间列表
-            _ = MainController?.UpdateRoom();
+            _ = SucceedLoginEvent_Handler();
             return EventResult.Success;
         }
 

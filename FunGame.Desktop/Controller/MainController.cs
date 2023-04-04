@@ -120,7 +120,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
 
-        public async Task<bool> Chat(string msg)
+        public bool Chat(string msg)
         {
             bool result = false;
 
@@ -131,7 +131,7 @@ namespace Milimoe.FunGame.Desktop.Controller
 
                 if (msg.Trim() != "")
                 {
-                    result = await MainModel.Chat(msg);
+                    result = MainModel.Chat(msg);
                 }
 
                 if (result) Main.OnSucceedSendTalkEvent(EventArgs);
