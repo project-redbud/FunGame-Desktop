@@ -97,18 +97,18 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
         
-        public bool CreateRoom()
+        public async Task<string> CreateRoom(string RoomType, string Password = "")
         {
-            bool result = false;
+            string result = "";
 
             try
             {
                 RoomEventArgs EventArgs = new();
                 if (Main.OnBeforeCreateRoomEvent(EventArgs) == EventResult.Fail) return result;
 
-                result = MainModel.CreateRoom();
+                result = await MainModel.CreateRoom(RoomType, Password);
 
-                if (result) Main.OnSucceedCreateRoomEvent(EventArgs);
+                if (result.Trim() != "") Main.OnSucceedCreateRoomEvent(EventArgs);
                 else Main.OnFailedCreateRoomEvent(EventArgs);
                 Main.OnAfterCreateRoomEvent(EventArgs);
             }

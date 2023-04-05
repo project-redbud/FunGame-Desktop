@@ -124,21 +124,25 @@ namespace Milimoe.FunGame.Desktop.Model
             }
         }
         
-        public bool CreateRoom()
+        public async Task<string> CreateRoom(string RoomType, string Password = "")
         {
             try
             {
                 SetWorking();
-                if (RunTime.Socket?.Send(SocketMessageType.CreateRoom) == SocketResult.Success)
+                if (RunTime.Socket?.Send(SocketMessageType.CreateRoom, RoomType, Usercfg.LoginUser?.Id ?? 0, Password) == SocketResult.Success)
                 {
-                    
+                    string roomid = await Task.Factory.StartNew(SocketHandler_CreateRoom);
+                    if (roomid.Trim() != "")
+                    {
+                        return roomid;
+                    }
                 }
                 throw new CreateRoomException();
             }
             catch (Exception e)
             {
                 Main.GetMessage(e.GetErrorInfo());
-                return false;
+                return "";
             }
         }
 
@@ -165,7 +169,7 @@ namespace Milimoe.FunGame.Desktop.Model
             {
                 // 定义接收的通信类型
                 SocketMessageType[] SocketMessageTypes = new SocketMessageType[] { SocketMessageType.GetNotice, SocketMessageType.Logout, SocketMessageType.IntoRoom, SocketMessageType.QuitRoom,
-                    SocketMessageType.Chat, SocketMessageType.UpdateRoom };
+                    SocketMessageType.Chat, SocketMessageType.UpdateRoom, SocketMessageType.CreateRoom };
                 if (SocketObject.SocketType == SocketMessageType.HeartBeat)
                 {
                     // 心跳包单独处理
@@ -233,6 +237,22 @@ namespace Milimoe.FunGame.Desktop.Model
         }
         
         private string SocketHandler_IntoRoom()
+        {
+            string? roomid = "";
+            try
+            {
+                WaitForWorkDone();
+                if (Work.Length > 0) roomid = Work.GetParam<string>(0);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo());
+            }
+            roomid ??= "";
+            return roomid;
+        }
+        
+        private string SocketHandler_CreateRoom()
         {
             string? roomid = "";
             try

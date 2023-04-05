@@ -34,7 +34,6 @@ namespace Milimoe.FunGame.Desktop.UI
          * 子线程操作窗体控件时，先实例化Action，然后Invoke传递出去。
          */
         Action<int, object[]?>? StartMatch_Action = null;
-        Action<int, object[]?>? CreateRoom_Action = null;
 
         public Main()
         {
@@ -699,6 +698,29 @@ namespace Milimoe.FunGame.Desktop.UI
             }
         }
 
+        private async Task CreateRoom_Handler(string RoomType, string Password = "")
+        {
+            if (Config.FunGame_Roomid != "-1")
+            {
+                ShowMessage.WarningMessage("已在房间中，无法创建房间。");
+                return;
+            }
+            if (MainController != null)
+            {
+                string roomid = (await MainController.CreateRoom(RoomType)).Trim();
+                if (roomid != "" && roomid != "-1" && await MainController.IntoRoom(roomid))
+                {
+                    SetRoomid(roomid);
+                    InRoom();
+                    WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + RoomType + "房间");
+                    WritelnGameInfo(">> 创建" + RoomType + "房间成功！房间号： " + roomid);
+                    ShowMessage.Message("创建" + RoomType + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
+                    return;
+                }
+            }
+            ShowMessage.Message("创建" + RoomType + "房间失败！", "创建失败");
+        }
+
         /// <summary>
         /// 发送消息实现，往消息队列发送消息
         /// </summary>
@@ -717,51 +739,6 @@ namespace Milimoe.FunGame.Desktop.UI
             {
                 TalkText.ForeColor = Color.DarkGray;
                 TalkText.Text = "向消息队列发送消息...";
-            }
-        }
-
-        /// <summary>
-        /// 这里实现创建房间相关的方法
-        /// </summary>
-        /// <param name="i">主要参数：触发方法的哪一个分支</param>
-        /// <param name="objs">可传多个参数</param>
-        private void CreateRoom_Method(int i, object[]? objs = null)
-        {
-            if (!Config.FunGame_Roomid.Equals("-1"))
-            {
-                ShowMessage.WarningMessage("已在房间中，无法创建房间。");
-                return;
-            }
-            string roomid = "";
-            string roomtype = "";
-            if (objs != null)
-            {
-                roomtype = (string)objs[0];
-            }
-            switch (i)
-            {
-                case (int)CreateRoomState.Creating:
-                    CreateRoom_Action = (i, objs) =>
-                    {
-                        CreateRoom_Method(i, objs);
-                    };
-                    if (InvokeRequired)
-                    {
-                        Invoke(CreateRoom_Action, (int)CreateRoomState.Success, new object[] { roomtype });
-                    }
-                    else
-                    {
-                        CreateRoom_Action((int)CreateRoomState.Success, new object[] { roomtype });
-                    }
-                    break;
-                case (int)CreateRoomState.Success:
-                    roomid = Convert.ToString(new Random().Next(1, 10000));
-                    SetRoomid(roomid);
-                    InRoom();
-                    WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + roomtype + "房间");
-                    WritelnGameInfo(">> 创建" + roomtype + "房间成功！房间号： " + roomid);
-                    ShowMessage.Message("创建" + roomtype + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
-                    break;
             }
         }
 
@@ -902,9 +879,10 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CreateRoom_Click(object sender, EventArgs e)
+        private async void CreateRoom_Click(object sender, EventArgs e)
         {
             string roomtype = "";
+            string password = "";
             if (Config.Match_Mix && Config.Match_Team)
             {
                 ShowMessage.WarningMessage("创建房间不允许同时勾选混战和团队！");
@@ -912,37 +890,35 @@ namespace Milimoe.FunGame.Desktop.UI
             }
             else if (Config.Match_Mix && !Config.Match_Team && !Config.Match_HasPass)
             {
-                roomtype = Constant.GameMode_Mix;
+                roomtype = GameMode.GameMode_Mix;
             }
             else if (!Config.Match_Mix && Config.Match_Team && !Config.Match_HasPass)
             {
-                roomtype = Constant.GameMode_Team;
+                roomtype = GameMode.GameMode_Team;
             }
             else if (Config.Match_Mix && !Config.Match_Team && Config.Match_HasPass)
             {
-                roomtype = Constant.GameMode_MixHasPass;
+                roomtype = GameMode.GameMode_MixHasPass;
             }
             else if (!Config.Match_Mix && Config.Match_Team && Config.Match_HasPass)
             {
-                roomtype = Constant.GameMode_TeamHasPass;
+                roomtype = GameMode.GameMode_TeamHasPass;
+            }
+            if (Config.Match_HasPass)
+            {
+                password = ShowMessage.InputMessage("请输入该房间的密码：", "创建密码房间").Trim();
+                if (password == "" || password.Length > 10)
+                {
+                    ShowMessage.WarningMessage("密码无效！密码不能为空或大于10个字符。");
+                    return;
+                }
             }
             if (roomtype.Equals(""))
             {
                 ShowMessage.WarningMessage("请勾选你要创建的房间类型！");
                 return;
             }
-            CreateRoom_Action = (i, objs) =>
-            {
-                CreateRoom_Method(i, objs);
-            };
-            if (InvokeRequired)
-            {
-                Invoke(CreateRoom_Action, (int)CreateRoomState.Creating, new object[] { roomtype });
-            }
-            else
-            {
-                CreateRoom_Action((int)CreateRoomState.Creating, new object[] { roomtype });
-            }
+            await CreateRoom_Handler(roomtype, password);
         }
 
         /// <summary>
@@ -954,10 +930,11 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (MainController != null)
             {
-                if ((await MainController.QuitRoom(Config.FunGame_Roomid)))
+                string roomid = Config.FunGame_Roomid;
+                if (await MainController.QuitRoom(roomid))
                 {
                     WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 离开房间");
-                    WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已离开房间 -> [ " + Config.FunGame_Roomid + " ]");
+                    WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已离开房间 -> [ " + roomid + " ]");
                     InMain();
                     return;
                 }
@@ -1283,32 +1260,10 @@ namespace Milimoe.FunGame.Desktop.UI
                 case Constant.FunGame_ShowStore:
                     break;
                 case Constant.FunGame_CreateMix:
-                    CreateRoom_Action = (i, objs) =>
-                    {
-                        CreateRoom_Method(i, objs);
-                    };
-                    if (InvokeRequired)
-                    {
-                        Invoke(CreateRoom_Action, (int)CreateRoomState.Creating, new object[] { Constant.GameMode_Mix });
-                    }
-                    else
-                    {
-                        CreateRoom_Action((int)CreateRoomState.Creating, new object[] { Constant.GameMode_Mix });
-                    }
+                    await CreateRoom_Handler(GameMode.GameMode_Mix);
                     break;
                 case Constant.FunGame_CreateTeam:
-                    CreateRoom_Action = (i, objs) =>
-                    {
-                        CreateRoom_Method(i, objs);
-                    };
-                    if (InvokeRequired)
-                    {
-                        Invoke(CreateRoom_Action, (int)CreateRoomState.Creating, new object[] { Constant.GameMode_Team });
-                    }
-                    else
-                    {
-                        CreateRoom_Action((int)CreateRoomState.Creating, new object[] { Constant.GameMode_Team });
-                    }
+                    await CreateRoom_Handler(GameMode.GameMode_Team);
                     break;
                 case Constant.FunGame_StartGame:
                     break;

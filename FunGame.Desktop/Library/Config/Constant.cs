@@ -20,11 +20,6 @@ namespace Milimoe.FunGame.Desktop.Library
         /**
          * FunGame Configs
          */
-        public const string GameMode_Mix = "混战模式";
-        public const string GameMode_Team = "团队模式";
-        public const string GameMode_MixHasPass = "带密码的混战模式";
-        public const string GameMode_TeamHasPass = "带密码的团队模式";
-
         public const string FunGame_PresetMessage = "- 快捷消息 -";
         public const string FunGame_SignIn = "签到";
         public const string FunGame_ShowCredits = "积分";
