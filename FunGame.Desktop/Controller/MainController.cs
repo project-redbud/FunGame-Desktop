@@ -4,6 +4,7 @@ using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.UI;
 using Milimoe.FunGame.Core.Library.Exception;
+using Milimoe.FunGame.Desktop.Library;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
@@ -31,6 +32,11 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 GeneralEventArgs EventArgs = new();
                 if (Main.OnBeforeLogoutEvent(EventArgs) == EventResult.Fail) return result;
+
+                if (Config.FunGame_Roomid != "-1")
+                {
+                    await MainModel.QuitRoom(Config.FunGame_Roomid);
+                }
 
                 result = await MainModel.LogOut();
 

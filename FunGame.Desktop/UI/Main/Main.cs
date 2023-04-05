@@ -8,6 +8,7 @@ using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Base;
 using Milimoe.FunGame.Desktop.Library.Component;
+using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.Utility;
 
 namespace Milimoe.FunGame.Desktop.UI
@@ -203,6 +204,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.UpdateRoom:
                             if (objs != null && objs.Length > 0)
                             {
+                                RoomList.Items.Clear();
                                 List<string> list = (List<string>)objs[0];
                                 RoomList.Items.AddRange(list.ToArray());
                             }
@@ -820,6 +822,14 @@ namespace Milimoe.FunGame.Desktop.UI
             RunTime.UserCenter?.Close();
         }
 
+        /// <summary>
+        /// 退出游戏时处理
+        /// </summary>
+        private void ExitFunGame()
+        {
+            
+        }
+
         #endregion
 
         #region 事件
@@ -833,6 +843,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (ShowMessage.OKCancelMessage("你确定关闭游戏？", "退出") == (int)MessageResult.OK)
             {
+                _ = MainController?.LogOut();
                 RunTime.Connector?.Close();
                 Environment.Exit(0);
             }
