@@ -18,20 +18,19 @@ namespace Milimoe.FunGame.Desktop.UI
         #region 变量定义
 
         /**
-         * 定义全局变量
+         * 属性
          */
         public int MaxRetryTimes { get; } = SocketSet.MaxRetryTimes; // 最大重试连接次数
         public int CurrentRetryTimes { get; set; } = -1; // 当前重试连接次数
 
         /**
-         * 定义全局对象
+         * 变量
          */
         private Task? MatchFunGame = null; // 匹配线程
         private MainController? MainController = null;
 
         /**
-         * 定义委托
-         * 子线程操作窗体控件时，先实例化Action，然后Invoke传递出去。
+         * 委托【即将删除】
          */
         Action<int, object[]?>? StartMatch_Action = null;
 
@@ -472,29 +471,31 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         private async Task<bool> JoinRoom_Handler(string roomid)
         {
-            if (CheckRoomIDExist(roomid))
+            if (MainController != null)
             {
-                if (Config.FunGame_Roomid.Equals("-1"))
+                await MainController.UpdateRoom();
+                if (CheckRoomIDExist(roomid))
                 {
-                    if (ShowMessage.YesNoMessage("已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
+                    if (Config.FunGame_Roomid.Equals("-1"))
                     {
-                        if (MainController != null && await MainController.IntoRoom(roomid))
+                        if (ShowMessage.YesNoMessage("已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
                         {
-                            SetRoomid(roomid);
-                            InRoom();
-                            return true;
+                            if (MainController != null && await MainController.IntoRoom(roomid))
+                            {
+                                SetRoomid(roomid);
+                                InRoom();
+                                return true;
+                            }
                         }
                     }
-                }
-                else
-                {
-                    ShowMessage.TipMessage("你需要先退出房间才可以加入新的房间。");
+                    else
+                    {
+                        ShowMessage.TipMessage("你需要先退出房间才可以加入新的房间。");
+                        return false;
+                    }
                 }
             }
-            else
-            {
-                ShowMessage.WarningMessage("未找到此房间！");
-            }
+            ShowMessage.WarningMessage("未找到此房间！");
             return false;
         }
 
@@ -698,6 +699,12 @@ namespace Milimoe.FunGame.Desktop.UI
             }
         }
 
+        /// <summary>
+        /// 创建房间的处理方法
+        /// </summary>
+        /// <param name="RoomType"></param>
+        /// <param name="Password"></param>
+        /// <returns></returns>
         private async Task CreateRoom_Handler(string RoomType, string Password = "")
         {
             if (Config.FunGame_Roomid != "-1")
@@ -919,6 +926,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 return;
             }
             await CreateRoom_Handler(roomtype, password);
+            _ = MainController?.UpdateRoom();
         }
 
         /// <summary>
@@ -936,6 +944,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 离开房间");
                     WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已离开房间 -> [ " + roomid + " ]");
                     InMain();
+                    _ = MainController.UpdateRoom();
                     return;
                 }
             }
@@ -1165,6 +1174,11 @@ namespace Milimoe.FunGame.Desktop.UI
             }
         }
 
+        /// <summary>
+        /// 关闭主界面
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Main_Disposed(object? sender, EventArgs e)
         {
             MainController?.Dispose();
