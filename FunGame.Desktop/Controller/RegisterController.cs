@@ -17,7 +17,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         public RegisterController(Register reg)
         {
             Register = reg;
-            RegModel = new RegisterModel(reg);
+            RegModel = new RegisterModel();
         }
 
         public override void Dispose()

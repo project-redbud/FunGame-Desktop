@@ -4,6 +4,7 @@ using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.UI;
 using Milimoe.FunGame.Core.Library.Exception;
+using Milimoe.FunGame.Desktop.Library;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
@@ -31,6 +32,11 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 GeneralEventArgs EventArgs = new();
                 if (Main.OnBeforeLogoutEvent(EventArgs) == EventResult.Fail) return result;
+
+                if (Config.FunGame_Roomid != "-1")
+                {
+                    await MainModel.QuitRoom(Config.FunGame_Roomid);
+                }
 
                 result = await MainModel.LogOut();
 
@@ -74,7 +80,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
         
-        public bool QuitRoom(string roomid)
+        public async Task<bool> QuitRoom(string roomid)
         {
             bool result = false;
 
@@ -83,7 +89,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 RoomEventArgs EventArgs = new(roomid);
                 if (Main.OnBeforeQuitRoomEvent(EventArgs) == EventResult.Fail) return result;
 
-                result = MainModel.QuitRoom(roomid);
+                result = await MainModel.QuitRoom(roomid);
 
                 if (result) Main.OnSucceedQuitRoomEvent(EventArgs);
                 else Main.OnFailedQuitRoomEvent(EventArgs);
@@ -97,18 +103,18 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
         
-        public bool CreateRoom()
+        public async Task<string> CreateRoom(string RoomType, string Password = "")
         {
-            bool result = false;
+            string result = "";
 
             try
             {
                 RoomEventArgs EventArgs = new();
                 if (Main.OnBeforeCreateRoomEvent(EventArgs) == EventResult.Fail) return result;
 
-                result = MainModel.CreateRoom();
+                result = await MainModel.CreateRoom(RoomType, Password);
 
-                if (result) Main.OnSucceedCreateRoomEvent(EventArgs);
+                if (result.Trim() != "") Main.OnSucceedCreateRoomEvent(EventArgs);
                 else Main.OnFailedCreateRoomEvent(EventArgs);
                 Main.OnAfterCreateRoomEvent(EventArgs);
             }
@@ -120,7 +126,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
 
-        public async Task<bool> Chat(string msg)
+        public bool Chat(string msg)
         {
             bool result = false;
 
@@ -131,7 +137,7 @@ namespace Milimoe.FunGame.Desktop.Controller
 
                 if (msg.Trim() != "")
                 {
-                    result = await MainModel.Chat(msg);
+                    result = MainModel.Chat(msg);
                 }
 
                 if (result) Main.OnSucceedSendTalkEvent(EventArgs);

@@ -7,6 +7,7 @@ using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Component;
 using Milimoe.FunGame.Desktop.UI;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace Milimoe.FunGame.Desktop.Model
 {
@@ -99,53 +100,59 @@ namespace Milimoe.FunGame.Desktop.Model
             }
         }
         
-        public bool QuitRoom(string roomid)
+        public async Task<bool> QuitRoom(string roomid)
         {
+            bool result = false;
             try
             {
                 SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.QuitRoom, roomid) == SocketResult.Success)
-                    return true;
-                else throw new QuitRoomException();
+                {
+                    result = await Task.Factory.StartNew(SocketHandler_QuitRoom);
+                    if (result)
+                    {
+                        Config.FunGame_Roomid = "-1";
+                        return result;
+                    }
+                }
+                throw new QuitRoomException();
             }
             catch (Exception e)
             {
                 Main.GetMessage(e.GetErrorInfo());
-                return false;
+                return result;
             }
         }
         
-        public bool CreateRoom()
+        public async Task<string> CreateRoom(string RoomType, string Password = "")
         {
             try
             {
                 SetWorking();
-                if (RunTime.Socket?.Send(SocketMessageType.CreateRoom) == SocketResult.Success)
-                    return true;
-                else throw new CreateRoomException();
+                if (RunTime.Socket?.Send(SocketMessageType.CreateRoom, RoomType, Usercfg.LoginUser?.Id ?? 0, Password) == SocketResult.Success)
+                {
+                    string roomid = await Task.Factory.StartNew(SocketHandler_CreateRoom);
+                    if (roomid.Trim() != "")
+                    {
+                        return roomid;
+                    }
+                }
+                throw new CreateRoomException();
             }
             catch (Exception e)
             {
                 Main.GetMessage(e.GetErrorInfo());
-                return false;
+                return "";
             }
         }
 
-        public async Task<bool> Chat(string msg)
+        public bool Chat(string msg)
         {
             try
             {
-                SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.Chat, msg) == SocketResult.Success)
                 {
-                    string user = "";
-                    (user, msg) = await Task.Factory.StartNew(SocketHandler_Chat);
-                    if (user != Usercfg.LoginUserName)
-                    {
-                        Main.GetMessage(msg, TimeType.None);
-                        return true;
-                    }
-                    else return false;
+                    return true;
                 }
                 throw new CanNotSendTalkException();
             }
@@ -162,7 +169,7 @@ namespace Milimoe.FunGame.Desktop.Model
             {
                 // 定义接收的通信类型
                 SocketMessageType[] SocketMessageTypes = new SocketMessageType[] { SocketMessageType.GetNotice, SocketMessageType.Logout, SocketMessageType.IntoRoom, SocketMessageType.QuitRoom,
-                    SocketMessageType.Chat, SocketMessageType.UpdateRoom };
+                    SocketMessageType.Chat, SocketMessageType.UpdateRoom, SocketMessageType.CreateRoom };
                 if (SocketObject.SocketType == SocketMessageType.HeartBeat)
                 {
                     // 心跳包单独处理
@@ -181,6 +188,17 @@ namespace Milimoe.FunGame.Desktop.Model
                     {
                         Config.Guid_LoginKey = Guid.Empty;
                         Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
+                    }
+                }
+                else if (SocketObject.SocketType == SocketMessageType.Chat)
+                {
+                    // 收到房间聊天信息
+                    string? user = "", msg = "";
+                    if (SocketObject.Length > 0) user = SocketObject.GetParam<string>(0);
+                    if (SocketObject.Length > 1) msg = SocketObject.GetParam<string>(1);
+                    if (user != Usercfg.LoginUserName)
+                    {
+                        Main.GetMessage(msg, TimeType.None);
                     }
                 }
                 else if (SocketMessageTypes.Contains(SocketObject.SocketType))
@@ -234,6 +252,37 @@ namespace Milimoe.FunGame.Desktop.Model
             return roomid;
         }
         
+        private string SocketHandler_CreateRoom()
+        {
+            string? roomid = "";
+            try
+            {
+                WaitForWorkDone();
+                if (Work.Length > 0) roomid = Work.GetParam<string>(0);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo());
+            }
+            roomid ??= "";
+            return roomid;
+        }
+        
+        private bool SocketHandler_QuitRoom()
+        {
+            bool result = false;
+            try
+            {
+                WaitForWorkDone();
+                if (Work.Length > 0) result = Work.GetParam<bool>(0);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo());
+            }
+            return result;
+        }
+        
         private List<string> SocketHandler_UpdateRoom()
         {
             List<string>? list = null;
@@ -248,24 +297,6 @@ namespace Milimoe.FunGame.Desktop.Model
             }
             list ??= new List<string>();
             return list;
-        }
-        
-        private (string, string) SocketHandler_Chat()
-        {
-            string? user = "", msg = "";
-            try
-            {
-                WaitForWorkDone();
-                if (Work.Length > 0) user = Work.GetParam<string>(0);
-                if (Work.Length > 1) msg = Work.GetParam<string>(1);
-            }                               
-            catch (Exception e)
-            {
-                Main.GetMessage(e.GetErrorInfo());
-            }
-            user ??= "";
-            msg ??= "";
-            return (user, msg);
         }
         
         #endregion
