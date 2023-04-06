@@ -1,4 +1,6 @@
-﻿using Milimoe.FunGame.Core.Library.Common.Event;
+﻿using System.Collections;
+using System.Data;
+using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Architecture;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
@@ -6,8 +8,6 @@ using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Component;
 using Milimoe.FunGame.Desktop.UI;
-using System.Collections.Generic;
-using System.Windows.Forms;
 
 namespace Milimoe.FunGame.Desktop.Model
 {
@@ -53,21 +53,21 @@ namespace Milimoe.FunGame.Desktop.Model
             return false;
         }
 
-        public async Task<bool> IntoRoom(string roomid)
+        public async Task<bool> IntoRoom(Room room)
         {
             try
             {
                 SetWorking();
-                if (RunTime.Socket?.Send(SocketMessageType.IntoRoom, roomid) == SocketResult.Success)
+                if (RunTime.Socket?.Send(SocketMessageType.IntoRoom, room.Roomid) == SocketResult.Success)
                 {
-                    roomid = await Task.Factory.StartNew(SocketHandler_IntoRoom);
+                    string roomid = await Task.Factory.StartNew(SocketHandler_IntoRoom);
                     if (roomid.Trim() != "" && roomid == "-1")
                     {
                         Main.GetMessage($"已连接至公共聊天室。");
                     }
                     else
                     {
-                        Config.FunGame_Roomid = roomid;
+                        Usercfg.InRoom = room;
                     }
                     return true;
                 }
@@ -87,7 +87,7 @@ namespace Milimoe.FunGame.Desktop.Model
                 SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.UpdateRoom) == SocketResult.Success)
                 {
-                    List<string> list = await Task.Factory.StartNew(SocketHandler_UpdateRoom);
+                    Hashtable list = await Task.Factory.StartNew(SocketHandler_UpdateRoom);
                     Main.UpdateUI(MainInvokeType.UpdateRoom, list);
                     return true;
                 }
@@ -111,7 +111,7 @@ namespace Milimoe.FunGame.Desktop.Model
                     result = await Task.Factory.StartNew(SocketHandler_QuitRoom);
                     if (result)
                     {
-                        Config.FunGame_Roomid = "-1";
+                        Usercfg.InRoom = General.HallInstance;
                         return result;
                     }
                 }
@@ -283,20 +283,30 @@ namespace Milimoe.FunGame.Desktop.Model
             return result;
         }
         
-        private List<string> SocketHandler_UpdateRoom()
+        private Hashtable SocketHandler_UpdateRoom()
         {
-            List<string>? list = null;
+            Hashtable table = new();
             try
             {
                 WaitForWorkDone();
-                if (Work.Length > 0) list = Work.GetParam<List<string>>(0);
+                DataSet? DsRoom = new(), DsUser = new();
+                if (Work.Length > 0) DsRoom = Work.GetParam<DataSet>(0);
+                if (Work.Length > 1) DsUser = Work.GetParam<DataSet>(1);
+                if (DsRoom != null && DsUser != null)
+                {
+                    List<Room> list = Core.Api.Utility.Factory.GetList<Room>(DsRoom, DsUser);
+                    table.Add(General.HallInstance.Roomid, General.HallInstance);
+                    foreach (Room room in list)
+                    {
+                        table.Add(room.Roomid, room);
+                    }
+                }
             }
             catch (Exception e)
             {
                 Main.GetMessage(e.GetErrorInfo());
             }
-            list ??= new List<string>();
-            return list;
+            return table;
         }
         
         #endregion

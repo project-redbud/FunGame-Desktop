@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
@@ -8,7 +9,6 @@ using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Base;
 using Milimoe.FunGame.Desktop.Library.Component;
-using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.Utility;
 
 namespace Milimoe.FunGame.Desktop.UI
@@ -29,6 +29,7 @@ namespace Milimoe.FunGame.Desktop.UI
          */
         private Task? MatchFunGame = null; // 匹配线程
         private MainController? MainController = null;
+        private Hashtable Rooms = new();
 
         /**
          * 委托【即将删除】
@@ -48,7 +49,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             RunTime.Main = this;
             SetButtonEnableIfLogon(false, ClientState.WaitConnect);
-            SetRoomid("-1"); // 房间号初始化
+            SetRoomid(Usercfg.InRoom); // 房间号初始化
             ShowFunGameInfo(); // 显示FunGame信息
             GetFunGameConfig(); // 获取FunGame配置
             // 创建RunTime
@@ -205,8 +206,11 @@ namespace Milimoe.FunGame.Desktop.UI
                             if (objs != null && objs.Length > 0)
                             {
                                 RoomList.Items.Clear();
-                                List<string> list = (List<string>)objs[0];
-                                RoomList.Items.AddRange(list.ToArray());
+                                Rooms = (Hashtable)objs[0];
+                                foreach (string roomid in Rooms.Keys)
+                                {
+                                    if (roomid != "-1") RoomList.Items.Add(roomid);
+                                }
                             }
                             break;
 
@@ -315,14 +319,14 @@ namespace Milimoe.FunGame.Desktop.UI
         /// 设置房间号和显示信息
         /// </summary>
         /// <param name="roomid"></param>
-        private void SetRoomid(string roomid)
+        private void SetRoomid(Room room)
         {
-            Config.FunGame_Roomid = roomid;
-            if (!roomid.Equals("-1"))
+            Usercfg.InRoom = room;
+            if (room.Roomid != "-1")
             {
                 WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 加入房间");
-                WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已加入房间 -> [ " + Config.FunGame_Roomid + " ]");
-                Room.Text = "[ 当前房间 ]\n" + Convert.ToString(Config.FunGame_Roomid);
+                WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已加入房间 -> [ " + room.Roomid + " ]");
+                Room.Text = "[ 当前房间 ]\n" + Convert.ToString(room.Roomid);
             }
             else
                 Room.Text = "暂未进入房间";
@@ -383,7 +387,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             // 显示：匹配、创建房间
             // 隐藏：退出房间、房间设定
-            SetRoomid("-1");
+            SetRoomid(Usercfg.InRoom);
             QuitRoom.Visible = false;
             StartMatch.Visible = true;
             RoomSetting.Visible = false;
@@ -478,17 +482,19 @@ namespace Milimoe.FunGame.Desktop.UI
                 await MainController.UpdateRoom();
                 if (CheckRoomIDExist(roomid))
                 {
-                    if (Config.FunGame_Roomid.Equals("-1"))
+                    if (Usercfg.InRoom.Roomid == "-1")
                     {
                         if (ShowMessage.YesNoMessage("已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
                         {
-                            if (MainController != null && await MainController.IntoRoom(roomid))
+                            Room r = GetRoom(roomid);
+                            if (MainController != null && await MainController.IntoRoom(r))
                             {
-                                SetRoomid(roomid);
+                                SetRoomid(r);
                                 InRoom();
                                 return true;
                             }
                         }
+                        return false;
                     }
                     else
                     {
@@ -552,7 +558,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 匹配成功");
                         WritelnGameInfo(">> 房间号： " + roomid);
-                        SetRoomid(roomid);
+                        SetRoomid(GetRoom(roomid));
                     }
                     else
                     {
@@ -709,17 +715,20 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         private async Task CreateRoom_Handler(string RoomType, string Password = "")
         {
-            if (Config.FunGame_Roomid != "-1")
+            if (Usercfg.InRoom.Roomid != "-1")
             {
                 ShowMessage.WarningMessage("已在房间中，无法创建房间。");
                 return;
             }
             if (MainController != null)
             {
-                string roomid = (await MainController.CreateRoom(RoomType)).Trim();
-                if (roomid != "" && roomid != "-1" && await MainController.IntoRoom(roomid))
+                string roomid = (await MainController.CreateRoom(RoomType, Password)).Trim();
+                if (roomid != "" && roomid != "-1")
                 {
-                    SetRoomid(roomid);
+                    await MainController.UpdateRoom();
+                    Room r = GetRoom(roomid);
+                    await MainController.IntoRoom(r);
+                    SetRoomid(r);
                     InRoom();
                     WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + RoomType + "房间");
                     WritelnGameInfo(">> 创建" + RoomType + "房间成功！房间号： " + roomid);
@@ -759,10 +768,10 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (MainController != null)
             {
-                // 接入-1号房间聊天室
-                await MainController.IntoRoom("-1");
                 // 获取在线的房间列表
                 await MainController.UpdateRoom();
+                // 接入-1号房间聊天室
+                await MainController.IntoRoom((Room)Rooms["-1"]!);
             }
         }
 
@@ -825,9 +834,14 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <summary>
         /// 退出游戏时处理
         /// </summary>
-        private void ExitFunGame()
+        private async Task ExitFunGame()
         {
-            
+            if (ShowMessage.OKCancelMessage("你确定关闭游戏？", "退出") == (int)MessageResult.OK)
+            {
+                if (MainController != null) await MainController.LogOut();
+                RunTime.Connector?.Close();
+                Environment.Exit(0);
+            }
         }
 
         #endregion
@@ -839,14 +853,9 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Exit_Click(object sender, EventArgs e)
+        private async void Exit_Click(object sender, EventArgs e)
         {
-            if (ShowMessage.OKCancelMessage("你确定关闭游戏？", "退出") == (int)MessageResult.OK)
-            {
-                _ = MainController?.LogOut();
-                RunTime.Connector?.Close();
-                Environment.Exit(0);
-            }
+            await ExitFunGame();
         }
 
         /// <summary>
@@ -937,7 +946,6 @@ namespace Milimoe.FunGame.Desktop.UI
                 return;
             }
             await CreateRoom_Handler(roomtype, password);
-            _ = MainController?.UpdateRoom();
         }
 
         /// <summary>
@@ -949,8 +957,8 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (MainController != null)
             {
-                string roomid = Config.FunGame_Roomid;
-                if (await MainController.QuitRoom(roomid))
+                string roomid = Usercfg.InRoom.Roomid;
+                if (await MainController.QuitRoom(Usercfg.InRoom))
                 {
                     WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 离开房间");
                     WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已离开房间 -> [ " + roomid + " ]");
@@ -1256,16 +1264,17 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="roomid"></param>
         /// <returns></returns>
-        private bool CheckRoomIDExist(string roomid)
+        private bool CheckRoomIDExist(string roomid) => Rooms.ContainsKey(roomid);
+
+        /// <summary>
+        /// 获取房间对象
+        /// </summary>
+        /// <param name="roomid">房间号</param>
+        /// <returns></returns>
+        private Room GetRoom(string roomid)
         {
-            foreach (string BoxText in RoomList.Items)
-            {
-                if (roomid.Equals(BoxText))
-                {
-                    return true;
-                }
-            }
-            return false;
+            Room? r = (Room?)Rooms[roomid];
+            return r ?? General.HallInstance;
         }
 
         /// <summary>
