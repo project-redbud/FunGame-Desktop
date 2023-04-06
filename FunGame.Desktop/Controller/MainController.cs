@@ -1,10 +1,11 @@
-﻿using Milimoe.FunGame.Core.Library.Common.Event;
+﻿using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Architecture;
+using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
-using Milimoe.FunGame.Desktop.Model;
-using Milimoe.FunGame.Desktop.UI;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Library;
+using Milimoe.FunGame.Desktop.Model;
+using Milimoe.FunGame.Desktop.UI;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
@@ -33,9 +34,11 @@ namespace Milimoe.FunGame.Desktop.Controller
                 GeneralEventArgs EventArgs = new();
                 if (Main.OnBeforeLogoutEvent(EventArgs) == EventResult.Fail) return result;
 
-                if (Config.FunGame_Roomid != "-1")
+                if (Usercfg.LoginUser is null) return result;
+
+                if (Usercfg.InRoom.Roomid != "-1")
                 {
-                    await MainModel.QuitRoom(Config.FunGame_Roomid);
+                    await MainModel.QuitRoom(Usercfg.InRoom.Roomid);
                 }
 
                 result = await MainModel.LogOut();
@@ -57,16 +60,16 @@ namespace Milimoe.FunGame.Desktop.Controller
             return await MainModel.UpdateRoom();
         }
 
-        public async Task<bool> IntoRoom(string roomid)
+        public async Task<bool> IntoRoom(Room room)
         {
             bool result = false;
 
             try
             {
-                RoomEventArgs EventArgs = new(roomid);
+                RoomEventArgs EventArgs = new(room);
                 if (Main.OnBeforeIntoRoomEvent(EventArgs) == EventResult.Fail) return result;
 
-                result = await MainModel.IntoRoom(roomid);
+                result = await MainModel.IntoRoom(room);
 
                 if (result) Main.OnSucceedIntoRoomEvent(EventArgs);
                 else Main.OnFailedIntoRoomEvent(EventArgs);
@@ -80,13 +83,14 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
         
-        public async Task<bool> QuitRoom(string roomid)
+        public async Task<bool> QuitRoom(Room room)
         {
             bool result = false;
+            string roomid = room.Roomid;
 
             try
             {
-                RoomEventArgs EventArgs = new(roomid);
+                RoomEventArgs EventArgs = new(room);
                 if (Main.OnBeforeQuitRoomEvent(EventArgs) == EventResult.Fail) return result;
 
                 result = await MainModel.QuitRoom(roomid);
@@ -109,7 +113,7 @@ namespace Milimoe.FunGame.Desktop.Controller
 
             try
             {
-                RoomEventArgs EventArgs = new();
+                RoomEventArgs EventArgs = new(RoomType, Password);
                 if (Main.OnBeforeCreateRoomEvent(EventArgs) == EventResult.Fail) return result;
 
                 result = await MainModel.CreateRoom(RoomType, Password);
