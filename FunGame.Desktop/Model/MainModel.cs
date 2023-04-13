@@ -87,7 +87,7 @@ namespace Milimoe.FunGame.Desktop.Model
                 SetWorking();
                 if (RunTime.Socket?.Send(SocketMessageType.UpdateRoom) == SocketResult.Success)
                 {
-                    Hashtable list = await Task.Factory.StartNew(SocketHandler_UpdateRoom);
+                    List<Room> list = await Task.Factory.StartNew(SocketHandler_UpdateRoom);
                     Main.UpdateUI(MainInvokeType.UpdateRoom, list);
                     return true;
                 }
@@ -283,9 +283,9 @@ namespace Milimoe.FunGame.Desktop.Model
             return result;
         }
         
-        private Hashtable SocketHandler_UpdateRoom()
+        private List<Room> SocketHandler_UpdateRoom()
         {
-            Hashtable table = new();
+            List<Room> list = new();
             try
             {
                 WaitForWorkDone();
@@ -294,19 +294,14 @@ namespace Milimoe.FunGame.Desktop.Model
                 if (Work.Length > 1) DsUser = Work.GetParam<DataSet>(1);
                 if (DsRoom != null && DsUser != null)
                 {
-                    List<Room> list = Core.Api.Utility.Factory.GetList<Room>(DsRoom, DsUser);
-                    table.Add(General.HallInstance.Roomid, General.HallInstance);
-                    foreach (Room room in list)
-                    {
-                        table.Add(room.Roomid, room);
-                    }
+                    list = Core.Api.Utility.Factory.GetList<Room>(DsRoom, DsUser);
                 }
             }
             catch (Exception e)
             {
                 Main.GetMessage(e.GetErrorInfo());
             }
-            return table;
+            return list;
         }
         
         #endregion

@@ -1,7 +1,7 @@
-using System.Collections;
 using System.Diagnostics;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
+using Milimoe.FunGame.Core.Library.Common.Architecture;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
@@ -29,7 +29,7 @@ namespace Milimoe.FunGame.Desktop.UI
          */
         private Task? MatchFunGame = null; // 匹配线程
         private MainController? MainController = null;
-        private Hashtable Rooms = new();
+        private readonly RoomList Rooms = new();
 
         /**
          * 委托【即将删除】
@@ -206,8 +206,9 @@ namespace Milimoe.FunGame.Desktop.UI
                             if (objs != null && objs.Length > 0)
                             {
                                 RoomList.Items.Clear();
-                                Rooms = (Hashtable)objs[0];
-                                foreach (string roomid in Rooms.Keys)
+                                Rooms.Clear();
+                                Rooms.AddRooms((List<Room>)objs[0]);
+                                foreach (string roomid in Rooms.ListRoomID)
                                 {
                                     if (roomid != "-1") RoomList.Items.Add(roomid);
                                 }
@@ -1264,7 +1265,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="roomid"></param>
         /// <returns></returns>
-        private bool CheckRoomIDExist(string roomid) => Rooms.ContainsKey(roomid);
+        private bool CheckRoomIDExist(string roomid) => Rooms.IsExist(roomid);
 
         /// <summary>
         /// 获取房间对象
@@ -1292,6 +1293,9 @@ namespace Milimoe.FunGame.Desktop.UI
                 case Constant.FunGame_ShowStock:
                     break;
                 case Constant.FunGame_ShowStore:
+                    break;
+                case Constant.FunGame_ClearGameInfo:
+                    GameInfo.Clear();
                     break;
                 case Constant.FunGame_CreateMix:
                     await CreateRoom_Handler(GameMode.GameMode_Mix);

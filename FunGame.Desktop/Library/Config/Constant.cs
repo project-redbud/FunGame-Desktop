@@ -25,6 +25,7 @@ namespace Milimoe.FunGame.Desktop.Library
         public const string FunGame_ShowCredits = "积分";
         public const string FunGame_ShowStock = "查看库存";
         public const string FunGame_ShowStore = "游戏商店";
+        public const string FunGame_ClearGameInfo = "清空消息队列";
         public const string FunGame_CreateMix = "创建游戏 混战";
         public const string FunGame_CreateTeam = "创建游戏 团队";
         public const string FunGame_StartGame = "开始游戏";
@@ -42,6 +43,7 @@ namespace Milimoe.FunGame.Desktop.Library
             FunGame_ShowCredits,
             FunGame_ShowStock,
             FunGame_ShowStore,
+            FunGame_ClearGameInfo,
             FunGame_CreateMix,
             FunGame_CreateTeam,
             FunGame_StartGame,
