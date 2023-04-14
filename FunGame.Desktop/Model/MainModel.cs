@@ -201,6 +201,15 @@ namespace Milimoe.FunGame.Desktop.Model
                         Main.GetMessage(msg, TimeType.None);
                     }
                 }
+                else if (SocketObject.SocketType == SocketMessageType.UpdateRoomMaster)
+                {
+                    // 收到房间更换房主的信息
+                    DataSet? user = null, room = null;
+                    if (SocketObject.Length > 0) user = SocketObject.GetParam<DataSet>(0);
+                    if (SocketObject.Length > 1) room = SocketObject.GetParam<DataSet>(1);
+                    Room r = Core.Api.Utility.Factory.GetRoom(user, room);
+                    if (r.Roomid != "-1") Main.UpdateUI(MainInvokeType.UpdateRoomMaster, r);
+                }
                 else if (SocketMessageTypes.Contains(SocketObject.SocketType))
                 {
                     Work = SocketObject;

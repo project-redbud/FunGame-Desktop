@@ -214,6 +214,28 @@ namespace Milimoe.FunGame.Desktop.UI
                                 }
                             }
                             break;
+                            
+                        case MainInvokeType.UpdateRoomMaster:
+                            if (objs != null && objs.Length > 0)
+                            {
+                                Room r = (Room)objs[0];
+                                string msg = "";
+                                if (r.RoomMaster != null)
+                                {
+                                    if (r.RoomMaster.Username != Usercfg.LoginUserName)
+                                    {
+                                        msg += $"房主变更 -> 房间 [ {r.Roomid} ] 的房主已变更为 [ {r.RoomMaster.Username} ]";
+                                    }
+                                    else
+                                    {
+                                        msg += $"房主变更 -> 房间 [ {r.Roomid} ] 的房主已变更为您";
+                                    }
+                                    Rooms.RemoveRoom(r.Roomid);
+                                    Rooms.AddRoom(r);
+                                    GetMessage(msg, TimeType.None);
+                                }
+                            }
+                            break;
 
                         default:
                             break;
