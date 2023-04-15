@@ -100,13 +100,31 @@ namespace Milimoe.FunGame.Desktop.Model
             }
         }
         
-        public async Task<bool> QuitRoom(string roomid)
+        public async Task<int> GetRoomPlayerCount(string roomid)
+        {
+            try
+            {
+                SetWorking();
+                if (RunTime.Socket?.Send(SocketMessageType.GetRoomPlayerCount, roomid) == SocketResult.Success)
+                {
+                    return await Task.Factory.StartNew(SocketHandler_GetRoomPlayerCount);
+                }
+                return 0;
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo());
+                return 0;
+            }
+        }
+        
+        public async Task<bool> QuitRoom(string roomid, bool isMaster)
         {
             bool result = false;
             try
             {
                 SetWorking();
-                if (RunTime.Socket?.Send(SocketMessageType.QuitRoom, roomid) == SocketResult.Success)
+                if (RunTime.Socket?.Send(SocketMessageType.QuitRoom, roomid, isMaster) == SocketResult.Success)
                 {
                     result = await Task.Factory.StartNew(SocketHandler_QuitRoom);
                     if (result)
@@ -129,7 +147,7 @@ namespace Milimoe.FunGame.Desktop.Model
             try
             {
                 SetWorking();
-                if (RunTime.Socket?.Send(SocketMessageType.CreateRoom, RoomType, Usercfg.LoginUser?.Id ?? 0, Password) == SocketResult.Success)
+                if (RunTime.Socket?.Send(SocketMessageType.CreateRoom, RoomType, Usercfg.LoginUser.Id, Password) == SocketResult.Success)
                 {
                     string roomid = await Task.Factory.StartNew(SocketHandler_CreateRoom);
                     if (roomid.Trim() != "")
@@ -173,7 +191,7 @@ namespace Milimoe.FunGame.Desktop.Model
                 if (SocketObject.SocketType == SocketMessageType.HeartBeat)
                 {
                     // 心跳包单独处理
-                    if ((RunTime.Socket?.Connected ?? false) && Usercfg.LoginUser != null)
+                    if ((RunTime.Socket?.Connected ?? false) && Usercfg.LoginUser.Id != 0)
                         Main.UpdateUI(MainInvokeType.SetGreenAndPing);
                 }
                 else if (SocketObject.SocketType == SocketMessageType.ForceLogout)
@@ -207,8 +225,8 @@ namespace Milimoe.FunGame.Desktop.Model
                     DataSet? user = null, room = null;
                     if (SocketObject.Length > 0) user = SocketObject.GetParam<DataSet>(0);
                     if (SocketObject.Length > 1) room = SocketObject.GetParam<DataSet>(1);
-                    Room r = Core.Api.Utility.Factory.GetRoom(user, room);
-                    if (r.Roomid != "-1") Main.UpdateUI(MainInvokeType.UpdateRoomMaster, r);
+                    Room r = Core.Api.Utility.Factory.GetRoom(room, user);
+                    if (r.Roomid != "-1" && r.Roomid == Usercfg.InRoom.Roomid) Main.UpdateUI(MainInvokeType.UpdateRoomMaster, r);
                 }
                 else if (SocketMessageTypes.Contains(SocketObject.SocketType))
                 {
@@ -290,6 +308,21 @@ namespace Milimoe.FunGame.Desktop.Model
                 Main.GetMessage(e.GetErrorInfo());
             }
             return result;
+        }
+        
+        private int SocketHandler_GetRoomPlayerCount()
+        {
+            int count = 0;
+            try
+            {
+                WaitForWorkDone();
+                if (Work.Length > 0) count = Work.GetParam<int>(0);
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo());
+            }
+            return count;
         }
         
         private List<Room> SocketHandler_UpdateRoom()
