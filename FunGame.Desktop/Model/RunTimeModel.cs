@@ -235,7 +235,7 @@ namespace Milimoe.FunGame.Desktop.Model
                         break;
 
                     case SocketMessageType.HeartBeat:
-                        if (Socket.Connected && Usercfg.LoginUser != null)
+                        if (Socket.Connected && Usercfg.LoginUser.Id != 0)
                             Main.UpdateUI(MainInvokeType.SetGreenAndPing);
                         break;
 

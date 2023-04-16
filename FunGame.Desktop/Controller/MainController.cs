@@ -34,11 +34,13 @@ namespace Milimoe.FunGame.Desktop.Controller
                 GeneralEventArgs EventArgs = new();
                 if (Main.OnBeforeLogoutEvent(EventArgs) == EventResult.Fail) return result;
 
-                if (Usercfg.LoginUser is null) return result;
+                if (Usercfg.LoginUser.Id == 0) return result;
 
                 if (Usercfg.InRoom.Roomid != "-1")
                 {
-                    await MainModel.QuitRoom(Usercfg.InRoom.Roomid);
+                    string roomid = Usercfg.InRoom.Roomid;
+                    bool isMaster = Usercfg.InRoom.RoomMaster?.Id == Usercfg.LoginUser?.Id;
+                    await MainModel.QuitRoom(roomid, isMaster);
                 }
 
                 result = await MainModel.LogOut();
@@ -83,7 +85,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
         
-        public async Task<bool> QuitRoom(Room room)
+        public async Task<bool> QuitRoom(Room room, bool isMaster)
         {
             bool result = false;
             string roomid = room.Roomid;
@@ -93,7 +95,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 RoomEventArgs EventArgs = new(room);
                 if (Main.OnBeforeQuitRoomEvent(EventArgs) == EventResult.Fail) return result;
 
-                result = await MainModel.QuitRoom(roomid);
+                result = await MainModel.QuitRoom(roomid, isMaster);
 
                 if (result) Main.OnSucceedQuitRoomEvent(EventArgs);
                 else Main.OnFailedQuitRoomEvent(EventArgs);
@@ -128,6 +130,11 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
 
             return result;
+        }
+
+        public async Task<int> GetRoomPlayerCount(string roomid)
+        {
+            return await MainModel.GetRoomPlayerCount(roomid);
         }
 
         public bool Chat(string msg)

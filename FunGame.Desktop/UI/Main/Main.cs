@@ -149,6 +149,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             break;
 
                         case MainInvokeType.Disconnected:
+                            Rooms.Clear();
                             RoomList.Items.Clear();
                             Config.FunGame_isRetrying = false;
                             Config.FunGame_isConnected = false;
@@ -160,6 +161,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             break;
 
                         case MainInvokeType.Disconnect:
+                            Rooms.Clear();
                             RoomList.Items.Clear();
                             Config.FunGame_isAutoRetry = false;
                             Config.FunGame_isRetrying = false;
@@ -214,7 +216,22 @@ namespace Milimoe.FunGame.Desktop.UI
                                 }
                             }
                             break;
-
+                            
+                        case MainInvokeType.UpdateRoomMaster:
+                            if (objs != null && objs.Length > 0)
+                            {
+                                Room r = (Room)objs[0];
+                                Usercfg.InRoom = r;
+                                Rooms.RemoveRoom(r.Roomid);
+                                Rooms.AddRoom(r);
+                                if (r.RoomMaster != null)
+                                {
+                                    string msg = $"房间 [ {r.Roomid} ] 的房主已变更为" + (r.RoomMaster.Username != Usercfg.LoginUserName ? $" [ {r.RoomMaster.Username} ]" : "您") + "。";
+                                    GetMessage(msg, TimeType.TimeOnly);
+                                }
+                            }
+                            break;
+                            
                         default:
                             break;
                     }
@@ -625,7 +642,7 @@ namespace Milimoe.FunGame.Desktop.UI
             if (objs != null && objs.Length > 0)
             {
                 Usercfg.LoginUser = (User)objs[0];
-                if (Usercfg.LoginUser is null)
+                if (Usercfg.LoginUser.Id == 0)
                 {
                     throw new NoUserLogonException();
                 }
@@ -645,9 +662,10 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         private void LogoutAccount()
         {
-            InMain();
-            Usercfg.LoginUser = null;
+            Usercfg.InRoom = General.HallInstance;
+            Usercfg.LoginUser = General.UnknownUserInstance;
             Usercfg.LoginUserName = "";
+            InMain();
             NowAccount.Text = "请登录账号";
             Logout.Visible = false;
             Login.Visible = true;
@@ -692,7 +710,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     msg = DateTimeUtility.GetNowShortTime() + " [ " + Usercfg.LoginUserName + " ] 说： " + text;
                 }
                 WritelnGameInfo(msg);
-                if (Usercfg.LoginUser != null && !await SwitchTalkMessage(text))
+                if (Usercfg.LoginUser.Id != 0 && !await SwitchTalkMessage(text))
                 {
                     MainController?.Chat(" [ " + Usercfg.LoginUserName + " ] 说： " + text);
                 }
@@ -959,7 +977,8 @@ namespace Milimoe.FunGame.Desktop.UI
             if (MainController != null)
             {
                 string roomid = Usercfg.InRoom.Roomid;
-                if (await MainController.QuitRoom(Usercfg.InRoom))
+                bool isMaster = Usercfg.InRoom.RoomMaster?.Id == Usercfg.LoginUser.Id;
+                if (await MainController.QuitRoom(Usercfg.InRoom, isMaster))
                 {
                     WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 离开房间");
                     WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已离开房间 -> [ " + roomid + " ]");
