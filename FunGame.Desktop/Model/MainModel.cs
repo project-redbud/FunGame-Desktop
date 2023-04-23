@@ -14,6 +14,7 @@ namespace Milimoe.FunGame.Desktop.Model
     public class MainModel : BaseModel
     {
         private readonly Main Main;
+        private readonly Core.Model.Session Usercfg = RunTime.Session;
 
         public MainModel(Main main) : base(RunTime.Socket)
         {
@@ -27,17 +28,17 @@ namespace Milimoe.FunGame.Desktop.Model
             try
             {
                 // 需要当时登录给的Key发回去，确定是账号本人在操作才允许登出
-                if (Config.Guid_LoginKey != Guid.Empty)
+                if (Usercfg.LoginKey != Guid.Empty)
                 {
                     SetWorking();
-                    if (RunTime.Socket?.Send(SocketMessageType.Logout, Config.Guid_LoginKey) == SocketResult.Success)
+                    if (RunTime.Socket?.Send(SocketMessageType.Logout, Usercfg.LoginKey) == SocketResult.Success)
                     {
                         string msg = "";
                         Guid key = Guid.Empty;
                         (msg, key) = await Task.Factory.StartNew(SocketHandler_LogOut);
-                        if (key == Config.Guid_LoginKey)
+                        if (key == Usercfg.LoginKey)
                         {
-                            Config.Guid_LoginKey = Guid.Empty;
+                            Usercfg.LoginKey = Guid.Empty;
                             Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
                             return true;
                         }
@@ -202,9 +203,9 @@ namespace Milimoe.FunGame.Desktop.Model
                     if (SocketObject.Length > 0) key = SocketObject.GetParam<Guid>(0);
                     if (SocketObject.Length > 1) msg = SocketObject.GetParam<string>(1);
                     msg ??= "";
-                    if (key == Config.Guid_LoginKey)
+                    if (key == Usercfg.LoginKey)
                     {
-                        Config.Guid_LoginKey = Guid.Empty;
+                        Usercfg.LoginKey = Guid.Empty;
                         Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
                     }
                 }
@@ -236,7 +237,7 @@ namespace Milimoe.FunGame.Desktop.Model
             }
             catch (Exception e)
             {
-                RunTime.Connector?.Error(e);
+                RunTime.Controller?.Error(e);
             }
         }
 

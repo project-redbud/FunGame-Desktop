@@ -6,8 +6,10 @@
     /// </summary>
     public class RunTime
     {
+        public static Core.Model.RoomList RoomList { get; } = new();
+        public static Core.Model.Session Session { get; } = new();
         public static Core.Library.Common.Network.Socket? Socket { get; set; } = null;
-        public static Controller.RunTimeController? Connector { get; set; } = null;
+        public static Controller.RunTimeController? Controller { get; set; } = null;
         public static UI.Main? Main { get; set; } = null;
         public static UI.Login? Login { get; set; } = null;
         public static UI.Register? Register { get; set; } = null;
@@ -18,7 +20,7 @@
 
         public static void WritelnSystemInfo(string msg)
         {
-            Main?.GetMessage(msg);
+            Controller?.WritelnSystemInfo(msg);
         }
     }
 }
