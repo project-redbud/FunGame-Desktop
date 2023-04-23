@@ -12,72 +12,19 @@ namespace Milimoe.FunGame.Desktop.Model
     /// <summary>
     /// 与创建关闭Socket相关的方法，使用此类
     /// </summary>
-    public class RunTimeModel
+    public class RunTimeModel : Core.Model.RunTime
     {
-        public bool Connected => Socket != null && Socket.Connected;
+        public override Socket? Socket => _Socket;
 
         private readonly Main Main;
-        private Task? ReceivingTask;
-        private Socket? Socket;
-        private bool IsReceiving = false;
+        private readonly Core.Model.Session Usercfg = RunTime.Session;
 
         public RunTimeModel(Main main)
         {
             Main = main;
         }
 
-        #region 公开方法
-
-        public bool Disconnect()
-        {
-            bool result = false;
-
-            try
-            {
-                result = Socket?.Send(SocketMessageType.Disconnect, "") == SocketResult.Success;
-            }
-            catch (Exception e)
-            {
-                Main.GetMessage(e.GetErrorInfo());
-            }
-
-            return result;
-        }
-
-        public void Disconnected()
-        {
-            Disconnect();
-        }
-
-        public void GetServerConnection()
-        {
-            try
-            {
-                // 获取服务器IP
-                string? ipaddress = (string?)Implement.GetFunGameImplValue(InterfaceType.IClient, InterfaceMethod.RemoteServerIP);
-                if (ipaddress != null)
-                {
-                    string[] s = ipaddress.Split(':');
-                    if (s != null && s.Length > 1)
-                    {
-                        Constant.Server_IP = s[0];
-                        Constant.Server_Port = Convert.ToInt32(s[1]);
-                    }
-                }
-                else
-                {
-                    ShowMessage.ErrorMessage("查找可用的服务器失败！");
-                    Config.FunGame_isRetrying = false;
-                    throw new FindServerFailedException();
-                }
-            }
-            catch (Exception e)
-            {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
-            }
-        }
-
-        public async Task<ConnectResult> Connect()
+        public override async Task<ConnectResult> Connect()
         {
             if (Constant.Server_IP == "" || Constant.Server_Port <= 0)
             {
@@ -105,7 +52,7 @@ namespace Milimoe.FunGame.Desktop.Model
                     // 与服务器建立连接
                     Socket?.Close();
                     Config.FunGame_isRetrying = true;
-                    Socket = Socket.Connect(Constant.Server_IP, Constant.Server_Port);
+                    _Socket = Socket.Connect(Constant.Server_IP, Constant.Server_Port);
                     if (Socket != null && Socket.Connected)
                     {
                         // 设置可复用Socket
@@ -123,7 +70,7 @@ namespace Milimoe.FunGame.Desktop.Model
                                 {
                                     while (true)
                                     {
-                                        if (IsReceiving)
+                                        if (_IsReceiving)
                                         {
                                             break;
                                         }
@@ -155,31 +102,7 @@ namespace Milimoe.FunGame.Desktop.Model
             }
         }
 
-        public bool Close()
-        {
-            try
-            {
-                if (Socket != null)
-                {
-                    Socket.Close();
-                    Socket = null;
-                }
-                if (ReceivingTask != null && !ReceivingTask.IsCompleted)
-                {
-                    ReceivingTask.Wait(1);
-                    ReceivingTask = null;
-                    IsReceiving = false;
-                }
-            }
-            catch (Exception e)
-            {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
-                return false;
-            }
-            return true;
-        }
-
-        public void Error(Exception e)
+        public override void Error(Exception e)
         {
             Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             Main.UpdateUI(MainInvokeType.Disconnected);
@@ -187,76 +110,35 @@ namespace Milimoe.FunGame.Desktop.Model
             Close();
         }
 
-        #endregion
-
-        #region 私有方法
-
-        private void StartReceiving()
+        public override void GetServerConnection()
         {
-            ReceivingTask = Task.Factory.StartNew(() =>
-            {
-                Thread.Sleep(100);
-                IsReceiving = true;
-                while (Socket != null && Socket.Connected)
-                {
-                    Receiving();
-                }
-            });
-            Socket?.StartReceiving(ReceivingTask);
-        }
-
-        private SocketObject GetServerMessage()
-        {
-            if (Socket != null && Socket.Connected)
-            {
-                return Socket.Receive();
-            }
-            return new SocketObject();
-        }
-
-        private SocketMessageType Receiving()
-        {
-            if (Socket is null) return SocketMessageType.Unknown;
-            SocketMessageType result = SocketMessageType.Unknown;
             try
             {
-                SocketObject ServerMessage = GetServerMessage();
-                SocketMessageType type = ServerMessage.SocketType;
-                object[] objs = ServerMessage.Parameters;
-                result = type;
-                switch (type)
+                // 获取服务器IP
+                string? ipaddress = (string?)Implement.GetFunGameImplValue(InterfaceType.IClient, InterfaceMethod.RemoteServerIP);
+                if (ipaddress != null)
                 {
-                    case SocketMessageType.Connect:
-                        if (!SocketHandler_Connect(ServerMessage)) return SocketMessageType.Unknown;
-                        break;
-
-                    case SocketMessageType.Disconnect:
-                        SocketHandler_Disconnect(ServerMessage);
-                        break;
-
-                    case SocketMessageType.HeartBeat:
-                        if (Socket.Connected && Usercfg.LoginUser.Id != 0)
-                            Main.UpdateUI(MainInvokeType.SetGreenAndPing);
-                        break;
-
-                    case SocketMessageType.Unknown:
-                    default:
-                        break;
+                    string[] s = ipaddress.Split(':');
+                    if (s != null && s.Length > 1)
+                    {
+                        Constant.Server_IP = s[0];
+                        Constant.Server_Port = Convert.ToInt32(s[1]);
+                    }
+                }
+                else
+                {
+                    ShowMessage.ErrorMessage("查找可用的服务器失败！");
+                    Config.FunGame_isRetrying = false;
+                    throw new FindServerFailedException();
                 }
             }
             catch (Exception e)
             {
-                // 报错中断服务器连接
-                Error(e);
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
-            return result;
         }
 
-        #endregion
-
-        #region SocketHandler
-
-        private bool SocketHandler_Connect(SocketObject ServerMessage)
+        protected override bool SocketHandler_Connect(SocketObject ServerMessage)
         {
             string msg = "";
             Guid token = Guid.Empty;
@@ -276,14 +158,14 @@ namespace Milimoe.FunGame.Desktop.Model
             Config.FunGame_Notice = ServerNotice;
             if (ServerMessage.Parameters.Length > 1) token = ServerMessage.GetParam<Guid>(1);
             Socket!.Token = token;
-            Config.Guid_Socket = token;
+            Usercfg.SocketToken = token;
             Main.GetMessage($"已连接服务器：{ServerName}。\n\n********** 服务器公告 **********\n\n{ServerNotice}\n\n");
             // 设置等待登录的黄灯
             Main.UpdateUI(MainInvokeType.WaitLoginAndSetYellow);
             return true;
         }
 
-        private void SocketHandler_Disconnect(SocketObject ServerMessage)
+        protected override void SocketHandler_Disconnect(SocketObject ServerMessage)
         {
             string msg = "";
             if (ServerMessage.Parameters.Length > 0) msg = ServerMessage.GetParam<string>(0)!;
@@ -294,6 +176,12 @@ namespace Milimoe.FunGame.Desktop.Model
             Main.OnAfterDisconnectEvent(new GeneralEventArgs());
         }
 
-        #endregion
+        protected override void SocketHandler_HeartBeat(SocketObject ServerMessage)
+        {
+            if (Socket != null && Socket.Connected && Usercfg.LoginUser.Id != 0)
+            {
+                Main.UpdateUI(MainInvokeType.SetGreenAndPing);
+            }
+        }
     }
 }

@@ -99,7 +99,7 @@ namespace Milimoe.FunGame.Desktop.Model
                 if (Work.Length > 1) msg = Work.GetParam<string>(1);
                 if (key != Guid.Empty)
                 {
-                    Config.Guid_LoginKey = key;
+                    RunTime.Session.LoginKey = key;
                 }
             }
             catch (Exception e)

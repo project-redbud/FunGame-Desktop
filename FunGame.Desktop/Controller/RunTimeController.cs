@@ -7,9 +7,9 @@ using Milimoe.FunGame.Desktop.UI;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
-    public class RunTimeController
+    public class RunTimeController : Core.Controller.RunTimeController
     {
-        public bool Connected => RunTimeModel.Connected;
+        public override bool Connected => RunTimeModel.Connected;
 
         private RunTimeModel RunTimeModel { get; }
         private Main Main { get; }
@@ -20,7 +20,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             RunTimeModel = new RunTimeModel(Main);
         }
 
-        public async Task<bool> GetServerConnection()
+        public override async Task<bool> GetServerConnection()
         {
             bool result = false;
 
@@ -37,7 +37,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
 
-        public async Task<ConnectResult> Connect()
+        public override async Task<ConnectResult> Connect()
         {
             ConnectResult result = ConnectResult.ConnectFailed;
 
@@ -60,7 +60,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
 
-        public bool Disconnect()
+        public override bool Disconnect()
         {
             bool result = false;
 
@@ -82,7 +82,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
 
-        public bool Close(Exception? e = null)
+        public override bool Close(Exception? e = null)
         {
             bool result;
 
@@ -98,12 +98,12 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
 
-        public bool Error(Exception e)
+        public override bool Error(Exception e)
         {
             return Close(e);
         }
 
-        public async Task AutoLogin(string Username, string Password, string AutoKey)
+        public override async Task AutoLogin(string Username, string Password, string AutoKey)
         {
             try
             {
@@ -115,6 +115,11 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
+        }
+
+        public override void WritelnSystemInfo(string msg)
+        {
+            Main?.GetMessage(msg);
         }
     }
 }

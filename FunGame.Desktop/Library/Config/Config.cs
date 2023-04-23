@@ -2,9 +2,6 @@
 {
     public class Config
     {
-        /**
-         * FunGame Desktop Configs
-         */
         public static bool FunGame_isAutoConnect { get; set; } = true; // 是否自动连接服务器
         public static bool FunGame_isAutoLogin { get; set; } = false; // 是否自动登录
         public static bool FunGame_isMatching { get; set; } = false; // 是否在匹配中
@@ -19,9 +16,5 @@
         public static string FunGame_AutoLoginUser { get; set; } = ""; // 自动登录的账号
         public static string FunGame_AutoLoginPassword { get; set; } = ""; // 自动登录的密码
         public static string FunGame_AutoLoginKey { get; set; } = ""; // 自动登录的秘钥
-
-        /*** GUID For Socket ***/
-        public static Guid Guid_Socket { get; set; } = Guid.Empty;
-        public static Guid Guid_LoginKey { get; set; } = Guid.Empty;
     }
 }

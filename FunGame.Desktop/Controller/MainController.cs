@@ -14,6 +14,8 @@ namespace Milimoe.FunGame.Desktop.Controller
         private MainModel MainModel { get; }
         private Main Main { get; }
 
+        private readonly Core.Model.Session Usercfg = RunTime.Session;
+
         public MainController(Main Main)
         {
             this.Main = Main;
