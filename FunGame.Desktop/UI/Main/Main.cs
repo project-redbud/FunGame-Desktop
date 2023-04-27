@@ -216,7 +216,7 @@ namespace Milimoe.FunGame.Desktop.UI
                                 }
                             }
                             break;
-                            
+
                         case MainInvokeType.UpdateRoomMaster:
                             if (objs != null && objs.Length > 0)
                             {
@@ -231,7 +231,7 @@ namespace Milimoe.FunGame.Desktop.UI
                                 }
                             }
                             break;
-                            
+
                         default:
                             break;
                     }
@@ -345,9 +345,13 @@ namespace Milimoe.FunGame.Desktop.UI
                 WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 加入房间");
                 WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已加入房间 -> [ " + room.Roomid + " ]");
                 Room.Text = "[ 当前房间 ]\n" + Convert.ToString(room.Roomid);
+                NowRoomID.Text = room.Roomid;
             }
             else
+            {
+                NowRoomID.Text = "";
                 Room.Text = "暂未进入房间";
+            }
         }
 
         /// <summary>
@@ -387,7 +391,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 GameInfo.ScrollToCaret();
             }
         }
-        
+
         /// <summary>
         /// 向消息队列输出一行系统信息
         /// </summary>
@@ -404,12 +408,14 @@ namespace Milimoe.FunGame.Desktop.UI
         private void InMain()
         {
             // 显示：匹配、创建房间
-            // 隐藏：退出房间、房间设定
+            // 隐藏：退出房间、房间设定、当前房间号、复制房间号
             SetRoomid(Usercfg.InRoom);
             QuitRoom.Visible = false;
             StartMatch.Visible = true;
             RoomSetting.Visible = false;
             CreateRoom.Visible = true;
+            NowRoomID.Visible = false;
+            CopyRoomID.Visible = false;
         }
 
         /// <summary>
@@ -417,12 +423,14 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         private void InRoom()
         {
-            // 显示：退出房间、房间设置
+            // 显示：退出房间、房间设置、当前房间号、复制房间号
             // 隐藏：停止匹配、创建房间
             StopMatch.Visible = false;
             QuitRoom.Visible = true;
             CreateRoom.Visible = false;
             RoomSetting.Visible = true;
+            NowRoomID.Visible = true;
+            CopyRoomID.Visible = true;
         }
 
         /// <summary>
@@ -801,7 +809,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="ping"></param>
         private void SetServerStatusLight(int light, bool waitlogin = false, int ping = 0)
         {
-            switch(light)
+            switch (light)
             {
                 case (int)LightType.Green:
                     Connection.Text = "服务器连接成功";
@@ -998,6 +1006,17 @@ namespace Milimoe.FunGame.Desktop.UI
         private void RoomSetting_Click(object sender, EventArgs e)
         {
 
+        }
+
+        /// <summary>
+        /// 复制房间号
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CopyRoomID_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetDataObject(Usercfg.InRoom.Roomid);
+            ShowMessage.TipMessage("已复制房间号到剪贴板");
         }
 
         /// <summary>
