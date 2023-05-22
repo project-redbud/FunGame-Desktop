@@ -1,5 +1,6 @@
 ﻿using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Desktop.UI;
+using Milimoe.FunGame.Desktop.Utility;
 
 namespace Milimoe.FunGame.Desktop.Library.Component
 {
@@ -59,6 +60,10 @@ namespace Milimoe.FunGame.Desktop.Library.Component
             if (GetType() != typeof(ShowMessage))
             {
                 Singleton.Remove(this);
+                if (OpenForm.Forms.Contains(this))
+                {
+                    OpenForm.Forms.Remove(this);
+                }
                 if (GetType() == typeof(Main))
                 {
                     RunTime.Main = null;

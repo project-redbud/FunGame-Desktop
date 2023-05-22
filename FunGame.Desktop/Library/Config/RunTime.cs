@@ -1,4 +1,7 @@
-﻿namespace Milimoe.FunGame.Desktop.Library
+﻿using Milimoe.FunGame.Core.Api.Transmittal;
+using Milimoe.FunGame.Core.Library.Constant;
+
+namespace Milimoe.FunGame.Desktop.Library
 {
     /// <summary>
     /// 运行时单例
@@ -21,6 +24,16 @@
         public static void WritelnSystemInfo(string msg)
         {
             Controller?.WritelnSystemInfo(msg);
+        }
+
+        public static DataRequest NewDataRequest(DataRequestType RequestType)
+        {
+            if (Socket != null)
+            {
+                DataRequest request = new(Socket, RequestType);
+                return request;
+            }
+            throw new ConnectFailedException();
         }
     }
 }

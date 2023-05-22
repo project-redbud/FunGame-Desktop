@@ -8,6 +8,8 @@ namespace Milimoe.FunGame.Desktop.Utility
 {
     public class OpenForm
     {
+        public static List<Form> Forms { get; } = new();
+
         /// <summary>
         /// 
         /// </summary>
@@ -57,6 +59,10 @@ namespace Milimoe.FunGame.Desktop.Utility
                         form = new Main();
                         IsExist = RunTime.Main != null;
                         RunTime.Main = (Main)form;
+                        break;
+                    case FormType.ForgetPassword:
+                        form = new ForgetPassword();
+                        Forms.Add(form);
                         break;
                     default:
                         break;
