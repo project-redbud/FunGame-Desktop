@@ -37,7 +37,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 request.AddRequestData(UserQuery.Column_Username, username);
                 request.AddRequestData(UserQuery.Column_Email, email);
                 request.SendRequest();
-                if (request.Success)
+                if (request.Result == RequestResult.Success)
                 {
                     finding = request.GetResult<bool>("finding");
                     ShowMessage.TipMessage(finding.ToString());
