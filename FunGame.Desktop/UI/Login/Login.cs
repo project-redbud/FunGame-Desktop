@@ -79,7 +79,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
         private void ForgetPassword_Click(object sender, EventArgs e)
         {
-            ShowMessage.TipMessage("暂不支持找回密码~");
+            OpenForm.SingleForm(FormType.ForgetPassword, OpenFormType.Dialog);
         }
 
         public EventResult FailedLoginEvent(object sender, LoginEventArgs e)

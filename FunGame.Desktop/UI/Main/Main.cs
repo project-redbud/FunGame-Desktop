@@ -856,6 +856,10 @@ namespace Milimoe.FunGame.Desktop.UI
             RunTime.Inventory?.Close();
             RunTime.RoomSetting?.Close();
             RunTime.UserCenter?.Close();
+            foreach (Form form in OpenForm.Forms)
+            {
+                form.Close();
+            }
         }
 
         /// <summary>
