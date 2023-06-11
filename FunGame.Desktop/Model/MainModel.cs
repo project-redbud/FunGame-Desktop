@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Data;
-using Milimoe.FunGame.Core.Entity;
+﻿using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Architecture;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
@@ -223,11 +221,11 @@ namespace Milimoe.FunGame.Desktop.Model
                 else if (SocketObject.SocketType == SocketMessageType.UpdateRoomMaster)
                 {
                     // 收到房间更换房主的信息
-                    DataSet? user = null, room = null;
-                    if (SocketObject.Length > 0) user = SocketObject.GetParam<DataSet>(0);
-                    if (SocketObject.Length > 1) room = SocketObject.GetParam<DataSet>(1);
-                    Room r = Core.Api.Utility.Factory.GetRoom(room, user);
-                    if (r.Roomid != "-1" && r.Roomid == Usercfg.InRoom.Roomid) Main.UpdateUI(MainInvokeType.UpdateRoomMaster, r);
+                    User user = General.UnknownUserInstance;
+                    Room room = General.HallInstance;
+                    if (SocketObject.Length > 0) user = SocketObject.GetParam<User>(0) ?? General.UnknownUserInstance;
+                    if (SocketObject.Length > 1) room = SocketObject.GetParam<Room>(1) ?? General.HallInstance;
+                    if (room.Roomid != "-1" && room.Roomid == Usercfg.InRoom.Roomid) Main.UpdateUI(MainInvokeType.UpdateRoomMaster, room);
                 }
                 else if (SocketMessageTypes.Contains(SocketObject.SocketType))
                 {
@@ -332,13 +330,7 @@ namespace Milimoe.FunGame.Desktop.Model
             try
             {
                 WaitForWorkDone();
-                DataSet? DsRoom = new(), DsUser = new();
-                if (Work.Length > 0) DsRoom = Work.GetParam<DataSet>(0);
-                if (Work.Length > 1) DsUser = Work.GetParam<DataSet>(1);
-                if (DsRoom != null && DsUser != null)
-                {
-                    list = Core.Api.Utility.Factory.GetList<Room>(DsRoom, DsUser);
-                }
+                if (Work.Length > 0) list = Work.GetParam<List<Room>>(0) ?? new();
             }
             catch (Exception e)
             {
