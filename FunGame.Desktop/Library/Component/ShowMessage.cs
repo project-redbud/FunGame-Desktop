@@ -210,7 +210,7 @@ namespace Milimoe.FunGame.Desktop.Library.Component
         public static string InputMessageCancel(string msg, string title, out MessageResult cancel)
         {
             object[] objs = { title, msg, 0, MessageButtonType.Input };
-            ShowMessage window = new ShowMessage(objs);
+            ShowMessage window = new(objs);
             string result = window.InputResult;
             cancel = window.MessageResult;
             return result;

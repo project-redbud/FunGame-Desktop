@@ -1,6 +1,4 @@
-﻿using System.Data;
-using System.Windows.Forms;
-using Milimoe.FunGame.Core.Api.Utility;
+﻿using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Architecture;
 using Milimoe.FunGame.Core.Library.Common.Network;
@@ -68,13 +66,10 @@ namespace Milimoe.FunGame.Desktop.Model
                         SetWorking();
                         if (Socket.Send(SocketMessageType.CheckLogin, CheckLoginKey) == SocketResult.Success)
                         {
-                            DataSet ds = await Task.Factory.StartNew(GetLoginUserAsync);
-                            if (ds != null)
-                            {
-                                // 创建User对象并返回到Main
-                                RunTime.Main?.UpdateUI(MainInvokeType.SetUser, new object[] { Factory.GetInstance<User>(ds) });
-                                return true;
-                            }
+                            User user = await Task.Factory.StartNew(GetLoginUserAsync);
+                            // 创建User对象并返回到Main
+                            RunTime.Main?.UpdateUI(MainInvokeType.SetUser, user);
+                            return true;
                         }
                     }
                 }
@@ -110,21 +105,20 @@ namespace Milimoe.FunGame.Desktop.Model
             return (key, msg);
         }
 
-        private static DataSet GetLoginUserAsync()
+        private static User GetLoginUserAsync()
         {
-            DataSet? ds = new();
+            User user = General.UnknownUserInstance;
             try
             {
                 WaitForWorkDone();
                 // 返回构造User对象的DataSet
-                if (Work.Length > 0) ds = Work.GetParam<DataSet>(0);
+                if (Work.Length > 0) user = Work.GetParam<User>(0) ?? General.UnknownUserInstance;
             }
             catch (Exception e)
             {
                 RunTime.WritelnSystemInfo(e.GetErrorInfo());
             }
-            ds ??= new();
-            return ds;
+            return user;
         }
 
         private static new void SetWorking()
