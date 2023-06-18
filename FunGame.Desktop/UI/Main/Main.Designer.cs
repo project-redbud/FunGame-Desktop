@@ -204,7 +204,7 @@ namespace Milimoe.FunGame.Desktop.UI
             CheckMix.Text = "混战模式房间";
             CheckMix.TextAlign = ContentAlignment.BottomLeft;
             CheckMix.UseVisualStyleBackColor = false;
-            CheckMix.CheckedChanged += CheckMix_CheckedChanged;
+            CheckMix.CheckedChanged += CheckGameMode_CheckedChanged;
             // 
             // CheckTeam
             // 
@@ -217,7 +217,7 @@ namespace Milimoe.FunGame.Desktop.UI
             CheckTeam.Text = "团队模式房间";
             CheckTeam.TextAlign = ContentAlignment.BottomLeft;
             CheckTeam.UseVisualStyleBackColor = false;
-            CheckTeam.CheckedChanged += CheckTeam_CheckedChanged;
+            CheckTeam.CheckedChanged += CheckGameMode_CheckedChanged;
             // 
             // RoomSetting
             // 
@@ -491,7 +491,7 @@ namespace Milimoe.FunGame.Desktop.UI
             CheckHasPass.Text = "带密码的房间";
             CheckHasPass.TextAlign = ContentAlignment.BottomLeft;
             CheckHasPass.UseVisualStyleBackColor = false;
-            CheckHasPass.CheckedChanged += CheckHasPass_CheckedChanged;
+            CheckHasPass.CheckedChanged += CheckGameMode_CheckedChanged;
             // 
             // Stock
             // 

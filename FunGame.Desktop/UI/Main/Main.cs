@@ -64,7 +64,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         break;
                     }
                 }
-                if (Config.FunGame_isAutoConnect) RunTime.Controller?.GetServerConnection();
+                if (Config.FunGame_isAutoConnect) RunTime.Controller?.Connect();
             });
         }
 
@@ -107,7 +107,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
                         case MainInvokeType.SetGreenAndPing:
                             Config.FunGame_isRetrying = false;
-                            SetServerStatusLight((int)LightType.Green, ping: NetworkUtility.GetServerPing(Constant.Server_IP));
+                            SetServerStatusLight((int)LightType.Green, ping: NetworkUtility.GetServerPing(RunTime.Session.Server_IP));
                             SetButtonEnableIfLogon(true, ClientState.Online);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
@@ -900,13 +900,7 @@ namespace Milimoe.FunGame.Desktop.UI
             WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 开始匹配");
             WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 开始匹配");
             WriteGameInfo(">> 匹配参数：");
-            if (!Config.Match_Mix && !Config.Match_Team && !Config.Match_HasPass)
-                WritelnGameInfo("无");
-            else
-            {
-                WriteGameInfo((Config.Match_Mix ? " 混战房间 " : "") + (Config.Match_Team ? " 团队房间 " : "") + (Config.Match_HasPass ? " 密码房间 " : ""));
-                WritelnGameInfo();
-            }
+            WritelnGameInfo(Config.FunGame_GameMode);
             // 显示停止匹配按钮
             StartMatch.Visible = false;
             StopMatch.Visible = true;
@@ -939,30 +933,13 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private async void CreateRoom_Click(object sender, EventArgs e)
         {
-            string roomtype = "";
             string password = "";
-            if (Config.Match_Mix && Config.Match_Team)
+            if (CheckMix.Checked && CheckTeam.Checked)
             {
                 ShowMessage.WarningMessage("创建房间不允许同时勾选混战和团队！");
                 return;
             }
-            else if (Config.Match_Mix && !Config.Match_Team && !Config.Match_HasPass)
-            {
-                roomtype = GameMode.GameMode_Mix;
-            }
-            else if (!Config.Match_Mix && Config.Match_Team && !Config.Match_HasPass)
-            {
-                roomtype = GameMode.GameMode_Team;
-            }
-            else if (Config.Match_Mix && !Config.Match_Team && Config.Match_HasPass)
-            {
-                roomtype = GameMode.GameMode_MixHasPass;
-            }
-            else if (!Config.Match_Mix && Config.Match_Team && Config.Match_HasPass)
-            {
-                roomtype = GameMode.GameMode_TeamHasPass;
-            }
-            if (Config.Match_HasPass)
+            if (CheckHasPass.Checked)
             {
                 password = ShowMessage.InputMessage("请输入该房间的密码：", "创建密码房间").Trim();
                 if (password == "" || password.Length > 10)
@@ -971,12 +948,12 @@ namespace Milimoe.FunGame.Desktop.UI
                     return;
                 }
             }
-            if (roomtype.Equals(""))
+            if (Config.FunGame_GameMode.Equals(""))
             {
                 ShowMessage.WarningMessage("请勾选你要创建的房间类型！");
                 return;
             }
-            await CreateRoom_Handler(roomtype, password);
+            await CreateRoom_Handler(Config.FunGame_GameMode, password);
         }
 
         /// <summary>
@@ -1094,36 +1071,22 @@ namespace Milimoe.FunGame.Desktop.UI
         }
 
         /// <summary>
-        /// 勾选混战选项
+        /// 勾选任意模式选项
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CheckMix_CheckedChanged(object sender, EventArgs e)
+        private void CheckGameMode_CheckedChanged(object sender, EventArgs e)
         {
-            if (CheckMix.Checked) Config.Match_Mix = true;
-            else Config.Match_Mix = false;
-        }
-
-        /// <summary>
-        /// 勾选团队选项
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void CheckTeam_CheckedChanged(object sender, EventArgs e)
-        {
-            if (CheckTeam.Checked) Config.Match_Team = true;
-            else Config.Match_Team = false;
-        }
-
-        /// <summary>
-        /// 勾选密码选项
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void CheckHasPass_CheckedChanged(object sender, EventArgs e)
-        {
-            if (CheckHasPass.Checked) Config.Match_HasPass = true;
-            else Config.Match_HasPass = false;
+            bool IsMix = CheckMix.Checked;
+            bool IsTeam = CheckTeam.Checked;
+            bool IsHasPass = CheckHasPass.Checked;
+            if (IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_All;
+            else if (IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_AllHasPass;
+            else if (IsMix && !IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_Mix;
+            else if (IsMix && !IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_MixHasPass;
+            else if (!IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_Team;
+            else if (!IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_TeamHasPass;
+            else Config.FunGame_GameMode = GameMode.GameMode_All;
         }
 
         /// <summary>
@@ -1370,7 +1333,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         CurrentRetryTimes = -1;
                         Config.FunGame_isAutoRetry = true;
-                        RunTime.Controller?.GetServerConnection();
+                        RunTime.Controller?.Connect();
                     }
                     break;
                 case Constant.FunGame_Disconnect:
@@ -1410,8 +1373,8 @@ namespace Milimoe.FunGame.Desktop.UI
                     ErrorType ErrorType = NetworkUtility.IsServerAddress(ip, port);
                     if (ErrorType == Core.Library.Constant.ErrorType.None)
                     {
-                        Constant.Server_IP = ip;
-                        Constant.Server_Port = port;
+                        RunTime.Session.Server_IP = ip;
+                        RunTime.Session.Server_Port = port;
                         CurrentRetryTimes = -1;
                         Config.FunGame_isAutoRetry = true;
                         RunTime.Controller?.Connect();

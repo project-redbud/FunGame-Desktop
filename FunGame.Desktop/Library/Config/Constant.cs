@@ -11,13 +11,6 @@ namespace Milimoe.FunGame.Desktop.Library
         public static int FunGameType { get; } = (int)FunGameInfo.FunGame.FunGame_Desktop;
 
         /**
-         * Socket Configs
-         */
-        public static string Server_IP { get; set; } = ""; // 服务器IP地址
-        public static int Server_Port { get; set; } = 0; // 服务器端口号
-        public static Encoding Default_Encoding { get; } = General.DefaultEncoding;
-
-        /**
          * FunGame Configs
          */
         public const string FunGame_PresetMessage = "- 快捷消息 -";

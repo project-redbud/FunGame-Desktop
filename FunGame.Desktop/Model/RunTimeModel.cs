@@ -1,5 +1,4 @@
-﻿using Milimoe.FunGame.Core.Api.Utility;
-using Milimoe.FunGame.Core.Library.Common.Event;
+﻿using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
@@ -14,8 +13,6 @@ namespace Milimoe.FunGame.Desktop.Model
     /// </summary>
     public class RunTimeModel : Core.Model.RunTime
     {
-        public override Socket? Socket => _Socket;
-
         private readonly Main Main;
         private readonly Core.Model.Session Usercfg = RunTime.Session;
 
@@ -26,10 +23,14 @@ namespace Milimoe.FunGame.Desktop.Model
 
         public override async Task<ConnectResult> Connect()
         {
-            if (Constant.Server_IP == "" || Constant.Server_Port <= 0)
+            if (RunTime.Session.Server_IP == "" || RunTime.Session.Server_Port <= 0)
             {
-                ShowMessage.ErrorMessage("查找可用的服务器失败！");
-                return ConnectResult.FindServerFailed;
+                (RunTime.Session.Server_IP, RunTime.Session.Server_Port) = GetServerAddress();
+                if (RunTime.Session.Server_IP == "" || RunTime.Session.Server_Port <= 0)
+                {
+                    ShowMessage.ErrorMessage("查找可用的服务器失败！");
+                    return ConnectResult.FindServerFailed;
+                }
             }
             try
             {
@@ -52,7 +53,7 @@ namespace Milimoe.FunGame.Desktop.Model
                     // 与服务器建立连接
                     Socket?.Close();
                     Config.FunGame_isRetrying = true;
-                    _Socket = Socket.Connect(Constant.Server_IP, Constant.Server_Port);
+                    _Socket = Socket.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port);
                     if (Socket != null && Socket.Connected)
                     {
                         // 设置可复用Socket
@@ -106,36 +107,8 @@ namespace Milimoe.FunGame.Desktop.Model
         {
             Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             Main.UpdateUI(MainInvokeType.Disconnected);
-            Main.OnFailedConnectEvent(new ConnectEventArgs(Constant.Server_IP, Constant.Server_Port));
+            Main.OnFailedConnectEvent(new ConnectEventArgs(RunTime.Session.Server_IP, RunTime.Session.Server_Port));
             Close();
-        }
-
-        public override void GetServerConnection()
-        {
-            try
-            {
-                // 获取服务器IP
-                string? ipaddress = (string?)Implement.GetFunGameImplValue(InterfaceType.IClient, InterfaceMethod.RemoteServerIP);
-                if (ipaddress != null)
-                {
-                    string[] s = ipaddress.Split(':');
-                    if (s != null && s.Length > 1)
-                    {
-                        Constant.Server_IP = s[0];
-                        Constant.Server_Port = Convert.ToInt32(s[1]);
-                    }
-                }
-                else
-                {
-                    ShowMessage.ErrorMessage("查找可用的服务器失败！");
-                    Config.FunGame_isRetrying = false;
-                    throw new FindServerFailedException();
-                }
-            }
-            catch (Exception e)
-            {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
-            }
         }
 
         protected override bool SocketHandler_Connect(SocketObject ServerMessage)
