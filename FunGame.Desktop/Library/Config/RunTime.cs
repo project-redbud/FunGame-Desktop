@@ -1,5 +1,6 @@
 ﻿using Milimoe.FunGame.Core.Api.Transmittal;
 using Milimoe.FunGame.Core.Library.Constant;
+using Milimoe.FunGame.Desktop.Model;
 
 namespace Milimoe.FunGame.Desktop.Library
 {
@@ -11,6 +12,7 @@ namespace Milimoe.FunGame.Desktop.Library
     {
         public static Core.Model.RoomList RoomList { get; } = new();
         public static Core.Model.Session Session { get; } = new();
+        public static Core.Model.FunGameConfig Config { get; } = new();
         public static Core.Library.Common.Network.Socket? Socket { get; set; } = null;
         public static Controller.RunTimeController? Controller { get; set; } = null;
         public static UI.Main? Main { get; set; } = null;
@@ -28,12 +30,8 @@ namespace Milimoe.FunGame.Desktop.Library
 
         public static DataRequest NewDataRequest(DataRequestType RequestType)
         {
-            if (Socket != null)
-            {
-                DataRequest request = new(Socket, RequestType);
-                return request;
-            }
-            throw new ConnectFailedException();
+            DataRequest? request = Controller?.NewDataRequest(RequestType);
+            return request is null ? throw new ConnectFailedException() : request;
         }
     }
 }

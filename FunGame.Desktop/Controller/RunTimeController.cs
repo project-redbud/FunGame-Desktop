@@ -1,4 +1,5 @@
-﻿using Milimoe.FunGame.Core.Library.Common.Event;
+﻿using Milimoe.FunGame.Core.Api.Transmittal;
+using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Library;
@@ -20,30 +21,13 @@ namespace Milimoe.FunGame.Desktop.Controller
             RunTimeModel = new RunTimeModel(Main);
         }
 
-        public override async Task<bool> GetServerConnection()
-        {
-            bool result = false;
-
-            try
-            {
-                RunTimeModel.GetServerConnection();
-                result = await Connect() == ConnectResult.Success;
-            }
-            catch (Exception e)
-            {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
-            }
-
-            return result;
-        }
-
         public override async Task<ConnectResult> Connect()
         {
             ConnectResult result = ConnectResult.ConnectFailed;
 
             try
             {
-                ConnectEventArgs EventArgs = new(Constant.Server_IP, Constant.Server_Port);
+                ConnectEventArgs EventArgs = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port);
                 if (Main.OnBeforeConnectEvent(EventArgs) == EventResult.Fail) return ConnectResult.ConnectFailed;
 
                 result = await RunTimeModel.Connect();
@@ -120,6 +104,12 @@ namespace Milimoe.FunGame.Desktop.Controller
         public override void WritelnSystemInfo(string msg)
         {
             Main?.GetMessage(msg);
+        }
+
+        public override DataRequest NewDataRequest(DataRequestType RequestType)
+        {
+            DataRequest? request = RunTimeModel?.NewDataRequest(RequestType);
+            return request is null ? throw new ConnectFailedException() : request;
         }
     }
 }
