@@ -80,6 +80,7 @@ namespace Milimoe.FunGame.Desktop.UI
         private void ForgetPassword_Click(object sender, EventArgs e)
         {
             OpenForm.SingleForm(FormType.ForgetPassword, OpenFormType.Dialog);
+            UsernameText.Focus();
         }
 
         public EventResult FailedLoginEvent(object sender, LoginEventArgs e)

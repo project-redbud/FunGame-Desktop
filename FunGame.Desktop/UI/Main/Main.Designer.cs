@@ -81,7 +81,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Title.Location = new Point(3, 3);
             Title.Size = new Size(689, 47);
             Title.TabIndex = 96;
-            Title.Text = "FunGame By Mili.cyou";
+            Title.Text = "FunGame By Milimoe";
             Title.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // Exit
@@ -519,7 +519,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Copyright.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             Copyright.BackColor = Color.Transparent;
             Copyright.Font = new Font("LanaPixel", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
-            Copyright.LinkArea = new LinkArea(6, 10);
+            Copyright.LinkArea = new LinkArea(6, 8);
             Copyright.LinkBehavior = LinkBehavior.AlwaysUnderline;
             Copyright.LinkColor = Color.Teal;
             Copyright.Location = new Point(3, 430);
@@ -527,7 +527,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Copyright.Size = new Size(186, 23);
             Copyright.TabIndex = 97;
             Copyright.TabStop = true;
-            Copyright.Text = "©2023 Mili.cyou. 米粒的糖果屋";
+            Copyright.Text = "©2023 Milimoe. 米粒的糖果屋";
             Copyright.TextAlign = ContentAlignment.MiddleLeft;
             Copyright.UseCompatibleTextRendering = true;
             Copyright.LinkClicked += Copyright_LinkClicked;

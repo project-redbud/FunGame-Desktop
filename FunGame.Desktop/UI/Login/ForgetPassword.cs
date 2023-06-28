@@ -1,8 +1,6 @@
-﻿using Milimoe.FunGame.Core.Api.Transmittal;
-using Milimoe.FunGame.Core.Library.Constant;
+﻿using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
-using Milimoe.FunGame.Core.Library.SQLScript.Common;
-using Milimoe.FunGame.Core.Library.SQLScript.Entity;
+using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Component;
 
@@ -33,83 +31,88 @@ namespace Milimoe.FunGame.Desktop.UI
                     return;
                 }
 
-                string msg = "";
+                string msg;
                 bool success = false;
 
                 try
                 {
-                    DataRequest request = RunTime.NewDataRequest(DataRequestType.GetFindPasswordVerifyCode);
-                    request.AddRequestData(UserQuery.Column_Username, username);
-                    request.AddRequestData(UserQuery.Column_Email, email);
-                    request.AddRequestData(ForgetVerifyCodes.Column_ForgetVerifyCode, "");
-                    request.SendRequest();
-                    if (request.Result == RequestResult.Success)
+                    // 发送找回密码请求
+                    msg = LoginController.ForgetPassword_CheckVerifyCode(username, email);
+
+                    if (msg.Trim() != "")
                     {
-                        msg = request.GetResult<string>("msg") ?? "";
-                        if (msg.Trim() != "")
+                        // 如果返回一个信息，则停止找回密码
+                        ShowMessage.ErrorMessage(msg);
+                    }
+                    else
+                    {
+                        while (!success)
                         {
-                            // 如果返回一个信息，则停止找回密码
-                            ShowMessage.ErrorMessage(msg);
-                        }
-                        else
-                        {
-                            while (!success)
+                            string verifycode = ShowMessage.InputMessageCancel("请输入找回密码邮件中的6位数字验证码", "注册验证码", out MessageResult result);
+                            if (result != MessageResult.Cancel)
                             {
-                                request[ForgetVerifyCodes.Column_ForgetVerifyCode] = "";
-                                string verifycode = ShowMessage.InputMessageCancel("请输入找回密码邮件中的6位数字验证码", "注册验证码", out MessageResult result);
-                                if (result != MessageResult.Cancel)
+                                if (verifycode.Trim() != "")
                                 {
-                                    if (verifycode.Trim() != "")
+                                    msg = LoginController.ForgetPassword_CheckVerifyCode(username, email, verifycode);
+                                    if (msg.Trim() != "")
                                     {
-                                        request[ForgetVerifyCodes.Column_ForgetVerifyCode] = verifycode;
-                                        request.SendRequest();
-                                        if (request.Result == RequestResult.Success)
-                                        {
-                                            msg = request.GetResult<string>("msg") ?? "";
-                                            if (msg.Trim() != "")
-                                            {
-                                                ShowMessage.ErrorMessage(msg);
-                                            }
-                                            else
-                                            {
-                                                success = true;
-                                                break;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            RunTime.WritelnSystemInfo(request.Error);
-                                        }
+                                        ShowMessage.ErrorMessage(msg);
                                     }
                                     else
                                     {
-                                        ShowMessage.WarningMessage("不能输入空值！");
+                                        success = true;
+                                        break;
                                     }
                                 }
-                                else break;
-                            }
-                            if (success)
-                            {
-                                bool checkpass = true;
-                                while (checkpass)
+                                else
                                 {
-                                    string newpass = ShowMessage.InputMessageCancel("请输入新密码", "新密码", out MessageResult result);
+                                    ShowMessage.WarningMessage("不能输入空值！");
+                                }
+                            }
+                            else break;
+                        }
+                        if (success)
+                        {
+                            while (true)
+                            {
+                                string newpass = ShowMessage.InputMessageCancel("请输入新密码", "设置新密码", out MessageResult result);
+                                if (result != MessageResult.Cancel)
+                                {
                                     if (newpass.Trim() != "")
                                     {
                                         if (newpass.Length < 6 || newpass.Length > 15) // 字节范围 3~12
                                         {
                                             ShowMessage.ErrorMessage("密码长度不符合要求：6~15个字符数");
                                         }
-                                        else checkpass = false;
+                                        else
+                                        {
+                                            msg = LoginController.ForgetPassword_UpdatePassword(username, newpass);
+                                            if (msg.Trim() != "")
+                                            {
+                                                ShowMessage.ErrorMessage(msg);
+                                            }
+                                            else
+                                            {
+                                                ShowMessage.Message("密码更新成功！请您牢记新的密码。", "找回密码");
+                                                break;
+                                            }
+                                        }
                                     }
                                 }
-                                // TODO. 等更新UpdatePassword
+                                else
+                                {
+                                    if (ShowMessage.OKCancelMessage("确定放弃设置新密码吗？", "找回密码") == MessageResult.OK)
+                                    {
+                                        success = false;
+                                        break;
+                                    }
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        RunTime.WritelnSystemInfo(request.Error);
+                        if (success)
+                        {
+                            Dispose();
+                        }
                     }
                 }
                 catch (Exception ex)

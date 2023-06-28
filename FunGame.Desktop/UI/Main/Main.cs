@@ -1370,8 +1370,8 @@ namespace Milimoe.FunGame.Desktop.UI
                         ShowMessage.ErrorMessage("格式错误！\n这不是一个服务器地址。");
                         return true;
                     }
-                    ErrorType ErrorType = NetworkUtility.IsServerAddress(ip, port);
-                    if (ErrorType == Core.Library.Constant.ErrorType.None)
+                    ErrorIPAddressType ErrorType = NetworkUtility.IsServerAddress(ip, port);
+                    if (ErrorType == Core.Library.Constant.ErrorIPAddressType.None)
                     {
                         RunTime.Session.Server_IP = ip;
                         RunTime.Session.Server_Port = port;
@@ -1379,8 +1379,8 @@ namespace Milimoe.FunGame.Desktop.UI
                         Config.FunGame_isAutoRetry = true;
                         RunTime.Controller?.Connect();
                     }
-                    else if (ErrorType == Core.Library.Constant.ErrorType.IsNotIP) ShowMessage.ErrorMessage("这不是一个IP地址！");
-                    else if (ErrorType == Core.Library.Constant.ErrorType.IsNotPort) ShowMessage.ErrorMessage("这不是一个端口号！\n正确范围：1~65535");
+                    else if (ErrorType == Core.Library.Constant.ErrorIPAddressType.IsNotIP) ShowMessage.ErrorMessage("这不是一个IP地址！");
+                    else if (ErrorType == Core.Library.Constant.ErrorIPAddressType.IsNotPort) ShowMessage.ErrorMessage("这不是一个端口号！\n正确范围：1~65535");
                     else ShowMessage.ErrorMessage("格式错误！\n这不是一个服务器地址。");
                     break;
                 default:

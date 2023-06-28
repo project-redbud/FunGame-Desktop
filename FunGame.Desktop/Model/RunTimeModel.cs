@@ -59,10 +59,10 @@ namespace Milimoe.FunGame.Desktop.Model
                         // 设置可复用Socket
                         RunTime.Socket = Socket;
                         // 发送连接请求
-                        if (Socket.Send(SocketMessageType.Connect) == SocketResult.Success)
+                        if (Socket.Send(SocketMessageType.RunTime_Connect) == SocketResult.Success)
                         {
                             SocketMessageType Result = Receiving();
-                            if (Result == SocketMessageType.Connect)
+                            if (Result == SocketMessageType.RunTime_Connect)
                             {
                                 Main.GetMessage("连接服务器成功，请登录账号以体验FunGame。");
                                 Main.UpdateUI(MainInvokeType.Connected);
