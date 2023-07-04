@@ -42,5 +42,9 @@ namespace Milimoe.FunGame.Desktop.Controller
 
             return result;
         }
+
+        public static string ForgetPassword_CheckVerifyCode(string username, string email, string verifycode = "") => LoginModel.ForgetPassword_CheckVerifyCode(username, email, verifycode);
+
+        public static string ForgetPassword_UpdatePassword(string username, string password) => LoginModel.ForgetPassword_UpdatePassword(username, password);
     }
 }

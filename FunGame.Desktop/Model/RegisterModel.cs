@@ -20,7 +20,7 @@ namespace Milimoe.FunGame.Desktop.Model
         {
             try
             {
-                if (SocketObject.SocketType == SocketMessageType.Reg || SocketObject.SocketType == SocketMessageType.CheckReg)
+                if (SocketObject.SocketType == SocketMessageType.RunTime_Reg || SocketObject.SocketType == SocketMessageType.RunTime_CheckReg)
                 {
                     Work = SocketObject;
                     Working = false;
@@ -47,7 +47,7 @@ namespace Milimoe.FunGame.Desktop.Model
                     password = password.Encrypt(username);
                     if (objs.Length > 2) email = (string)objs[2];
                     SetWorking();
-                    if (Socket.Send(SocketMessageType.Reg, username, email) == SocketResult.Success)
+                    if (Socket.Send(SocketMessageType.RunTime_Reg, username, email) == SocketResult.Success)
                     {
                         RegInvokeType InvokeType = await Task.Factory.StartNew(GetRegInvokeType);
                         while (true)
@@ -59,7 +59,7 @@ namespace Milimoe.FunGame.Desktop.Model
                                     if (cancel != MessageResult.Cancel)
                                     {
                                         SetWorking();
-                                        if (Socket.Send(SocketMessageType.CheckReg, username, password, email, verifycode) == SocketResult.Success)
+                                        if (Socket.Send(SocketMessageType.RunTime_CheckReg, username, password, email, verifycode) == SocketResult.Success)
                                         {
                                             bool success = false;
                                             string msg = "";

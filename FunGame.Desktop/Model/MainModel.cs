@@ -29,7 +29,7 @@ namespace Milimoe.FunGame.Desktop.Model
                 if (Usercfg.LoginKey != Guid.Empty)
                 {
                     SetWorking();
-                    if (RunTime.Socket?.Send(SocketMessageType.Logout, Usercfg.LoginKey) == SocketResult.Success)
+                    if (RunTime.Socket?.Send(SocketMessageType.RunTime_Logout, Usercfg.LoginKey) == SocketResult.Success)
                     {
                         string msg = "";
                         Guid key = Guid.Empty;
@@ -57,7 +57,7 @@ namespace Milimoe.FunGame.Desktop.Model
             try
             {
                 SetWorking();
-                if (RunTime.Socket?.Send(SocketMessageType.IntoRoom, room.Roomid) == SocketResult.Success)
+                if (RunTime.Socket?.Send(SocketMessageType.Main_IntoRoom, room.Roomid) == SocketResult.Success)
                 {
                     string roomid = await Task.Factory.StartNew(SocketHandler_IntoRoom);
                     if (roomid.Trim() != "" && roomid == "-1")
@@ -84,7 +84,7 @@ namespace Milimoe.FunGame.Desktop.Model
             try
             {
                 SetWorking();
-                if (RunTime.Socket?.Send(SocketMessageType.UpdateRoom) == SocketResult.Success)
+                if (RunTime.Socket?.Send(SocketMessageType.Main_UpdateRoom) == SocketResult.Success)
                 {
                     List<Room> list = await Task.Factory.StartNew(SocketHandler_UpdateRoom);
                     Main.UpdateUI(MainInvokeType.UpdateRoom, list);
@@ -104,7 +104,7 @@ namespace Milimoe.FunGame.Desktop.Model
             try
             {
                 SetWorking();
-                if (RunTime.Socket?.Send(SocketMessageType.GetRoomPlayerCount, roomid) == SocketResult.Success)
+                if (RunTime.Socket?.Send(SocketMessageType.Room_GetRoomPlayerCount, roomid) == SocketResult.Success)
                 {
                     return await Task.Factory.StartNew(SocketHandler_GetRoomPlayerCount);
                 }
@@ -123,7 +123,7 @@ namespace Milimoe.FunGame.Desktop.Model
             try
             {
                 SetWorking();
-                if (RunTime.Socket?.Send(SocketMessageType.QuitRoom, roomid, isMaster) == SocketResult.Success)
+                if (RunTime.Socket?.Send(SocketMessageType.Main_QuitRoom, roomid, isMaster) == SocketResult.Success)
                 {
                     result = await Task.Factory.StartNew(SocketHandler_QuitRoom);
                     if (result)
@@ -146,7 +146,7 @@ namespace Milimoe.FunGame.Desktop.Model
             try
             {
                 SetWorking();
-                if (RunTime.Socket?.Send(SocketMessageType.CreateRoom, RoomType, Usercfg.LoginUser.Id, Password) == SocketResult.Success)
+                if (RunTime.Socket?.Send(SocketMessageType.Main_CreateRoom, RoomType, Usercfg.LoginUser.Id, Password) == SocketResult.Success)
                 {
                     string roomid = await Task.Factory.StartNew(SocketHandler_CreateRoom);
                     if (roomid.Trim() != "")
@@ -167,7 +167,7 @@ namespace Milimoe.FunGame.Desktop.Model
         {
             try
             {
-                if (RunTime.Socket?.Send(SocketMessageType.Chat, msg) == SocketResult.Success)
+                if (RunTime.Socket?.Send(SocketMessageType.Main_Chat, msg) == SocketResult.Success)
                 {
                     return true;
                 }
@@ -185,15 +185,15 @@ namespace Milimoe.FunGame.Desktop.Model
             try
             {
                 // 定义接收的通信类型
-                SocketMessageType[] SocketMessageTypes = new SocketMessageType[] { SocketMessageType.GetNotice, SocketMessageType.Logout, SocketMessageType.IntoRoom, SocketMessageType.QuitRoom,
-                    SocketMessageType.Chat, SocketMessageType.UpdateRoom, SocketMessageType.CreateRoom };
-                if (SocketObject.SocketType == SocketMessageType.HeartBeat)
+                SocketMessageType[] SocketMessageTypes = new SocketMessageType[] { SocketMessageType.Main_GetNotice, SocketMessageType.RunTime_Logout, SocketMessageType.Main_IntoRoom, SocketMessageType.Main_QuitRoom,
+                    SocketMessageType.Main_Chat, SocketMessageType.Main_UpdateRoom, SocketMessageType.Main_CreateRoom };
+                if (SocketObject.SocketType == SocketMessageType.RunTime_HeartBeat)
                 {
                     // 心跳包单独处理
                     if ((RunTime.Socket?.Connected ?? false) && Usercfg.LoginUser.Id != 0)
                         Main.UpdateUI(MainInvokeType.SetGreenAndPing);
                 }
-                else if (SocketObject.SocketType == SocketMessageType.ForceLogout)
+                else if (SocketObject.SocketType == SocketMessageType.RunTime_ForceLogout)
                 {
                     // 服务器强制下线登录
                     Guid key = Guid.Empty;
@@ -207,7 +207,7 @@ namespace Milimoe.FunGame.Desktop.Model
                         Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
                     }
                 }
-                else if (SocketObject.SocketType == SocketMessageType.Chat)
+                else if (SocketObject.SocketType == SocketMessageType.Main_Chat)
                 {
                     // 收到房间聊天信息
                     string? user = "", msg = "";
@@ -218,7 +218,7 @@ namespace Milimoe.FunGame.Desktop.Model
                         Main.GetMessage(msg, TimeType.None);
                     }
                 }
-                else if (SocketObject.SocketType == SocketMessageType.UpdateRoomMaster)
+                else if (SocketObject.SocketType == SocketMessageType.Room_UpdateRoomMaster)
                 {
                     // 收到房间更换房主的信息
                     User user = General.UnknownUserInstance;
