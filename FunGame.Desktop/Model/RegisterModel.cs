@@ -1,15 +1,15 @@
 ﻿using Milimoe.FunGame.Core.Api.Utility;
-using Milimoe.FunGame.Core.Library.Common.Architecture;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
+using Milimoe.FunGame.Core.Model;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Component;
-using Milimoe.FunGame.Desktop.UI;
+using RunTime = Milimoe.FunGame.Desktop.Library.RunTime;
 
 namespace Milimoe.FunGame.Desktop.Model
 {
-    public class RegisterModel : BaseModel
+    public class RegisterModel : SocketHandlerModel
     {
         public RegisterModel() : base(RunTime.Socket)
         {

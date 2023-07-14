@@ -1,21 +1,21 @@
 ﻿using Milimoe.FunGame.Core.Api.Transmittal;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
-using Milimoe.FunGame.Core.Library.Common.Architecture;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Core.Library.SQLScript.Common;
 using Milimoe.FunGame.Core.Library.SQLScript.Entity;
-using Milimoe.FunGame.Desktop.Library;
+using Milimoe.FunGame.Core.Model;
 using Milimoe.FunGame.Desktop.Library.Component;
+using RunTime = Milimoe.FunGame.Desktop.Library.RunTime;
 
 namespace Milimoe.FunGame.Desktop.Model
 {
     /// <summary>
     /// 请不要越过Controller直接调用Model中的方法。
     /// </summary>
-    public class LoginModel : BaseModel
+    public class LoginModel : SocketHandlerModel
     {
         private static new SocketObject Work;
         private static new bool Working = false;

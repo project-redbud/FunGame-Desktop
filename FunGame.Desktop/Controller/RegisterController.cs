@@ -1,15 +1,14 @@
-﻿using Milimoe.FunGame.Desktop.Library.Component;
-using Milimoe.FunGame.Desktop.Library;
+﻿using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Desktop.UI;
-using Milimoe.FunGame.Core.Library.Common.Architecture;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Core.Library.Common.Event;
+using Milimoe.FunGame.Core.Controller;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
-    public class RegisterController : BaseController
+    public class RegisterController : SocketHandlerController
     {
         private readonly Register Register;
         private readonly RegisterModel RegModel;

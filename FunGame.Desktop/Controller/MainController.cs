@@ -1,5 +1,5 @@
-﻿using Milimoe.FunGame.Core.Entity;
-using Milimoe.FunGame.Core.Library.Common.Architecture;
+﻿using Milimoe.FunGame.Core.Controller;
+using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
@@ -9,7 +9,7 @@ using Milimoe.FunGame.Desktop.UI;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
-    public class MainController : BaseController
+    public class MainController : SocketHandlerController
     {
         private MainModel MainModel { get; }
         private Main Main { get; }
