@@ -32,5 +32,11 @@ namespace Milimoe.FunGame.Desktop.Library
             DataRequest? request = Controller?.NewDataRequest(RequestType);
             return request is null ? throw new ConnectFailedException() : request;
         }
+
+        public static DataRequest NewLongRunningDataRequest(DataRequestType RequestType)
+        {
+            DataRequest? request = Controller?.NewLongRunningDataRequest(RequestType);
+            return request is null ? throw new ConnectFailedException() : request;
+        }
     }
 }
