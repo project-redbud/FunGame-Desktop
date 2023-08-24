@@ -1,4 +1,5 @@
-﻿using Milimoe.FunGame.Core.Library.Common.Event;
+﻿using Milimoe.FunGame.Core.Api.Utility;
+using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
@@ -46,7 +47,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     UsernameText.Focus();
                     return false;
                 }
-                return await LoginController.LoginAccount(username, password);
+                return await LoginController.LoginAccountAsync(username, password);
             }
             catch (Exception e)
             {
@@ -70,11 +71,18 @@ namespace Milimoe.FunGame.Desktop.UI
             ShowMessage.TipMessage("与No.16对话即可获得快速登录秘钥，快去试试吧！");
         }
 
-        private async void GoToLogin_Click(object sender, EventArgs e)
+        private void GoToLogin_Click(object sender, EventArgs e)
         {
             GoToLogin.Enabled = false;
-            if (await Login_Handler() == false) GoToLogin.Enabled = true;
-            else Dispose();
+            bool result = false;
+            TaskUtility.StartAndAwaitTask(async () =>
+            {
+                result = await Login_Handler();
+            }).OnCompleted(() =>
+            {
+                if (result) Dispose();
+                else GoToLogin.Enabled = true;
+            });
         }
 
         private void ForgetPassword_Click(object sender, EventArgs e)
@@ -85,8 +93,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
         public EventResult FailedLoginEvent(object sender, LoginEventArgs e)
         {
-            if (InvokeRequired) GoToLogin.Invoke(() => GoToLogin.Enabled = true);
-            else GoToLogin.Enabled = true;
+            GoToLogin.Enabled = true;
             RunTime.Main?.OnFailedLoginEvent(e);
             return EventResult.Success;
         }

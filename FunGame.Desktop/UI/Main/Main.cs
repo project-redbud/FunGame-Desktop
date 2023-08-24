@@ -749,7 +749,7 @@ namespace Milimoe.FunGame.Desktop.UI
             }
             if (MainController != null)
             {
-                string roomid = await MainController.CreateRoom(RoomType, Password).Trim();
+                string roomid = await MainController.CreateRoom(RoomType, Password);
                 if (roomid != "" && roomid != "-1")
                 {
                     await MainController.UpdateRoom();
@@ -1410,54 +1410,56 @@ namespace Milimoe.FunGame.Desktop.UI
         /// 连接服务器，并处理事件
         /// </summary>
         /// <returns></returns>
-        private ConnectResult InvokeController_Connect()
+        private void InvokeController_Connect()
         {
-            ConnectResult result = ConnectResult.ConnectFailed;
-
             try
             {
                 ConnectEventArgs EventArgs = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port);
-                if (OnBeforeConnectEvent(EventArgs) == EventResult.Fail) return ConnectResult.ConnectFailed;
+                ConnectResult result = ConnectResult.CanNotConnect;
 
-                result = RunTime.Controller?.Connect() ?? ConnectResult.CanNotConnect;
-                EventArgs.ConnectResult = result;
-
-                if (result == ConnectResult.Success) OnSucceedConnectEvent(EventArgs);
-                else OnFailedConnectEvent(EventArgs);
-                OnAfterConnectEvent(EventArgs);
+                TaskUtility.StartAndAwaitTask(() =>
+                {
+                    if (OnBeforeConnectEvent(EventArgs) == EventResult.Fail) return;
+                    result = RunTime.Controller?.Connect() ?? result;
+                    EventArgs.ConnectResult = result;
+                }).OnCompleted(() =>
+                {
+                    if (result == ConnectResult.Success) OnSucceedConnectEvent(EventArgs);
+                    else OnFailedConnectEvent(EventArgs);
+                    OnAfterConnectEvent(EventArgs);
+                });
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
             }
-
-            return result;
         }
 
         /// <summary>
         /// 断开服务器的连接，并处理事件
         /// </summary>
         /// <returns></returns>
-        public bool InvokeController_Disconnect()
+        public void InvokeController_Disconnect()
         {
-            bool result = false;
-
             try
             {
-                if (OnBeforeDisconnectEvent(new GeneralEventArgs()) == EventResult.Fail) return result;
+                bool result = false;
 
-                result = RunTime.Controller?.Disconnect() ?? false;
-
-                if (result) OnSucceedDisconnectEvent(new GeneralEventArgs());
-                else OnFailedDisconnectEvent(new GeneralEventArgs());
-                OnAfterDisconnectEvent(new GeneralEventArgs());
+                TaskUtility.StartAndAwaitTask(() =>
+                {
+                    if (OnBeforeDisconnectEvent(new GeneralEventArgs()) == EventResult.Fail) return;
+                    result = RunTime.Controller?.Disconnect() ?? false;
+                }).OnCompleted(() =>
+                {
+                    if (result) OnSucceedDisconnectEvent(new GeneralEventArgs());
+                    else OnFailedDisconnectEvent(new GeneralEventArgs());
+                    OnAfterDisconnectEvent(new GeneralEventArgs());
+                });
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
             }
-
-            return result;
         }
 
         /// <summary>
