@@ -1,6 +1,7 @@
 ﻿using Milimoe.FunGame.Core.Api.Transmittal;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
+using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Core.Library.SQLScript.Common;
@@ -15,41 +16,46 @@ namespace Milimoe.FunGame.Desktop.Controller
         public static async Task<bool> LoginAccountAsync(string username, string password, string autokey = "")
         {
             bool result = false;
+            string msg = "";
+            LoginEventArgs args = new(username, password, autokey);
 
             try
             {
-                DataRequest request = RunTime.NewDataRequest(DataRequestType.RunTime_Login);
-                request.AddRequestData("username", username);
-                request.AddRequestData("password", password);
-                request.AddRequestData("autokey", autokey);
-                await request.SendRequestAsync();
-                if (request.Result == RequestResult.Success)
+                if (OnBeforeLoginEvent(args))
                 {
-                    Guid key = request.GetResult<Guid>("checkloginkey");
-                    string msg = request.GetResult<string>("msg") ?? "";
-                    if (msg != "")
+                    DataRequest request = RunTime.NewDataRequest(DataRequestType.RunTime_Login);
+                    request.AddRequestData("username", username);
+                    request.AddRequestData("password", password);
+                    request.AddRequestData("autokey", autokey);
+                    await request.SendRequestAsync();
+                    if (request.Result == RequestResult.Success)
                     {
-                        ShowMessage.ErrorMessage(msg);
-                    }
-                    else if (key != Guid.Empty)
-                    {
-                        request.AddRequestData("checkloginkey", key);
-                        await request.SendRequestAsync();
-                        if (request.Result == RequestResult.Success)
+                        Guid key = request.GetResult<Guid>("checkloginkey");
+                        msg = request.GetResult<string>("msg") ?? "";
+                        if (msg != "")
                         {
-                            msg = request.GetResult<string>("msg") ?? "";
-                            if (msg != "")
+                            ShowMessage.ErrorMessage(msg);
+                        }
+                        else if (key != Guid.Empty)
+                        {
+                            request.AddRequestData("checkloginkey", key);
+                            await request.SendRequestAsync();
+                            if (request.Result == RequestResult.Success)
                             {
-                                ShowMessage.ErrorMessage(msg);
-                            }
-                            else
-                            {
-                                User user = request.GetResult<User>("user") ?? Factory.GetUser();
-                                if (user.Id != 0)
+                                msg = request.GetResult<string>("msg") ?? "";
+                                if (msg != "")
                                 {
-                                    // 创建User对象并返回到Main
-                                    RunTime.Main?.UpdateUI(MainInvokeType.SetUser, user);
-                                    result = true;
+                                    ShowMessage.ErrorMessage(msg);
+                                }
+                                else
+                                {
+                                    User user = request.GetResult<User>("user") ?? Factory.GetUser();
+                                    if (user.Id != 0)
+                                    {
+                                        // 创建User对象并返回到Main
+                                        RunTime.Main?.UpdateUI(MainInvokeType.SetUser, user);
+                                        result = true;
+                                    }
                                 }
                             }
                         }
@@ -60,6 +66,13 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 RunTime.WritelnSystemInfo(e.GetErrorInfo());
             }
+
+            if (!result && msg == "")
+            {
+                ShowMessage.ErrorMessage("登录失败！");
+            }
+
+            OnAfterLoginEvent(result, args);
 
             return result;
         }
@@ -131,41 +144,46 @@ namespace Milimoe.FunGame.Desktop.Controller
         public static bool LoginAccount(string username, string password, string autokey = "")
         {
             bool result = false;
+            string msg = "";
+            LoginEventArgs args = new(username, password, autokey);
 
             try
             {
-                DataRequest request = RunTime.NewDataRequest(DataRequestType.RunTime_Login);
-                request.AddRequestData("username", username);
-                request.AddRequestData("password", password);
-                request.AddRequestData("autokey", autokey);
-                request.SendRequestAsync();
-                if (request.Result == RequestResult.Success)
+                if (OnBeforeLoginEvent(args))
                 {
-                    Guid key = request.GetResult<Guid>("checkloginkey");
-                    string msg = request.GetResult<string>("msg") ?? "";
-                    if (msg != "")
+                    DataRequest request = RunTime.NewDataRequest(DataRequestType.RunTime_Login);
+                    request.AddRequestData("username", username);
+                    request.AddRequestData("password", password);
+                    request.AddRequestData("autokey", autokey);
+                    request.SendRequest();
+                    if (request.Result == RequestResult.Success)
                     {
-                        ShowMessage.ErrorMessage(msg);
-                    }
-                    else if (key != Guid.Empty)
-                    {
-                        request.AddRequestData("checkloginkey", key);
-                        request.SendRequestAsync();
-                        if (request.Result == RequestResult.Success)
+                        Guid key = request.GetResult<Guid>("checkloginkey");
+                        msg = request.GetResult<string>("msg") ?? "";
+                        if (msg != "")
                         {
-                            msg = request.GetResult<string>("msg") ?? "";
-                            if (msg != "")
+                            ShowMessage.ErrorMessage(msg);
+                        }
+                        else if (key != Guid.Empty)
+                        {
+                            request.AddRequestData("checkloginkey", key);
+                            request.SendRequest();
+                            if (request.Result == RequestResult.Success)
                             {
-                                ShowMessage.ErrorMessage(msg);
-                            }
-                            else
-                            {
-                                User user = request.GetResult<User>("user") ?? Factory.GetUser();
-                                if (user.Id != 0)
+                                msg = request.GetResult<string>("msg") ?? "";
+                                if (msg != "")
                                 {
-                                    // 创建User对象并返回到Main
-                                    RunTime.Main?.UpdateUI(MainInvokeType.SetUser, user);
-                                    result = true;
+                                    ShowMessage.ErrorMessage(msg);
+                                }
+                                else
+                                {
+                                    User user = request.GetResult<User>("user") ?? Factory.GetUser();
+                                    if (user.Id != 0)
+                                    {
+                                        // 创建User对象并返回到Main
+                                        RunTime.Main?.UpdateUI(MainInvokeType.SetUser, user);
+                                        result = true;
+                                    }
                                 }
                             }
                         }
@@ -176,6 +194,13 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 RunTime.WritelnSystemInfo(e.GetErrorInfo());
             }
+
+            if (!result && msg == "")
+            {
+                ShowMessage.ErrorMessage("登录失败！");
+            }
+
+            OnAfterLoginEvent(result, args);
 
             return result;
         }
@@ -242,6 +267,25 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
 
             return msg;
+        }
+
+        private static bool OnBeforeLoginEvent(LoginEventArgs LoginEventArgs)
+        {
+            return RunTime.Login?.OnBeforeLoginEvent(LoginEventArgs) == EventResult.Success;
+        }
+
+        private static void OnAfterLoginEvent(bool result, LoginEventArgs LoginEventArgs)
+        {
+            try
+            {
+                if (result) RunTime.Login?.OnSucceedLoginEvent(LoginEventArgs);
+                else RunTime.Login?.OnFailedLoginEvent(LoginEventArgs);
+                RunTime.Login?.OnAfterLoginEvent(LoginEventArgs);
+            }
+            catch (Exception e)
+            {
+                RunTime.WritelnSystemInfo(e.GetErrorInfo());
+            }
         }
     }
 }

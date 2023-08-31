@@ -145,9 +145,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             try
             {
-                LoginController LoginController = new();
-                Core.Api.Utility.TaskUtility.StartAndAwaitTask(() => LoginController.LoginAccount(Username, Password, AutoKey));
-                LoginController.Dispose();
+                Core.Api.Utility.TaskUtility.StartAndAwaitTask(async () => await LoginController.LoginAccountAsync(Username, Password, AutoKey));
             }
             catch (Exception e)
             {
