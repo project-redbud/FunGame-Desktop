@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
-using Milimoe.FunGame.Core.Api.Transmittal;
+﻿using Milimoe.FunGame.Core.Api.Transmittal;
 using Milimoe.FunGame.Core.Controller;
 using Milimoe.FunGame.Core.Entity;
-using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Core.Model;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Component;
-using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.UI;
 
 namespace Milimoe.FunGame.Desktop.Controller
@@ -18,6 +15,9 @@ namespace Milimoe.FunGame.Desktop.Controller
     {
         private readonly Main Main;
         private readonly Session Usercfg = RunTime.Session;
+        private readonly DataRequest ChatRequest;
+        private readonly DataRequest CreateRoomRequest;
+        private readonly DataRequest GetRoomPlayerCountRequest;
         private readonly DataRequest UpdateRoomRequest;
         private readonly DataRequest IntoRoomRequest;
         private readonly DataRequest QuitRoomRequest;
@@ -25,6 +25,9 @@ namespace Milimoe.FunGame.Desktop.Controller
         public MainController(Main main) : base(RunTime.Socket)
         {
             Main = main;
+            ChatRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_Chat);
+            CreateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_CreateRoom);
+            GetRoomPlayerCountRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Room_GetRoomPlayerCount);
             UpdateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_UpdateRoom);
             IntoRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_IntoRoom);
             QuitRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_QuitRoom);
@@ -33,19 +36,22 @@ namespace Milimoe.FunGame.Desktop.Controller
 
         #region 公开方法
 
-        public async Task<bool> LogOut()
+        public async Task<bool> LogOutAsync()
         {
             try
             {
                 // 需要当时登录给的Key发回去，确定是账号本人在操作才允许登出
                 if (Usercfg.LoginKey != Guid.Empty)
                 {
-                    SetWorking();
-                    if (RunTime.Socket?.Send(SocketMessageType.RunTime_Logout, Usercfg.LoginKey) == SocketResult.Success)
+                    DataRequest request = RunTime.NewDataRequest(DataRequestType.RunTime_Logout);
+                    request.AddRequestData("loginkey", Usercfg.LoginKey);
+                    await request.SendRequestAsync();
+                    if (request.Result == RequestResult.Success)
                     {
                         string msg = "";
                         Guid key = Guid.Empty;
-                        (msg, key) = await Task.Factory.StartNew(SocketHandler_LogOut);
+                        msg = request.GetResult<string>("msg") ?? "";
+                        key = request.GetResult<Guid>("key");
                         if (key == Usercfg.LoginKey)
                         {
                             Usercfg.LoginKey = Guid.Empty;
@@ -64,7 +70,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             return false;
         }
 
-        public async Task<bool> IntoRoom(Room room)
+        public async Task<bool> IntoRoomAsync(Room room)
         {
             try
             {
@@ -97,7 +103,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public async Task<bool> UpdateRoom()
+        public async Task<bool> UpdateRoomAsync()
         {
             bool result = false;
 
@@ -120,14 +126,13 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
 
-        public async Task<int> GetRoomPlayerCount(string roomid)
+        public async Task<int> GetRoomPlayerCountAsync(string roomid)
         {
             try
             {
-                DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.Room_GetRoomPlayerCount);
-                request.AddRequestData("roomid", roomid);
-                await request.SendRequestAsync();
-                return request.GetResult<int>("count");
+                GetRoomPlayerCountRequest.AddRequestData("roomid", roomid);
+                await GetRoomPlayerCountRequest.SendRequestAsync();
+                return GetRoomPlayerCountRequest.GetResult<int>("count");
             }
             catch (Exception e)
             {
@@ -136,7 +141,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public async Task<bool> QuitRoom(string roomid, bool isMaster)
+        public async Task<bool> QuitRoomAsync(string roomid, bool isMaster)
         {
             bool result = false;
 
@@ -163,20 +168,19 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public async Task<string> CreateRoom(string RoomType, string Password = "")
+        public async Task<string> CreateRoomAsync(string RoomType, string Password = "")
         {
             string roomid = "-1";
 
             try
             {
-                DataRequest request = RunTime.NewDataRequest(DataRequestType.Main_CreateRoom);
-                request.AddRequestData("roomtype", RoomType);
-                request.AddRequestData("user", Usercfg.LoginUser);
-                request.AddRequestData("password", Password);
-                await UpdateRoomRequest.SendRequestAsync();
-                if (request.Result == RequestResult.Success)
+                CreateRoomRequest.AddRequestData("roomtype", RoomType);
+                CreateRoomRequest.AddRequestData("user", Usercfg.LoginUser);
+                CreateRoomRequest.AddRequestData("password", Password);
+                await CreateRoomRequest.SendRequestAsync();
+                if (CreateRoomRequest.Result == RequestResult.Success)
                 {
-                    roomid = request.GetResult<string>("roomid") ?? "-1";
+                    roomid = CreateRoomRequest.GetResult<string>("roomid") ?? "-1";
                 }
             }
             catch (Exception e)
@@ -187,11 +191,13 @@ namespace Milimoe.FunGame.Desktop.Controller
             return roomid;
         }
 
-        public bool Chat(string msg)
+        public async Task<bool> ChatAsync(string msg)
         {
             try
             {
-                if (RunTime.Socket?.Send(SocketMessageType.Main_Chat, msg) == SocketResult.Success)
+                ChatRequest.AddRequestData("msg", msg);
+                await ChatRequest.SendRequestAsync();
+                if (ChatRequest.Result == RequestResult.Success)
                 {
                     return true;
                 }
@@ -208,16 +214,13 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             try
             {
-                // 定义接收的通信类型
-                SocketMessageType[] SocketMessageTypes = new SocketMessageType[] { SocketMessageType.Main_GetNotice, SocketMessageType.RunTime_Logout, SocketMessageType.Main_IntoRoom, SocketMessageType.Main_QuitRoom,
-                    SocketMessageType.Main_Chat, SocketMessageType.Main_UpdateRoom, SocketMessageType.Main_CreateRoom };
-                if (SocketObject.SocketType == SocketMessageType.RunTime_HeartBeat)
+                if (SocketObject.SocketType == SocketMessageType.HeartBeat)
                 {
                     // 心跳包单独处理
                     if ((RunTime.Socket?.Connected ?? false) && Usercfg.LoginUser.Id != 0)
                         Main.UpdateUI(MainInvokeType.SetGreenAndPing);
                 }
-                else if (SocketObject.SocketType == SocketMessageType.RunTime_ForceLogout)
+                else if (SocketObject.SocketType == SocketMessageType.ForceLogout)
                 {
                     // 服务器强制下线登录
                     Guid key = Guid.Empty;
@@ -231,7 +234,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                         Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
                     }
                 }
-                else if (SocketObject.SocketType == SocketMessageType.Main_Chat)
+                else if (SocketObject.SocketType == SocketMessageType.Chat)
                 {
                     // 收到房间聊天信息
                     string? user = "", msg = "";
@@ -242,7 +245,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                         Main.GetMessage(msg, TimeType.None);
                     }
                 }
-                else if (SocketObject.SocketType == SocketMessageType.Room_UpdateRoomMaster)
+                else if (SocketObject.SocketType == SocketMessageType.UpdateRoomMaster)
                 {
                     // 收到房间更换房主的信息
                     User user = General.UnknownUserInstance;
@@ -250,11 +253,6 @@ namespace Milimoe.FunGame.Desktop.Controller
                     if (SocketObject.Length > 0) user = SocketObject.GetParam<User>(0) ?? General.UnknownUserInstance;
                     if (SocketObject.Length > 1) room = SocketObject.GetParam<Room>(1) ?? General.HallInstance;
                     if (room.Roomid != "-1" && room.Roomid == Usercfg.InRoom.Roomid) Main.UpdateUI(MainInvokeType.UpdateRoomMaster, room);
-                }
-                else if (SocketMessageTypes.Contains(SocketObject.SocketType))
-                {
-                    Work = SocketObject;
-                    Working = false;
                 }
             }
             catch (Exception e)
@@ -267,27 +265,11 @@ namespace Milimoe.FunGame.Desktop.Controller
 
         #region 私有方法
 
-        private (string, Guid) SocketHandler_LogOut()
-        {
-            string? msg = "";
-            Guid key = Guid.Empty;
-            try
-            {
-                WaitForWorkDone();
-                // 返回一个Key，如果这个Key是空的，登出失败
-                if (Work.Length > 0) key = Work.GetParam<Guid>(0);
-                if (Work.Length > 1) msg = Work.GetParam<string>(1);
-            }
-            catch (Exception e)
-            {
-                Main.GetMessage(e.GetErrorInfo());
-            }
-            msg ??= "";
-            return (msg, key);
-        }
-
         private void MainController_Disposed()
         {
+            ChatRequest.Dispose();
+            CreateRoomRequest.Dispose();
+            GetRoomPlayerCountRequest.Dispose();
             UpdateRoomRequest.Dispose();
             IntoRoomRequest.Dispose();
             QuitRoomRequest.Dispose();

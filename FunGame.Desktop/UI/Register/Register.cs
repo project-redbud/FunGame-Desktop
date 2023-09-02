@@ -24,13 +24,7 @@ namespace Milimoe.FunGame.Desktop.UI
         protected override void BindEvent()
         {
             base.BindEvent();
-            Disposed += Register_Disposed;
             SucceedReg += SucceedRegEvent;
-        }
-
-        private void Register_Disposed(object? sender, EventArgs e)
-        {
-            RegController.Dispose();
         }
 
         private async Task<bool> Reg_Handler()
@@ -97,7 +91,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     EmailText.Focus();
                     return false;
                 }
-                return await RegController.Reg(username, password, email);
+                return await RegController.RegAsync(username, password, email);
             }
             catch (Exception e)
             {

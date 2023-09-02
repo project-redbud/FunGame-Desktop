@@ -505,7 +505,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (MainController != null)
             {
-                await MainController.UpdateRoom();
+                await MainController.UpdateRoomAsync();
                 if (CheckRoomIDExist(roomid))
                 {
                     if (Usercfg.InRoom.Roomid == "-1")
@@ -513,7 +513,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         if (ShowMessage.YesNoMessage("已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
                         {
                             Room r = GetRoom(roomid);
-                            if (MainController != null && await MainController.IntoRoom(r))
+                            if (MainController != null && await MainController.IntoRoomAsync(r))
                             {
                                 SetRoomid(r);
                                 InRoom();
@@ -718,12 +718,18 @@ namespace Milimoe.FunGame.Desktop.UI
                     msg = DateTimeUtility.GetNowShortTime() + " [ " + Usercfg.LoginUserName + " ] 说： " + text;
                 }
                 WritelnGameInfo(msg);
-                if (Usercfg.LoginUser.Id != 0 && !SwitchTalkMessage(text))
-                {
-                    MainController?.Chat(" [ " + Usercfg.LoginUserName + " ] 说： " + text);
-                }
                 TalkText.Text = "";
                 if (isLeave) TalkText_Leave(); // 回车不离开焦点
+                if (MainController != null && Usercfg.LoginUser.Id != 0 && !SwitchTalkMessage(text))
+                {
+                    TaskUtility.StartAndAwaitTask(async () =>
+                    {
+                        if (!await MainController.ChatAsync(" [ " + Usercfg.LoginUserName + " ] 说： " + text))
+                        {
+                            WritelnGameInfo("联网消息发送失败。");
+                        }
+                    });
+                }
             }
             else
             {
@@ -749,10 +755,10 @@ namespace Milimoe.FunGame.Desktop.UI
             }
             if (MainController != null)
             {
-                string roomid = await MainController.CreateRoom(RoomType, Password);
+                string roomid = await MainController.CreateRoomAsync(RoomType, Password);
                 if (roomid != "" && roomid != "-1")
                 {
-                    await MainController.UpdateRoom();
+                    await MainController.UpdateRoomAsync();
                     Room r = GetRoom(roomid);
                     await InvokeController_IntoRoom(r);
                     SetRoomid(r);
@@ -796,7 +802,7 @@ namespace Milimoe.FunGame.Desktop.UI
             if (MainController != null)
             {
                 // 获取在线的房间列表
-                await MainController.UpdateRoom();
+                await MainController.UpdateRoomAsync();
                 // 接入-1号房间聊天室
                 await InvokeController_IntoRoom(Rooms["-1"] ?? General.HallInstance);
             }
@@ -973,7 +979,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 离开房间");
                     WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已离开房间 -> [ " + roomid + " ]");
                     InMain();
-                    _ = MainController?.UpdateRoom();
+                    _ = MainController?.UpdateRoomAsync();
                     result = true;
                 }
             }).OnCompleted(() =>
@@ -1476,7 +1482,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RoomEventArgs EventArgs = new(room);
                 if (OnBeforeIntoRoomEvent(EventArgs) == EventResult.Fail) return result;
 
-                result = MainController is not null && await MainController.IntoRoom(room);
+                result = MainController is not null && await MainController.IntoRoomAsync(room);
 
                 if (result) OnSucceedIntoRoomEvent(EventArgs);
                 else OnFailedIntoRoomEvent(EventArgs);
@@ -1504,7 +1510,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RoomEventArgs EventArgs = new(room);
                 if (OnBeforeIntoRoomEvent(EventArgs) == EventResult.Fail) return result;
 
-                result = MainController is not null && await MainController.QuitRoom(room.Roomid, isMaster);
+                result = MainController is not null && await MainController.QuitRoomAsync(room.Roomid, isMaster);
 
                 if (result) OnSucceedIntoRoomEvent(EventArgs);
                 else OnFailedIntoRoomEvent(EventArgs);
@@ -1537,10 +1543,10 @@ namespace Milimoe.FunGame.Desktop.UI
                 {
                     string roomid = Usercfg.InRoom.Roomid;
                     bool isMaster = Usercfg.InRoom.RoomMaster?.Id == Usercfg.LoginUser?.Id;
-                    MainController?.QuitRoom(roomid, isMaster);
+                    MainController?.QuitRoomAsync(roomid, isMaster);
                 }
 
-                result = MainController is not null && await MainController.LogOut();
+                result = MainController is not null && await MainController.LogOutAsync();
 
                 if (result) OnSucceedLogoutEvent(EventArgs);
                 else OnFailedLogoutEvent(EventArgs);

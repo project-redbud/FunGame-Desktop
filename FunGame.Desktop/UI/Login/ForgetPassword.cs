@@ -13,11 +13,6 @@ namespace Milimoe.FunGame.Desktop.UI
             InitializeComponent();
         }
 
-        protected override void BindEvent()
-        {
-            base.BindEvent();
-        }
-
         private void FindPassword_Click(object sender, EventArgs e)
         {
             if (RunTime.Socket != null)
@@ -37,7 +32,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 try
                 {
                     // 发送找回密码请求
-                    msg = LoginController.ForgetPassword_CheckVerifyCode(username, email);
+                    msg = LoginController.ForgetPassword_CheckVerifyCode(username, email, "");
 
                     if (msg.Trim() != "")
                     {
