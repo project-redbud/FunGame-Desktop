@@ -8,12 +8,33 @@ using Milimoe.FunGame.Core.Library.SQLScript.Common;
 using Milimoe.FunGame.Core.Library.SQLScript.Entity;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Component;
+using Milimoe.FunGame.Desktop.UI;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
     public class LoginController
     {
-        public static async Task<bool> LoginAccountAsync(string username, string password, string autokey = "")
+        private readonly GeneralForm UIForm;
+        private readonly DataRequest LoginRequest;
+        private readonly DataRequest ForgetPasswordRequest;
+        private readonly DataRequest UpdatePasswordRequest;
+
+        public LoginController(GeneralForm form)
+        {
+            UIForm = form;
+            LoginRequest = RunTime.NewLongRunningDataRequest(DataRequestType.RunTime_Login);
+            ForgetPasswordRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Login_GetFindPasswordVerifyCode);
+            UpdatePasswordRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Login_UpdatePassword);
+        }
+
+        public void Dispose()
+        {
+            LoginRequest.Dispose();
+            ForgetPasswordRequest.Dispose();
+            UpdatePasswordRequest.Dispose();
+        }
+
+        public async Task<bool> LoginAccountAsync(string username, string password, string autokey = "")
         {
             bool result = false;
             string msg = "";
@@ -23,33 +44,32 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 if (OnBeforeLoginEvent(args))
                 {
-                    DataRequest request = RunTime.NewDataRequest(DataRequestType.RunTime_Login);
-                    request.AddRequestData("username", username);
-                    request.AddRequestData("password", password);
-                    request.AddRequestData("autokey", autokey);
-                    await request.SendRequestAsync();
-                    if (request.Result == RequestResult.Success)
+                    LoginRequest.AddRequestData("username", username);
+                    LoginRequest.AddRequestData("password", password);
+                    LoginRequest.AddRequestData("autokey", autokey);
+                    await LoginRequest.SendRequestAsync();
+                    if (LoginRequest.Result == RequestResult.Success)
                     {
-                        Guid key = request.GetResult<Guid>("checkloginkey");
-                        msg = request.GetResult<string>("msg") ?? "";
+                        Guid key = LoginRequest.GetResult<Guid>("checkloginkey");
+                        msg = LoginRequest.GetResult<string>("msg") ?? "";
                         if (msg != "")
                         {
-                            ShowMessage.ErrorMessage(msg);
+                            UIForm.ShowMessage(ShowMessageType.Error, msg);
                         }
                         else if (key != Guid.Empty)
                         {
-                            request.AddRequestData("checkloginkey", key);
-                            await request.SendRequestAsync();
-                            if (request.Result == RequestResult.Success)
+                            LoginRequest.AddRequestData("checkloginkey", key);
+                            await LoginRequest.SendRequestAsync();
+                            if (LoginRequest.Result == RequestResult.Success)
                             {
-                                msg = request.GetResult<string>("msg") ?? "";
+                                msg = LoginRequest.GetResult<string>("msg") ?? "";
                                 if (msg != "")
                                 {
-                                    ShowMessage.ErrorMessage(msg);
+                                    UIForm.ShowMessage(ShowMessageType.Error, msg);
                                 }
                                 else
                                 {
-                                    User user = request.GetResult<User>("user") ?? Factory.GetUser();
+                                    User user = LoginRequest.GetResult<User>("user") ?? Factory.GetUser();
                                     if (user.Id != 0)
                                     {
                                         // 创建User对象并返回到Main
@@ -69,7 +89,7 @@ namespace Milimoe.FunGame.Desktop.Controller
 
             if (!result && msg == "")
             {
-                ShowMessage.ErrorMessage("登录失败！");
+                UIForm.ShowMessage(ShowMessageType.Error, "登录失败！");
             }
 
             OnAfterLoginEvent(result, args);
@@ -77,36 +97,35 @@ namespace Milimoe.FunGame.Desktop.Controller
             return result;
         }
 
-        public static async Task<string> ForgetPassword_CheckVerifyCodeAsync(string username, string email, string verifycode)
+        public async Task<string> ForgetPassword_CheckVerifyCodeAsync(string username, string email, string verifycode)
         {
             string msg = "无法找回您的密码，请稍后再试。";
 
             try
             {
-                DataRequest request = RunTime.NewDataRequest(DataRequestType.Login_GetFindPasswordVerifyCode);
-                request.AddRequestData(ForgetVerifyCodes.Column_Username, username);
-                request.AddRequestData(ForgetVerifyCodes.Column_Email, email);
+                ForgetPasswordRequest.AddRequestData(ForgetVerifyCodes.Column_Username, username);
+                ForgetPasswordRequest.AddRequestData(ForgetVerifyCodes.Column_Email, email);
                 if (verifycode.Trim() == "")
                 {
                     // 未发送verifycode，说明需要系统生成一个验证码
-                    request.AddRequestData(ForgetVerifyCodes.Column_ForgetVerifyCode, "");
-                    await request.SendRequestAsync();
-                    if (request.Result == RequestResult.Success)
+                    ForgetPasswordRequest.AddRequestData(ForgetVerifyCodes.Column_ForgetVerifyCode, "");
+                    await ForgetPasswordRequest.SendRequestAsync();
+                    if (ForgetPasswordRequest.Result == RequestResult.Success)
                     {
-                        msg = request.GetResult<string>("msg") ?? msg;
+                        msg = ForgetPasswordRequest.GetResult<string>("msg") ?? msg;
                     }
-                    else RunTime.WritelnSystemInfo(request.Error);
+                    else RunTime.WritelnSystemInfo(ForgetPasswordRequest.Error);
                 }
                 else
                 {
                     // 发送verifycode，需要验证
-                    request.AddRequestData(ForgetVerifyCodes.Column_ForgetVerifyCode, verifycode);
-                    await request.SendRequestAsync();
-                    if (request.Result == RequestResult.Success)
+                    ForgetPasswordRequest.AddRequestData(ForgetVerifyCodes.Column_ForgetVerifyCode, verifycode);
+                    await ForgetPasswordRequest.SendRequestAsync();
+                    if (ForgetPasswordRequest.Result == RequestResult.Success)
                     {
-                        msg = request.GetResult<string>("msg") ?? msg;
+                        msg = ForgetPasswordRequest.GetResult<string>("msg") ?? msg;
                     }
-                    else RunTime.WritelnSystemInfo(request.Error);
+                    else RunTime.WritelnSystemInfo(ForgetPasswordRequest.Error);
                 }
             }
             catch (Exception e)
@@ -117,21 +136,20 @@ namespace Milimoe.FunGame.Desktop.Controller
             return msg;
         }
 
-        public static async Task<string> ForgetPassword_UpdatePasswordAsync(string username, string password)
+        public async Task<string> ForgetPassword_UpdatePasswordAsync(string username, string password)
         {
             string msg = "无法更新您的密码，请稍后再试。";
 
             try
             {
-                DataRequest request = RunTime.NewDataRequest(DataRequestType.Login_UpdatePassword);
-                request.AddRequestData(UserQuery.Column_Username, username);
-                request.AddRequestData(UserQuery.Column_Password, password.Encrypt(username));
-                await request.SendRequestAsync();
-                if (request.Result == RequestResult.Success)
+                UpdatePasswordRequest.AddRequestData(UserQuery.Column_Username, username);
+                UpdatePasswordRequest.AddRequestData(UserQuery.Column_Password, password.Encrypt(username));
+                await UpdatePasswordRequest.SendRequestAsync();
+                if (UpdatePasswordRequest.Result == RequestResult.Success)
                 {
-                    msg = request.GetResult<string>("msg") ?? msg;
+                    msg = UpdatePasswordRequest.GetResult<string>("msg") ?? msg;
                 }
-                else RunTime.WritelnSystemInfo(request.Error);
+                else RunTime.WritelnSystemInfo(UpdatePasswordRequest.Error);
             }
             catch (Exception e)
             {
@@ -141,146 +159,30 @@ namespace Milimoe.FunGame.Desktop.Controller
             return msg;
         }
 
-        public static bool LoginAccount(string username, string password, string autokey = "")
+        private bool OnBeforeLoginEvent(LoginEventArgs LoginEventArgs)
         {
-            bool result = false;
-            string msg = "";
-            LoginEventArgs args = new(username, password, autokey);
-
-            try
+            if (UIForm.GetType() == typeof(Login))
             {
-                if (OnBeforeLoginEvent(args))
-                {
-                    DataRequest request = RunTime.NewDataRequest(DataRequestType.RunTime_Login);
-                    request.AddRequestData("username", username);
-                    request.AddRequestData("password", password);
-                    request.AddRequestData("autokey", autokey);
-                    request.SendRequest();
-                    if (request.Result == RequestResult.Success)
-                    {
-                        Guid key = request.GetResult<Guid>("checkloginkey");
-                        msg = request.GetResult<string>("msg") ?? "";
-                        if (msg != "")
-                        {
-                            ShowMessage.ErrorMessage(msg);
-                        }
-                        else if (key != Guid.Empty)
-                        {
-                            request.AddRequestData("checkloginkey", key);
-                            request.SendRequest();
-                            if (request.Result == RequestResult.Success)
-                            {
-                                msg = request.GetResult<string>("msg") ?? "";
-                                if (msg != "")
-                                {
-                                    ShowMessage.ErrorMessage(msg);
-                                }
-                                else
-                                {
-                                    User user = request.GetResult<User>("user") ?? Factory.GetUser();
-                                    if (user.Id != 0)
-                                    {
-                                        // 创建User对象并返回到Main
-                                        RunTime.Main?.UpdateUI(MainInvokeType.SetUser, user);
-                                        result = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                return ((Login)UIForm).OnBeforeLoginEvent(LoginEventArgs) == EventResult.Success;
             }
-            catch (Exception e)
-            {
-                RunTime.WritelnSystemInfo(e.GetErrorInfo());
-            }
-
-            if (!result && msg == "")
-            {
-                ShowMessage.ErrorMessage("登录失败！");
-            }
-
-            OnAfterLoginEvent(result, args);
-
-            return result;
+            return true;
         }
 
-        public static string ForgetPassword_CheckVerifyCode(string username, string email, string verifycode)
-        {
-            string msg = "无法找回您的密码，请稍后再试。";
-
-            try
-            {
-                DataRequest request = RunTime.NewDataRequest(DataRequestType.Login_GetFindPasswordVerifyCode);
-                request.AddRequestData(ForgetVerifyCodes.Column_Username, username);
-                request.AddRequestData(ForgetVerifyCodes.Column_Email, email);
-                if (verifycode.Trim() == "")
-                {
-                    // 未发送verifycode，说明需要系统生成一个验证码
-                    request.AddRequestData(ForgetVerifyCodes.Column_ForgetVerifyCode, "");
-                    request.SendRequest();
-                    if (request.Result == RequestResult.Success)
-                    {
-                        msg = request.GetResult<string>("msg") ?? msg;
-                    }
-                    else RunTime.WritelnSystemInfo(request.Error);
-                }
-                else
-                {
-                    // 发送verifycode，需要验证
-                    request.AddRequestData(ForgetVerifyCodes.Column_ForgetVerifyCode, verifycode);
-                    request.SendRequest();
-                    if (request.Result == RequestResult.Success)
-                    {
-                        msg = request.GetResult<string>("msg") ?? msg;
-                    }
-                    else RunTime.WritelnSystemInfo(request.Error);
-                }
-            }
-            catch (Exception e)
-            {
-                RunTime.WritelnSystemInfo(e.GetErrorInfo());
-            }
-
-            return msg;
-        }
-
-        public static string ForgetPassword_UpdatePassword(string username, string password)
-        {
-            string msg = "无法更新您的密码，请稍后再试。";
-
-            try
-            {
-                DataRequest request = RunTime.NewDataRequest(DataRequestType.Login_UpdatePassword);
-                request.AddRequestData(UserQuery.Column_Username, username);
-                request.AddRequestData(UserQuery.Column_Password, password.Encrypt(username));
-                request.SendRequest();
-                if (request.Result == RequestResult.Success)
-                {
-                    msg = request.GetResult<string>("msg") ?? msg;
-                }
-                else RunTime.WritelnSystemInfo(request.Error);
-            }
-            catch (Exception e)
-            {
-                RunTime.WritelnSystemInfo(e.GetErrorInfo());
-            }
-
-            return msg;
-        }
-
-        private static bool OnBeforeLoginEvent(LoginEventArgs LoginEventArgs)
-        {
-            return RunTime.Login?.OnBeforeLoginEvent(LoginEventArgs) == EventResult.Success;
-        }
-
-        private static void OnAfterLoginEvent(bool result, LoginEventArgs LoginEventArgs)
+        private void OnAfterLoginEvent(bool result, LoginEventArgs LoginEventArgs)
         {
             try
             {
-                if (result) RunTime.Login?.OnSucceedLoginEvent(LoginEventArgs);
-                else RunTime.Login?.OnFailedLoginEvent(LoginEventArgs);
-                RunTime.Login?.OnAfterLoginEvent(LoginEventArgs);
+                if (UIForm.GetType() == typeof(Login))
+                {
+                    Login login = (Login)UIForm;
+                    if (result) login.OnSucceedLoginEvent(LoginEventArgs);
+                    else login.OnFailedLoginEvent(LoginEventArgs);
+                    login.OnAfterLoginEvent(LoginEventArgs);
+                }
+                else if (UIForm.GetType() == typeof(Main))
+                {
+                    if (result) ((Main)UIForm).OnSucceedLoginEvent(LoginEventArgs);
+                }
             }
             catch (Exception e)
             {

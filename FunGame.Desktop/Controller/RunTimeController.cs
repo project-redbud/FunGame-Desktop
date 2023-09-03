@@ -12,10 +12,17 @@ namespace Milimoe.FunGame.Desktop.Controller
     {
         private readonly Main Main;
         private readonly Core.Model.Session Usercfg = RunTime.Session;
+        private readonly LoginController LoginController;
 
         public RunTimeController(Main main)
         {
             Main = main;
+            LoginController = new(Main);
+        }
+
+        public void Dispose()
+        {
+            LoginController.Dispose();
         }
 
         public override void WritelnSystemInfo(string msg)

@@ -11,14 +11,18 @@ namespace Milimoe.FunGame.Desktop.UI
 {
     public partial class Login : BaseLogin
     {
+        private readonly LoginController LoginController;
+
         public Login()
         {
             InitializeComponent();
+            LoginController = new(this);
         }
 
         protected override void BindEvent()
         {
             base.BindEvent();
+            Disposed += Login_Disposed;
             BeforeLogin += BeforeLoginEvent;
             AfterLogin += AfterLoginEvent;
             FailedLogin += FailedLoginEvent;
@@ -74,6 +78,11 @@ namespace Milimoe.FunGame.Desktop.UI
                 else GoToLogin.Enabled = true;
             });
         }
+        private void Login_Disposed(object? sender, EventArgs e)
+        {
+            LoginController.Dispose();
+        }
+
 
         private void ForgetPassword_Click(object sender, EventArgs e)
         {

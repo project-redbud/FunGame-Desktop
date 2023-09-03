@@ -13,11 +13,13 @@ namespace Milimoe.FunGame.Desktop.UI
         public bool CheckReg { get; set; } = false;
 
         private readonly RegisterController RegController;
+        private readonly LoginController LoginController;
 
         public Register()
         {
             InitializeComponent();
             RegController = new RegisterController(this);
+            LoginController = new(this);
         }
 
         protected override void BindEvent()
@@ -113,7 +115,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             string username = ((RegisterEventArgs)e).Username;
             string password = ((RegisterEventArgs)e).Password;
-            _ = LoginController.LoginAccount(username, password);
+            TaskUtility.StartAndAwaitTask(async () => await LoginController.LoginAccountAsync(username, password)).OnCompleted(LoginController.Dispose);
             RunTime.Login?.Close();
             return EventResult.Success;
         }

@@ -866,6 +866,7 @@ namespace Milimoe.FunGame.Desktop.UI
             {
                 if (MainController != null) await LogOut();
                 RunTime.Controller?.Close();
+                RunTime.Controller?.Dispose();
                 Environment.Exit(0);
             }
         }
