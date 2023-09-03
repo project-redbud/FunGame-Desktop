@@ -5,7 +5,6 @@ using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Base;
-using Milimoe.FunGame.Desktop.Library.Component;
 
 namespace Milimoe.FunGame.Desktop.UI
 {
@@ -14,23 +13,19 @@ namespace Milimoe.FunGame.Desktop.UI
         public bool CheckReg { get; set; } = false;
 
         private readonly RegisterController RegController;
+        private readonly LoginController LoginController;
 
         public Register()
         {
             InitializeComponent();
             RegController = new RegisterController(this);
+            LoginController = new(this);
         }
 
         protected override void BindEvent()
         {
             base.BindEvent();
-            Disposed += Register_Disposed;
             SucceedReg += SucceedRegEvent;
-        }
-
-        private void Register_Disposed(object? sender, EventArgs e)
-        {
-            RegController.Dispose();
         }
 
         private async Task<bool> Reg_Handler()
@@ -50,21 +45,21 @@ namespace Milimoe.FunGame.Desktop.UI
                         {
                             if (password != checkpassword)
                             {
-                                ShowMessage.ErrorMessage("两个密码不相同，请重新输入！");
+                                ShowMessage(ShowMessageType.Error, "两个密码不相同，请重新输入！");
                                 CheckPasswordText.Focus();
                                 return false;
                             }
                         }
                         else
                         {
-                            ShowMessage.ErrorMessage("账号名长度不符合要求：最多6个中文字符或12个英文字符");
+                            ShowMessage(ShowMessageType.Error, "账号名长度不符合要求：最多6个中文字符或12个英文字符");
                             UsernameText.Focus();
                             return false;
                         }
                     }
                     else
                     {
-                        ShowMessage.ErrorMessage("账号名不符合要求：不能包含特殊字符");
+                        ShowMessage(ShowMessageType.Error, "账号名不符合要求：不能包含特殊字符");
                         UsernameText.Focus();
                         return false;
                     }
@@ -74,30 +69,30 @@ namespace Milimoe.FunGame.Desktop.UI
                     int length = password.Length;
                     if (length < 6 || length > 15) // 字节范围 3~12
                     {
-                        ShowMessage.ErrorMessage("密码长度不符合要求：6~15个字符数");
+                        ShowMessage(ShowMessageType.Error, "密码长度不符合要求：6~15个字符数");
                         PasswordText.Focus();
                         return false;
                     }
                 }
                 if (username == "" || password == "" || checkpassword == "")
                 {
-                    ShowMessage.ErrorMessage("请将账号和密码填写完整！");
+                    ShowMessage(ShowMessageType.Error, "请将账号和密码填写完整！");
                     UsernameText.Focus();
                     return false;
                 }
                 if (email == "")
                 {
-                    ShowMessage.ErrorMessage("邮箱不能为空！");
+                    ShowMessage(ShowMessageType.Error, "邮箱不能为空！");
                     EmailText.Focus();
                     return false;
                 }
                 if (!NetworkUtility.IsEmail(email))
                 {
-                    ShowMessage.ErrorMessage("这不是一个邮箱地址！");
+                    ShowMessage(ShowMessageType.Error, "这不是一个邮箱地址！");
                     EmailText.Focus();
                     return false;
                 }
-                return await RegController.Reg(username, password, email);
+                return await RegController.RegAsync(username, password, email);
             }
             catch (Exception e)
             {
@@ -120,7 +115,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             string username = ((RegisterEventArgs)e).Username;
             string password = ((RegisterEventArgs)e).Password;
-            _ = LoginController.LoginAccount(username, password);
+            TaskUtility.StartAndAwaitTask(async () => await LoginController.LoginAccountAsync(username, password)).OnCompleted(LoginController.Dispose);
             RunTime.Login?.Close();
             return EventResult.Success;
         }

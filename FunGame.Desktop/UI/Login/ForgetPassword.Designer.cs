@@ -48,7 +48,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Title.Location = new Point(7, 6);
             Title.Size = new Size(312, 47);
             Title.TabIndex = 8;
-            Title.Text = "Find Your Password";
+            Title.Text = "Forget Password";
             Title.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // ExitButton

@@ -1,10 +1,10 @@
-﻿using Milimoe.FunGame.Core.Library.Common.Event;
+﻿using Milimoe.FunGame.Core.Api.Utility;
+using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Base;
-using Milimoe.FunGame.Desktop.Library.Component;
 using Milimoe.FunGame.Desktop.Utility;
 
 namespace Milimoe.FunGame.Desktop.UI
@@ -16,7 +16,7 @@ namespace Milimoe.FunGame.Desktop.UI
         public Login()
         {
             InitializeComponent();
-            LoginController = new LoginController();
+            LoginController = new(this);
         }
 
         protected override void BindEvent()
@@ -29,11 +29,6 @@ namespace Milimoe.FunGame.Desktop.UI
             SucceedLogin += SucceedLoginEvent;
         }
 
-        private void Login_Disposed(object? sender, EventArgs e)
-        {
-            LoginController.Dispose();
-        }
-
         private async Task<bool> Login_Handler()
         {
             try
@@ -42,11 +37,11 @@ namespace Milimoe.FunGame.Desktop.UI
                 string password = PasswordText.Text.Trim();
                 if (username == "" || password == "")
                 {
-                    ShowMessage.ErrorMessage("账号或密码不能为空！");
+                    ShowMessage(ShowMessageType.Error, "账号或密码不能为空！");
                     UsernameText.Focus();
                     return false;
                 }
-                return await LoginController.LoginAccount(username, password);
+                return await LoginController.LoginAccountAsync(username, password);
             }
             catch (Exception e)
             {
@@ -67,15 +62,27 @@ namespace Milimoe.FunGame.Desktop.UI
 
         private void FastLogin_Click(object sender, EventArgs e)
         {
-            ShowMessage.TipMessage("与No.16对话即可获得快速登录秘钥，快去试试吧！");
+            ShowMessage(ShowMessageType.Tip, "与No.16对话即可获得快速登录秘钥，快去试试吧！");
         }
 
-        private async void GoToLogin_Click(object sender, EventArgs e)
+        private void GoToLogin_Click(object sender, EventArgs e)
         {
             GoToLogin.Enabled = false;
-            if (await Login_Handler() == false) GoToLogin.Enabled = true;
-            else Dispose();
+            bool result = false;
+            TaskUtility.StartAndAwaitTask(async () =>
+            {
+                result = await Login_Handler();
+            }).OnCompleted(() =>
+            {
+                if (result) Dispose();
+                else GoToLogin.Enabled = true;
+            });
         }
+        private void Login_Disposed(object? sender, EventArgs e)
+        {
+            LoginController.Dispose();
+        }
+
 
         private void ForgetPassword_Click(object sender, EventArgs e)
         {
@@ -85,8 +92,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
         public EventResult FailedLoginEvent(object sender, LoginEventArgs e)
         {
-            if (InvokeRequired) GoToLogin.Invoke(() => GoToLogin.Enabled = true);
-            else GoToLogin.Enabled = true;
+            GoToLogin.Enabled = true;
             RunTime.Main?.OnFailedLoginEvent(e);
             return EventResult.Success;
         }

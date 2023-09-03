@@ -1,39 +1,60 @@
 ﻿using Milimoe.FunGame.Desktop.Library;
-using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Desktop.UI;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Core.Library.Common.Event;
-using Milimoe.FunGame.Core.Controller;
+using Milimoe.FunGame.Core.Api.Utility;
+using Milimoe.FunGame.Desktop.Library.Component;
+using Milimoe.FunGame.Core.Api.Transmittal;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
-    public class RegisterController : SocketHandlerController
+    public class RegisterController
     {
         private readonly Register Register;
-        private readonly RegisterModel RegModel;
 
         public RegisterController(Register reg)
         {
             Register = reg;
-            RegModel = new RegisterModel();
         }
 
-        public override void Dispose()
-        {
-            RegModel.Dispose();
-        }
-
-        public async Task<bool> Reg(params object[]? objs)
+        public async Task<bool> RegAsync(string username = "", string password = "", string email = "")
         {
             bool result = false;
 
             try
             {
-                RegisterEventArgs RegEventArgs = new (objs);
+                password = password.Encrypt(username);
+                RegisterEventArgs RegEventArgs = new(username, password, email);
                 if (Register.OnBeforeRegEvent(RegEventArgs) == EventResult.Fail) return false;
 
-                result = await RegModel.Reg(objs);
+                DataRequest request = RunTime.NewDataRequest(DataRequestType.Reg_GetRegVerifyCode);
+                request.AddRequestData("username", username);
+                request.AddRequestData("password", password);
+                request.AddRequestData("email", email);
+                request.AddRequestData("verifycode", "");
+                await request.SendRequestAsync();
+                if (request.Result == RequestResult.Success)
+                {
+                    RegInvokeType InvokeType = request.GetResult<RegInvokeType>("type");
+                    while (true)
+                    {
+                        string verifycode = ShowMessage.InputMessageCancel("请输入注册邮件中的6位数字验证码", "注册验证码", out MessageResult cancel);
+                        if (cancel != MessageResult.Cancel)
+                        {
+                            request.AddRequestData("verifycode", verifycode);
+                            await request.SendRequestAsync();
+                            if (request.Result == RequestResult.Success)
+                            {
+                                bool success = request.GetResult<bool>("success");
+                                string msg = request.GetResult<string>("msg") ?? "";
+                                if (msg != "") ShowMessage.Message(msg, "注册结果");
+                                if (success) return success;
+                            }
+                        }
+                        else break;
+                    }
+                }
 
                 if (result) Register.OnSucceedRegEvent(RegEventArgs);
                 else Register.OnFailedRegEvent(RegEventArgs);

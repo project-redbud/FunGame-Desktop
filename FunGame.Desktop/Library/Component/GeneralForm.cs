@@ -1,4 +1,5 @@
 ﻿using Milimoe.FunGame.Core.Api.Utility;
+using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Desktop.UI;
 using Milimoe.FunGame.Desktop.Utility;
 
@@ -11,6 +12,99 @@ namespace Milimoe.FunGame.Desktop.Library.Component
         public GeneralForm()
         {
             InitializeComponent();
+        }
+
+        /// <summary>
+        /// 提供公共方法给Controller发送消息弹窗（这样可以防止跨线程时，弹窗不在最上层）
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="autoclose"></param>
+        public MessageResult ShowMessage(ShowMessageType type, string msg, string title = "", int autoclose = 0)
+        {
+            MessageResult result = MessageResult.OK;
+
+            void action()
+            {
+                if (msg == "") return;
+                switch (type)
+                {
+                    case ShowMessageType.General:
+                        result = Library.Component.ShowMessage.Message(msg, title, autoclose);
+                        break;
+                    case ShowMessageType.Tip:
+                        result = Library.Component.ShowMessage.TipMessage(msg, "", autoclose);
+                        break;
+                    case ShowMessageType.Warning:
+                        result = Library.Component.ShowMessage.WarningMessage(msg, "", autoclose);
+                        break;
+                    case ShowMessageType.Error:
+                        result = Library.Component.ShowMessage.ErrorMessage(msg, "", autoclose);
+                        break;
+                    case ShowMessageType.YesNo:
+                        result = Library.Component.ShowMessage.YesNoMessage(msg, title);
+                        break;
+                    case ShowMessageType.OKCancel:
+                        result = Library.Component.ShowMessage.OKCancelMessage(msg, title);
+                        break;
+                    case ShowMessageType.RetryCancel:
+                        result = Library.Component.ShowMessage.RetryCancelMessage(msg, title);
+                        break;
+                    default:
+                        break;
+                }
+            };
+            InvokeUpdateUI(action);
+
+            return result;
+        }
+
+        /// <summary>
+        /// 提供公共方法给Controller发送消息弹窗（这样可以防止跨线程时，弹窗不在最上层）
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="autoclose"></param>
+        public string ShowInputMessage(string msg, string title)
+        {
+            string input = "";
+
+            void action()
+            {
+                if (msg == "") return;
+                input = Component.ShowMessage.InputMessage(msg, title);
+            };
+            InvokeUpdateUI(action);
+
+            return input;
+        }
+        
+        /// <summary>
+        /// 提供公共方法给Controller发送消息弹窗（这样可以防止跨线程时，弹窗不在最上层）<para/>
+        /// 支持返回点击的按钮，用于判断是否取消输入
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="autoclose"></param>
+        public string ShowInputMessageCancel(string msg, string title, out MessageResult result)
+        {
+            MessageResult resultThisMethod = MessageResult.Cancel;
+            string input = "";
+
+            void action()
+            {
+                if (msg == "") return;
+                input = Component.ShowMessage.InputMessageCancel(msg, title, out MessageResult resultShowMessage);
+                resultThisMethod = resultShowMessage;
+            };
+            InvokeUpdateUI(action);
+
+            result = resultThisMethod;
+
+            return input;
         }
 
         /// <summary>
@@ -105,5 +199,16 @@ namespace Milimoe.FunGame.Desktop.Library.Component
         {
             BindEvent();
         }
+
+        /// <summary>
+        /// 委托更新UI
+        /// </summary>
+        /// <param name="action"></param>
+        protected virtual void InvokeUpdateUI(Action action)
+        {
+            if (InvokeRequired) Invoke(action);
+            else action();
+        }
+
     }
 }
