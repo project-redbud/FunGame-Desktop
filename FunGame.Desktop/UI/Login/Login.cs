@@ -5,7 +5,6 @@ using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Base;
-using Milimoe.FunGame.Desktop.Library.Component;
 using Milimoe.FunGame.Desktop.Utility;
 
 namespace Milimoe.FunGame.Desktop.UI
@@ -34,7 +33,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 string password = PasswordText.Text.Trim();
                 if (username == "" || password == "")
                 {
-                    ShowMessage.ErrorMessage("账号或密码不能为空！");
+                    ShowMessage(ShowMessageType.Error, "账号或密码不能为空！");
                     UsernameText.Focus();
                     return false;
                 }
@@ -59,7 +58,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
         private void FastLogin_Click(object sender, EventArgs e)
         {
-            ShowMessage.TipMessage("与No.16对话即可获得快速登录秘钥，快去试试吧！");
+            ShowMessage(ShowMessageType.Tip, "与No.16对话即可获得快速登录秘钥，快去试试吧！");
         }
 
         private void GoToLogin_Click(object sender, EventArgs e)

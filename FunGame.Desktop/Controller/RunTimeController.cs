@@ -4,7 +4,6 @@ using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Library;
-using Milimoe.FunGame.Desktop.Library.Component;
 using Milimoe.FunGame.Desktop.UI;
 
 namespace Milimoe.FunGame.Desktop.Controller
@@ -39,7 +38,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 (RunTime.Session.Server_IP, RunTime.Session.Server_Port) = GetServerAddress();
                 if (RunTime.Session.Server_IP == "" || RunTime.Session.Server_Port <= 0)
                 {
-                    ShowMessage.ErrorMessage("查找可用的服务器失败！");
+                    Main.ShowMessage(ShowMessageType.Error, "查找可用的服务器失败！");
                     return ConnectResult.FindServerFailed;
                 }
             }
@@ -82,7 +81,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                                 if (msg != "")
                                 {
                                     Main.GetMessage(msg);
-                                    ShowMessage.ErrorMessage(msg);
+                                    Main.ShowMessage(ShowMessageType.Error, msg);
                                 }
                                 return ConnectResult.ConnectFailed;
                             }

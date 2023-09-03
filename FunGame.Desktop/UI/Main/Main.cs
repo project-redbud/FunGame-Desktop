@@ -7,7 +7,6 @@ using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Base;
-using Milimoe.FunGame.Desktop.Library.Component;
 using Milimoe.FunGame.Desktop.Utility;
 
 namespace Milimoe.FunGame.Desktop.UI
@@ -26,7 +25,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /**
          * 变量
          */
-        private Task? MatchFunGame = null; // 匹配线程
+        private Task? MatchFunGame = null; // 匹配线程（即将删除）
         private MainController? MainController = null;
         private readonly Core.Model.RoomList Rooms = RunTime.RoomList;
         private readonly Core.Model.Session Usercfg = RunTime.Session;
@@ -188,7 +187,7 @@ namespace Milimoe.FunGame.Desktop.UI
                                 if (objs[0].GetType() == typeof(string))
                                 {
                                     WritelnSystemInfo((string)objs[0]);
-                                    ShowMessage.Message((string)objs[0], "退出登录", 5);
+                                    ShowMessage(ShowMessageType.General, (string)objs[0], "退出登录", 5);
                                 }
                             }
                             break;
@@ -250,13 +249,13 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="msg"></param>
         /// <param name="timetype"></param>
-        public void GetMessage(string? msg, TimeType timetype = TimeType.TimeOnly)
+        public void GetMessage(string msg, TimeType timetype = TimeType.TimeOnly)
         {
             void action()
             {
                 try
                 {
-                    if (msg == null || msg == "") return;
+                    if (msg == "") return;
                     if (timetype != TimeType.None)
                     {
                         WritelnGameInfo(DateTimeUtility.GetDateTimeToString(timetype) + " >> " + msg);
@@ -277,16 +276,6 @@ namespace Milimoe.FunGame.Desktop.UI
         #endregion
 
         #region 实现
-
-        /// <summary>
-        /// 委托更新UI
-        /// </summary>
-        /// <param name="action"></param>
-        private void InvokeUpdateUI(Action action)
-        {
-            if (InvokeRequired) Invoke(action);
-            else action();
-        }
 
         /// <summary>
         /// 获取FunGame配置文件设定
@@ -484,7 +473,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 else
                 {
                     RoomText.Enabled = false;
-                    ShowMessage.TipMessage("请输入房间号。");
+                    ShowMessage(ShowMessageType.Tip, "请输入房间号。");
                     RoomText.Enabled = true;
                     RoomText.Focus();
                     return false;
@@ -510,7 +499,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 {
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
-                        if (ShowMessage.YesNoMessage("已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
+                        if (ShowMessage(ShowMessageType.YesNo, "已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
                         {
                             Room r = GetRoom(roomid);
                             if (MainController != null && await MainController.IntoRoomAsync(r))
@@ -524,12 +513,12 @@ namespace Milimoe.FunGame.Desktop.UI
                     }
                     else
                     {
-                        ShowMessage.TipMessage("你需要先退出房间才可以加入新的房间。");
+                        ShowMessage(ShowMessageType.Tip, "你需要先退出房间才可以加入新的房间。");
                         return false;
                     }
                 }
             }
-            ShowMessage.WarningMessage("未找到此房间！");
+            ShowMessage(ShowMessageType.Warning, "未找到此房间！");
             return false;
         }
 
@@ -661,7 +650,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Logout.Visible = true;
             UpdateUI(MainInvokeType.SetGreenAndPing);
             string welcome = $"欢迎回来， {Usercfg.LoginUserName}！";
-            ShowMessage.Message(welcome, "登录成功", 5);
+            ShowMessage(ShowMessageType.General, welcome, "登录成功", 5);
             WritelnSystemInfo(welcome);
         }
 
@@ -734,7 +723,7 @@ namespace Milimoe.FunGame.Desktop.UI
             else
             {
                 TalkText.Enabled = false;
-                ShowMessage.TipMessage("消息不能为空，请重新输入。");
+                ShowMessage(ShowMessageType.Tip, "消息不能为空，请重新输入。");
                 TalkText.Enabled = true;
                 TalkText.Focus();
             }
@@ -750,7 +739,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (Usercfg.InRoom.Roomid != "-1")
             {
-                ShowMessage.WarningMessage("已在房间中，无法创建房间。");
+                ShowMessage(ShowMessageType.Warning, "已在房间中，无法创建房间。");
                 return;
             }
             if (MainController != null)
@@ -765,11 +754,11 @@ namespace Milimoe.FunGame.Desktop.UI
                     InRoom();
                     WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + RoomType + "房间");
                     WritelnGameInfo(">> 创建" + RoomType + "房间成功！房间号： " + roomid);
-                    ShowMessage.Message("创建" + RoomType + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
+                    ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
                     return;
                 }
             }
-            ShowMessage.Message("创建" + RoomType + "房间失败！", "创建失败");
+            ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间失败！", "创建失败");
         }
 
         /// <summary>
@@ -873,7 +862,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         private async Task ExitFunGame()
         {
-            if (ShowMessage.OKCancelMessage("你确定关闭游戏？", "退出") == MessageResult.OK)
+            if (ShowMessage(ShowMessageType.OKCancel, "你确定关闭游戏？", "退出") == MessageResult.OK)
             {
                 if (MainController != null) await LogOut();
                 RunTime.Controller?.Close();
@@ -942,21 +931,21 @@ namespace Milimoe.FunGame.Desktop.UI
             string password = "";
             if (CheckMix.Checked && CheckTeam.Checked)
             {
-                ShowMessage.WarningMessage("创建房间不允许同时勾选混战和团队！");
+                ShowMessage(ShowMessageType.Warning, "创建房间不允许同时勾选混战和团队！");
                 return;
             }
             if (CheckHasPass.Checked)
             {
-                password = ShowMessage.InputMessage("请输入该房间的密码：", "创建密码房间").Trim();
+                password = ShowInputMessage("请输入该房间的密码：", "创建密码房间").Trim();
                 if (password == "" || password.Length > 10)
                 {
-                    ShowMessage.WarningMessage("密码无效！密码不能为空或大于10个字符。");
+                    ShowMessage(ShowMessageType.Warning, "密码无效！密码不能为空或大于10个字符。");
                     return;
                 }
             }
             if (Config.FunGame_GameMode.Equals(""))
             {
-                ShowMessage.WarningMessage("请勾选你要创建的房间类型！");
+                ShowMessage(ShowMessageType.Warning, "请勾选你要创建的房间类型！");
                 return;
             }
             TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(Config.FunGame_GameMode, password));
@@ -984,7 +973,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 }
             }).OnCompleted(() =>
             {
-                if (!result) ShowMessage.ErrorMessage("无法退出房间！", "退出房间");
+                if (!result) ShowMessage(ShowMessageType.Error, "无法退出房间！", "退出房间");
             });
         }
 
@@ -1006,7 +995,7 @@ namespace Milimoe.FunGame.Desktop.UI
         private void CopyRoomID_Click(object sender, EventArgs e)
         {
             Clipboard.SetDataObject(Usercfg.InRoom.Roomid);
-            ShowMessage.TipMessage("已复制房间号到剪贴板");
+            ShowMessage(ShowMessageType.Tip, "已复制房间号到剪贴板");
         }
 
         /// <summary>
@@ -1028,10 +1017,10 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             TaskUtility.StartAndAwaitTask(async () =>
             {
-                if (ShowMessage.OKCancelMessage("你确定要退出登录吗？", "退出登录") == MessageResult.OK)
+                if (ShowMessage(ShowMessageType.OKCancel, "你确定要退出登录吗？", "退出登录") == MessageResult.OK)
                 {
                     if (MainController == null || !await LogOut())
-                        ShowMessage.WarningMessage("请求无效：退出登录失败！");
+                        ShowMessage(ShowMessageType.Warning, "请求无效：退出登录失败！");
                 }
             });
         }
@@ -1046,7 +1035,7 @@ namespace Milimoe.FunGame.Desktop.UI
             if (MainController != null && Config.FunGame_isConnected)
                 OpenForm.SingleForm(FormType.Login, OpenFormType.Dialog);
             else
-                ShowMessage.WarningMessage("请先连接服务器！");
+                ShowMessage(ShowMessageType.Warning, "请先连接服务器！");
         }
 
         /// <summary>
@@ -1369,7 +1358,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     }
                     break;
                 case Constant.FunGame_ConnectTo:
-                    string msg = ShowMessage.InputMessage("请输入服务器IP地址和端口号，如: 127.0.0.1:22222。", "连接指定服务器");
+                    string msg = ShowInputMessage("请输入服务器IP地址和端口号，如: 127.0.0.1:22222。", "连接指定服务器");
                     if (msg.Equals("")) return true;
                     string[] addr = msg.Split(':');
                     string ip;
@@ -1386,7 +1375,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     }
                     else
                     {
-                        ShowMessage.ErrorMessage("格式错误！\n这不是一个服务器地址。");
+                        ShowMessage(ShowMessageType.Error, "格式错误！\n这不是一个服务器地址。");
                         return true;
                     }
                     ErrorIPAddressType ErrorType = NetworkUtility.IsServerAddress(ip, port);
@@ -1398,9 +1387,9 @@ namespace Milimoe.FunGame.Desktop.UI
                         Config.FunGame_isAutoRetry = true;
                         InvokeController_Connect();
                     }
-                    else if (ErrorType == Core.Library.Constant.ErrorIPAddressType.IsNotIP) ShowMessage.ErrorMessage("这不是一个IP地址！");
-                    else if (ErrorType == Core.Library.Constant.ErrorIPAddressType.IsNotPort) ShowMessage.ErrorMessage("这不是一个端口号！\n正确范围：1~65535");
-                    else ShowMessage.ErrorMessage("格式错误！\n这不是一个服务器地址。");
+                    else if (ErrorType == Core.Library.Constant.ErrorIPAddressType.IsNotIP) ShowMessage(ShowMessageType.Error, "这不是一个IP地址！");
+                    else if (ErrorType == Core.Library.Constant.ErrorIPAddressType.IsNotPort) ShowMessage(ShowMessageType.Error, "这不是一个端口号！\n正确范围：1~65535");
+                    else ShowMessage(ShowMessageType.Error, "格式错误！\n这不是一个服务器地址。");
                     break;
                 default:
                     break;

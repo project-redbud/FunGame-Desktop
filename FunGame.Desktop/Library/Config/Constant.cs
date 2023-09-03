@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Milimoe.FunGame.Core.Library.Constant;
+﻿using Milimoe.FunGame.Core.Library.Constant;
 
 namespace Milimoe.FunGame.Desktop.Library
 {
@@ -60,5 +59,18 @@ namespace Milimoe.FunGame.Desktop.Library
             FunGame_AutoRetryOn,
             FunGame_AutoRetryOff
         };
+    }
+
+    public enum ShowMessageType
+    {
+        General,
+        Tip,
+        Warning,
+        Error,
+        YesNo,
+        OKCancel,
+        RetryCancel,
+        Input,
+        InputCancel
     }
 }

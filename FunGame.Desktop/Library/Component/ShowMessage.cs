@@ -158,23 +158,23 @@ namespace Milimoe.FunGame.Desktop.Library.Component
             return result;
         }
 
-        public static MessageResult TipMessage(string msg, string? title = null, int autoclose = 0)
+        public static MessageResult TipMessage(string msg, string title = "", int autoclose = 0)
         {
-            object[] objs = { title ?? TITLE_TIP, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
+            object[] objs = { title == "" ? TITLE_TIP : title, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
             MessageResult result = new ShowMessage(objs).MessageResult;
             return result;
         }
 
-        public static MessageResult WarningMessage(string msg, string? title = null, int autoclose = 0)
+        public static MessageResult WarningMessage(string msg, string title = "", int autoclose = 0)
         {
-            object[] objs = { title ?? TITLE_WARNING, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
+            object[] objs = { title == "" ? TITLE_WARNING : title, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
             MessageResult result = new ShowMessage(objs).MessageResult;
             return result;
         }
 
-        public static MessageResult ErrorMessage(string msg, string? title = null, int autoclose = 0)
+        public static MessageResult ErrorMessage(string msg, string title = "", int autoclose = 0)
         {
-            object[] objs = { title ?? TITLE_ERROR, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
+            object[] objs = { title == "" ? TITLE_ERROR : title, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
             MessageResult result = new ShowMessage(objs).MessageResult;
             return result;
         }

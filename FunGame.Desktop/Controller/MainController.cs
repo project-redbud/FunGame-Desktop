@@ -6,7 +6,6 @@ using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Core.Model;
 using Milimoe.FunGame.Desktop.Library;
-using Milimoe.FunGame.Desktop.Library.Component;
 using Milimoe.FunGame.Desktop.UI;
 
 namespace Milimoe.FunGame.Desktop.Controller
@@ -64,7 +63,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                ShowMessage.ErrorMessage("无法登出您的账号，请联系服务器管理员。", "登出失败", 5);
+                Main.ShowMessage(ShowMessageType.Error, "无法登出您的账号，请联系服务器管理员。", "登出失败", 5);
                 Main.GetMessage(e.GetErrorInfo());
             }
             return false;
@@ -224,10 +223,9 @@ namespace Milimoe.FunGame.Desktop.Controller
                 {
                     // 服务器强制下线登录
                     Guid key = Guid.Empty;
-                    string? msg = "";
+                    string msg = "";
                     if (SocketObject.Length > 0) key = SocketObject.GetParam<Guid>(0);
-                    if (SocketObject.Length > 1) msg = SocketObject.GetParam<string>(1);
-                    msg ??= "";
+                    if (SocketObject.Length > 1) msg = SocketObject.GetParam<string>(1) ?? "";
                     if (key == Usercfg.LoginKey)
                     {
                         Usercfg.LoginKey = Guid.Empty;
@@ -237,9 +235,9 @@ namespace Milimoe.FunGame.Desktop.Controller
                 else if (SocketObject.SocketType == SocketMessageType.Chat)
                 {
                     // 收到房间聊天信息
-                    string? user = "", msg = "";
-                    if (SocketObject.Length > 0) user = SocketObject.GetParam<string>(0);
-                    if (SocketObject.Length > 1) msg = SocketObject.GetParam<string>(1);
+                    string user = "", msg = "";
+                    if (SocketObject.Length > 0) user = SocketObject.GetParam<string>(0) ?? "";
+                    if (SocketObject.Length > 1) msg = SocketObject.GetParam<string>(1) ?? "";
                     if (user != Usercfg.LoginUserName)
                     {
                         Main.GetMessage(msg, TimeType.None);
