@@ -1,11 +1,11 @@
-﻿using Milimoe.FunGame.Desktop.Library;
-using Milimoe.FunGame.Core.Library.Constant;
+﻿using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Desktop.UI;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Desktop.Library.Component;
 using Milimoe.FunGame.Core.Api.Transmittal;
+using Milimoe.FunGame.Desktop.Model;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
@@ -28,7 +28,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 RegisterEventArgs RegEventArgs = new(username, password, email);
                 if (Register.OnBeforeRegEvent(RegEventArgs) == EventResult.Fail) return false;
 
-                DataRequest request = RunTime.NewDataRequest(DataRequestType.Reg_GetRegVerifyCode);
+                DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.Reg_GetRegVerifyCode);
                 request.AddRequestData("username", username);
                 request.AddRequestData("password", password);
                 request.AddRequestData("email", email);
@@ -55,6 +55,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                         else break;
                     }
                 }
+                request.Dispose();
 
                 if (result) Register.OnSucceedRegEvent(RegEventArgs);
                 else Register.OnFailedRegEvent(RegEventArgs);

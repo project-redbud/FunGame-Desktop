@@ -3,6 +3,7 @@ using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
+using Milimoe.FunGame.Desktop.Model;
 
 namespace Milimoe.FunGame.Desktop.UI
 {
@@ -14,7 +15,6 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             InitializeComponent();
             LoginController = new(this);
-            Disposed += ForgetPassword_Disposed;
         }
 
         private void FindPassword_Click(object sender, EventArgs e)
@@ -122,11 +122,6 @@ namespace Milimoe.FunGame.Desktop.UI
                     }
                 }
             });
-        }
-
-        private void ForgetPassword_Disposed(object? sender, EventArgs e)
-        {
-            LoginController.Dispose();
         }
     }
 }

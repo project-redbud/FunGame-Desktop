@@ -5,6 +5,7 @@ using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Base;
+using Milimoe.FunGame.Desktop.Model;
 
 namespace Milimoe.FunGame.Desktop.UI
 {
@@ -18,7 +19,7 @@ namespace Milimoe.FunGame.Desktop.UI
         public Register()
         {
             InitializeComponent();
-            RegController = new RegisterController(this);
+            RegController = new(this);
             LoginController = new(this);
         }
 
@@ -115,7 +116,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             string username = ((RegisterEventArgs)e).Username;
             string password = ((RegisterEventArgs)e).Password;
-            TaskUtility.StartAndAwaitTask(async () => await LoginController.LoginAccountAsync(username, password)).OnCompleted(LoginController.Dispose);
+            TaskUtility.StartAndAwaitTask(async () => await LoginController.LoginAccountAsync(username, password));
             RunTime.Login?.Close();
             return EventResult.Success;
         }

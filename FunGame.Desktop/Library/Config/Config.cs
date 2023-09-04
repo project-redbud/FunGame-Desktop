@@ -1,4 +1,6 @@
-﻿namespace Milimoe.FunGame.Desktop.Library
+﻿using Milimoe.FunGame.Desktop.Model;
+
+namespace Milimoe.FunGame.Desktop.Library
 {
     public class Config
     {

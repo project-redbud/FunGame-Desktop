@@ -7,6 +7,7 @@ using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Base;
+using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.Utility;
 
 namespace Milimoe.FunGame.Desktop.UI
@@ -866,7 +867,6 @@ namespace Milimoe.FunGame.Desktop.UI
             {
                 if (MainController != null) await LogOut();
                 RunTime.Controller?.Close();
-                RunTime.Controller?.Dispose();
                 Environment.Exit(0);
             }
         }

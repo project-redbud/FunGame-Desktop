@@ -4,6 +4,7 @@ using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Library;
+using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.UI;
 
 namespace Milimoe.FunGame.Desktop.Controller
@@ -18,11 +19,6 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             Main = main;
             LoginController = new(Main);
-        }
-
-        public void Dispose()
-        {
-            LoginController.Dispose();
         }
 
         public override void WritelnSystemInfo(string msg)

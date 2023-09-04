@@ -5,6 +5,7 @@ using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
 using Milimoe.FunGame.Desktop.Library.Base;
+using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.Utility;
 
 namespace Milimoe.FunGame.Desktop.UI
@@ -22,7 +23,6 @@ namespace Milimoe.FunGame.Desktop.UI
         protected override void BindEvent()
         {
             base.BindEvent();
-            Disposed += Login_Disposed;
             BeforeLogin += BeforeLoginEvent;
             AfterLogin += AfterLoginEvent;
             FailedLogin += FailedLoginEvent;
@@ -78,11 +78,6 @@ namespace Milimoe.FunGame.Desktop.UI
                 else GoToLogin.Enabled = true;
             });
         }
-        private void Login_Disposed(object? sender, EventArgs e)
-        {
-            LoginController.Dispose();
-        }
-
 
         private void ForgetPassword_Click(object sender, EventArgs e)
         {

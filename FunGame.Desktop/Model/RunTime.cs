@@ -1,7 +1,7 @@
 ﻿using Milimoe.FunGame.Core.Api.Transmittal;
 using Milimoe.FunGame.Core.Library.Constant;
 
-namespace Milimoe.FunGame.Desktop.Library
+namespace Milimoe.FunGame.Desktop.Model
 {
     /// <summary>
     /// 运行时单例
