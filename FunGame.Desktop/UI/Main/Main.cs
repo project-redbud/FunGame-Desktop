@@ -1208,7 +1208,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void Main_Disposed(object? sender, EventArgs e)
         {
-            MainController?.Dispose();
+            MainController?.MainController_Disposed();
         }
 
         /// <summary>

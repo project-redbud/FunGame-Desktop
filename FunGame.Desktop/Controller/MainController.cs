@@ -11,7 +11,7 @@ using Milimoe.FunGame.Desktop.UI;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
-    public class MainController : SocketHandlerController
+    public class MainController
     {
         private readonly Main Main;
         private readonly Session Usercfg = RunTime.Session;
@@ -22,7 +22,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         private readonly DataRequest IntoRoomRequest;
         private readonly DataRequest QuitRoomRequest;
 
-        public MainController(Main main) : base(RunTime.Socket)
+        public MainController(Main main)
         {
             Main = main;
             ChatRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_Chat);
@@ -31,10 +31,19 @@ namespace Milimoe.FunGame.Desktop.Controller
             UpdateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_UpdateRoom);
             IntoRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_IntoRoom);
             QuitRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_QuitRoom);
-            Disposed += MainController_Disposed;
         }
 
         #region 公开方法
+
+        public void MainController_Disposed()
+        {
+            ChatRequest.Dispose();
+            CreateRoomRequest.Dispose();
+            GetRoomPlayerCountRequest.Dispose();
+            UpdateRoomRequest.Dispose();
+            IntoRoomRequest.Dispose();
+            QuitRoomRequest.Dispose();
+        }
 
         public async Task<bool> LogOutAsync()
         {
@@ -208,70 +217,6 @@ namespace Milimoe.FunGame.Desktop.Controller
                 Main.GetMessage(e.GetErrorInfo());
                 return false;
             }
-        }
-
-        public override void SocketHandler(SocketObject SocketObject)
-        {
-            try
-            {
-                if (SocketObject.SocketType == SocketMessageType.HeartBeat)
-                {
-                    // 心跳包单独处理
-                    if ((RunTime.Socket?.Connected ?? false) && Usercfg.LoginUser.Id != 0)
-                        Main.UpdateUI(MainInvokeType.SetGreenAndPing);
-                }
-                else if (SocketObject.SocketType == SocketMessageType.ForceLogout)
-                {
-                    // 服务器强制下线登录
-                    Guid key = Guid.Empty;
-                    string msg = "";
-                    if (SocketObject.Length > 0) key = SocketObject.GetParam<Guid>(0);
-                    if (SocketObject.Length > 1) msg = SocketObject.GetParam<string>(1) ?? "";
-                    if (key == Usercfg.LoginKey)
-                    {
-                        Usercfg.LoginKey = Guid.Empty;
-                        Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
-                    }
-                }
-                else if (SocketObject.SocketType == SocketMessageType.Chat)
-                {
-                    // 收到房间聊天信息
-                    string user = "", msg = "";
-                    if (SocketObject.Length > 0) user = SocketObject.GetParam<string>(0) ?? "";
-                    if (SocketObject.Length > 1) msg = SocketObject.GetParam<string>(1) ?? "";
-                    if (user != Usercfg.LoginUserName)
-                    {
-                        Main.GetMessage(msg, TimeType.None);
-                    }
-                }
-                else if (SocketObject.SocketType == SocketMessageType.UpdateRoomMaster)
-                {
-                    // 收到房间更换房主的信息
-                    User user = General.UnknownUserInstance;
-                    Room room = General.HallInstance;
-                    if (SocketObject.Length > 0) user = SocketObject.GetParam<User>(0) ?? General.UnknownUserInstance;
-                    if (SocketObject.Length > 1) room = SocketObject.GetParam<Room>(1) ?? General.HallInstance;
-                    if (room.Roomid != "-1" && room.Roomid == Usercfg.InRoom.Roomid) Main.UpdateUI(MainInvokeType.UpdateRoomMaster, room);
-                }
-            }
-            catch (Exception e)
-            {
-                RunTime.Controller?.Error(e);
-            }
-        }
-
-        #endregion
-
-        #region 私有方法
-
-        private void MainController_Disposed()
-        {
-            ChatRequest.Dispose();
-            CreateRoomRequest.Dispose();
-            GetRoomPlayerCountRequest.Dispose();
-            UpdateRoomRequest.Dispose();
-            IntoRoomRequest.Dispose();
-            QuitRoomRequest.Dispose();
         }
 
         #endregion

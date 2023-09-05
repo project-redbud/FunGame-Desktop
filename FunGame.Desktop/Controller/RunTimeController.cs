@@ -1,4 +1,5 @@
 ﻿using Milimoe.FunGame.Core.Api.Transmittal;
+using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
@@ -157,6 +158,7 @@ namespace Milimoe.FunGame.Desktop.Controller
 
         protected override void SocketHandler_Disconnect(SocketObject ServerMessage)
         {
+            // 断开与服务器的连接
             string msg = "";
             if (ServerMessage.Parameters.Length > 0) msg = ServerMessage.GetParam<string>(0)!;
             Main.GetMessage(msg);
@@ -168,10 +170,45 @@ namespace Milimoe.FunGame.Desktop.Controller
 
         protected override void SocketHandler_HeartBeat(SocketObject ServerMessage)
         {
+            // 收到心跳包时更新与服务器的连接延迟
             if (Socket != null && Socket.Connected && Usercfg.LoginUser.Id != 0)
             {
                 Main.UpdateUI(MainInvokeType.SetGreenAndPing);
             }
+        }
+
+        protected override void SocketHandler_ForceLogout(SocketObject ServerMessage)
+        {
+            // 服务器强制下线登录
+            Guid key = Guid.Empty;
+            string msg = "";
+            if (ServerMessage.Length > 0) key = ServerMessage.GetParam<Guid>(0);
+            if (ServerMessage.Length > 1) msg = ServerMessage.GetParam<string>(1) ?? "";
+            if (key == Usercfg.LoginKey)
+            {
+                Usercfg.LoginKey = Guid.Empty;
+                Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
+            }
+        }
+
+        protected override void SocketHandler_Chat(SocketObject ServerMessage)
+        {
+            // 收到房间聊天信息
+            string user = "", msg = "";
+            if (ServerMessage.Length > 0) user = ServerMessage.GetParam<string>(0) ?? "";
+            if (ServerMessage.Length > 1) msg = ServerMessage.GetParam<string>(1) ?? "";
+            if (user != Usercfg.LoginUserName)
+            {
+                Main.GetMessage(msg, TimeType.None);
+            }
+        }
+
+        protected override void SocketHandler_UpdateRoomMaster(SocketObject ServerMessage)
+        {
+            // 收到房间更换房主的信息
+            Room room = General.HallInstance;
+            if (ServerMessage.Length > 0) room = ServerMessage.GetParam<Room>(0) ?? General.HallInstance;
+            if (room.Roomid != "-1" && room.Roomid == Usercfg.InRoom.Roomid) Main.UpdateUI(MainInvokeType.UpdateRoomMaster, room);
         }
     }
 }
