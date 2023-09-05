@@ -64,10 +64,8 @@ namespace Milimoe.FunGame.Desktop.Library.Component
         /// <summary>
         /// 提供公共方法给Controller发送消息弹窗（这样可以防止跨线程时，弹窗不在最上层）
         /// </summary>
-        /// <param name="type"></param>
         /// <param name="msg"></param>
         /// <param name="title"></param>
-        /// <param name="autoclose"></param>
         public string ShowInputMessage(string msg, string title)
         {
             string input = "";
@@ -86,10 +84,9 @@ namespace Milimoe.FunGame.Desktop.Library.Component
         /// 提供公共方法给Controller发送消息弹窗（这样可以防止跨线程时，弹窗不在最上层）<para/>
         /// 支持返回点击的按钮，用于判断是否取消输入
         /// </summary>
-        /// <param name="type"></param>
         /// <param name="msg"></param>
         /// <param name="title"></param>
-        /// <param name="autoclose"></param>
+        /// <param name="result"></param>
         public string ShowInputMessageCancel(string msg, string title, out MessageResult result)
         {
             MessageResult resultThisMethod = MessageResult.Cancel;
