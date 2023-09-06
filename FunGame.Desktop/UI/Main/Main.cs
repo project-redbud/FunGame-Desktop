@@ -156,7 +156,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             SetServerStatusLight((int)LightType.Red);
                             SetButtonEnableIfLogon(false, ClientState.WaitConnect);
                             LogoutAccount();
-                            MainController?.Dispose();
+                            MainController?.MainController_Disposed();
                             CloseConnectedWindows();
                             break;
 
@@ -171,7 +171,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             SetServerStatusLight((int)LightType.Yellow);
                             SetButtonEnableIfLogon(false, ClientState.WaitConnect);
                             LogoutAccount();
-                            MainController?.Dispose();
+                            MainController?.MainController_Disposed();
                             break;
 
                         case MainInvokeType.LogIn:
