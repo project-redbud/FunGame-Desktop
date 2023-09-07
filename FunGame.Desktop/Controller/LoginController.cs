@@ -32,7 +32,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 if (OnBeforeLoginEvent(args))
                 {
-                    DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.RunTime_Login);
+                    DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.Login_Login);
                     request.AddRequestData("username", username);
                     request.AddRequestData("password", password);
                     request.AddRequestData("autokey", autokey);

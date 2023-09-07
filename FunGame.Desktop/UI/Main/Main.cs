@@ -1416,7 +1416,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 TaskUtility.StartAndAwaitTask(() =>
                 {
                     if (OnBeforeConnectEvent(EventArgs) == EventResult.Fail) return;
-                    result = RunTime.Controller?.Connect() ?? result;
+                    result = RunTime.Controller?.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port) ?? result;
                     EventArgs.ConnectResult = result;
                 }).OnCompleted(() =>
                 {
