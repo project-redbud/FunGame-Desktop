@@ -1423,6 +1423,11 @@ namespace Milimoe.FunGame.Desktop.UI
                     if (result == ConnectResult.Success) OnSucceedConnectEvent(EventArgs);
                     else OnFailedConnectEvent(EventArgs);
                     OnAfterConnectEvent(EventArgs);
+                }).OnError(e =>
+                {
+                    GetMessage(e.GetErrorInfo(), TimeType.None);
+                    UpdateUI(MainInvokeType.SetRed);
+                    Config.FunGame_isRetrying = false;
                 });
             }
             catch (Exception e)

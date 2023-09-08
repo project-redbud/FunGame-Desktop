@@ -37,37 +37,27 @@ namespace Milimoe.FunGame.Desktop.Controller
 
         public override bool BeforeConnect()
         {
-            try
+            if (Config.FunGame_isRetrying)
             {
-                if (Config.FunGame_isRetrying)
-                {
-                    Main.GetMessage("正在连接服务器，请耐心等待。");
-                    return false;
-                }
-                if (!Config.FunGame_isConnected)
-                {
-                    Main.CurrentRetryTimes++;
-                    if (Main.CurrentRetryTimes == 0) Main.GetMessage("开始连接服务器...", TimeType.General);
-                    else Main.GetMessage("第" + Main.CurrentRetryTimes + "次重试连接服务器...");
-                    // 超过重连次数上限
-                    if (Main.CurrentRetryTimes + 1 > Main.MaxRetryTimes)
-                    {
-                        throw new CanNotConnectException();
-                    }
-                    Config.FunGame_isRetrying = true;
-                    return true;
-                }
-                else
-                {
-                    Main.GetMessage("已连接至服务器，请勿重复连接。");
-                    return false;
-                }
+                Main.GetMessage("正在连接服务器，请耐心等待。");
+                return false;
             }
-            catch (Exception e)
+            if (!Config.FunGame_isConnected)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
-                Main.UpdateUI(MainInvokeType.SetRed);
-                Config.FunGame_isRetrying = false;
+                Main.CurrentRetryTimes++;
+                if (Main.CurrentRetryTimes == 0) Main.GetMessage("开始连接服务器...", TimeType.General);
+                else Main.GetMessage("第" + Main.CurrentRetryTimes + "次重试连接服务器...");
+                // 超过重连次数上限
+                if (Main.CurrentRetryTimes + 1 > Main.MaxRetryTimes)
+                {
+                    throw new CanNotConnectException();
+                }
+                Config.FunGame_isRetrying = true;
+                return true;
+            }
+            else
+            {
+                Main.GetMessage("已连接至服务器，请勿重复连接。");
                 return false;
             }
         }
@@ -99,6 +89,10 @@ namespace Milimoe.FunGame.Desktop.Controller
                 Main.UpdateUI(MainInvokeType.WaitLoginAndSetYellow);
                 Main.GetMessage("连接服务器成功，请登录账号以体验FunGame。");
                 Main.UpdateUI(MainInvokeType.Connected);
+            }
+            else
+            {
+                Main.UpdateUI(MainInvokeType.SetRed);
             }
         }
 
