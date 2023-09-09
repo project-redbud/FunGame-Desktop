@@ -743,21 +743,18 @@ namespace Milimoe.FunGame.Desktop.UI
                 ShowMessage(ShowMessageType.Warning, "已在房间中，无法创建房间。");
                 return;
             }
-            if (MainController != null)
+            string roomid = await InvokeController_CreateRoom(RoomType, Password);
+            if (MainController is not null && roomid != "-1")
             {
-                string roomid = await MainController.CreateRoomAsync(RoomType, Password);
-                if (roomid != "" && roomid != "-1")
-                {
-                    await MainController.UpdateRoomAsync();
-                    Room r = GetRoom(roomid);
-                    await InvokeController_IntoRoom(r);
-                    SetRoomid(r);
-                    InRoom();
-                    WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + RoomType + "房间");
-                    WritelnGameInfo(">> 创建" + RoomType + "房间成功！房间号： " + roomid);
-                    ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
-                    return;
-                }
+                await MainController.UpdateRoomAsync();
+                Room r = GetRoom(roomid);
+                await InvokeController_IntoRoom(r);
+                SetRoomid(r);
+                InRoom();
+                WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + RoomType + "房间");
+                WritelnGameInfo(">> 创建" + RoomType + "房间成功！房间号： " + roomid);
+                ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
+                return;
             }
             ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间失败！", "创建失败");
         }
@@ -1489,6 +1486,34 @@ namespace Milimoe.FunGame.Desktop.UI
             }
 
             return result;
+        }
+        
+        /// <summary>
+        /// 创建房间
+        /// </summary>
+        /// <param name="room"></param>
+        /// <returns></returns>
+        public async Task<string> InvokeController_CreateRoom(string RoomType, string Password = "")
+        {
+            string roomid = "-1";
+
+            try
+            {
+                RoomEventArgs EventArgs = new(RoomType, Password);
+                if (OnBeforeCreateRoomEvent(EventArgs) == EventResult.Fail) return roomid;
+
+                roomid = MainController is null ? "-1" : await MainController.CreateRoomAsync(RoomType, Password);
+
+                if (roomid != "-1") OnSucceedCreateRoomEvent(EventArgs);
+                else OnFailedCreateRoomEvent(EventArgs);
+                OnAfterCreateRoomEvent(EventArgs);
+            }
+            catch (Exception e)
+            {
+                GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return roomid;
         }
 
         /// <summary>

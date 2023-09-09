@@ -81,8 +81,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             try
             {
-                string rid = room.Roomid;
-                IntoRoomRequest.AddRequestData("room", rid);
+                IntoRoomRequest.AddRequestData("roomid", room.Roomid);
                 await IntoRoomRequest.SendRequestAsync();
                 if (IntoRoomRequest.Result == RequestResult.Success)
                 {
@@ -107,7 +106,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 await UpdateRoomRequest.SendRequestAsync();
                 if (UpdateRoomRequest.Result == RequestResult.Success)
                 {
-                    list = UpdateRoomRequest.GetResult<List<Room>>("roomid") ?? new();
+                    list = UpdateRoomRequest.GetResult<List<Room>>("rooms") ?? new();
                     Main.UpdateUI(MainInvokeType.UpdateRoom, list);
                 }
                 else throw new CanNotIntoRoomException();
@@ -153,7 +152,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                         return result;
                     }
                 }
-                throw new CanNotIntoRoomException();
+                throw new QuitRoomException();
             }
             catch (Exception e)
             {
@@ -169,7 +168,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             try
             {
                 CreateRoomRequest.AddRequestData("roomtype", RoomType);
-                CreateRoomRequest.AddRequestData("user", Usercfg.LoginUser);
+                CreateRoomRequest.AddRequestData("master", Usercfg.LoginUser);
                 CreateRoomRequest.AddRequestData("password", Password);
                 await CreateRoomRequest.SendRequestAsync();
                 if (CreateRoomRequest.Result == RequestResult.Success)
