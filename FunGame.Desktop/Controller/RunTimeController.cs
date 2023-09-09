@@ -121,6 +121,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             if (ServerMessage.Parameters.Length > 0) msg = ServerMessage.GetParam<string>(0) ?? "";
             Main.GetMessage(msg);
             Main.UpdateUI(MainInvokeType.Disconnect);
+            Close();
             Main.OnSucceedDisconnectEvent(new GeneralEventArgs());
             Main.OnAfterDisconnectEvent(new GeneralEventArgs());
         }
