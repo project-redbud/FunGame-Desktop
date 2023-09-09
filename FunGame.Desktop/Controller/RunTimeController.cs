@@ -137,15 +137,10 @@ namespace Milimoe.FunGame.Desktop.Controller
         protected override void SocketHandler_ForceLogout(SocketObject ServerMessage)
         {
             // 服务器强制下线登录
-            Guid key = Guid.Empty;
             string msg = "";
-            if (ServerMessage.Length > 0) key = ServerMessage.GetParam<Guid>(0);
-            if (ServerMessage.Length > 1) msg = ServerMessage.GetParam<string>(1) ?? "";
-            if (key == Usercfg.LoginKey)
-            {
-                Usercfg.LoginKey = Guid.Empty;
-                Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
-            }
+            if (ServerMessage.Length > 0) msg = ServerMessage.GetParam<string>(0) ?? "";
+            Usercfg.LoginKey = Guid.Empty;
+            Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
         }
 
         protected override void SocketHandler_Chat(SocketObject ServerMessage)
