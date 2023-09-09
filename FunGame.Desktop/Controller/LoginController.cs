@@ -26,20 +26,23 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             bool result = false;
             string msg = "";
-            LoginEventArgs args = new(username, password, autokey);
 
             try
             {
+                password = password.Encrypt(username);
+                LoginEventArgs args = new(username, password, autokey);
+
                 if (OnBeforeLoginEvent(args))
                 {
                     DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.Login_Login);
                     request.AddRequestData("username", username);
                     request.AddRequestData("password", password);
                     request.AddRequestData("autokey", autokey);
+                    request.AddRequestData("key", Guid.Empty);
                     await request.SendRequestAsync();
                     if (request.Result == RequestResult.Success)
                     {
-                        Guid key = request.GetResult<Guid>("checkloginkey");
+                        Guid key = request.GetResult<Guid>("key");
                         msg = request.GetResult<string>("msg") ?? "";
                         if (msg != "")
                         {
@@ -47,7 +50,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                         }
                         else if (key != Guid.Empty)
                         {
-                            request.AddRequestData("checkloginkey", key);
+                            request.AddRequestData("key", key);
                             await request.SendRequestAsync();
                             if (request.Result == RequestResult.Success)
                             {
@@ -71,18 +74,18 @@ namespace Milimoe.FunGame.Desktop.Controller
                     }
                     request.Dispose();
                 }
+
+                if (!result && msg == "")
+                {
+                    UIForm.ShowMessage(ShowMessageType.Error, "登录失败！");
+                }
+
+                OnAfterLoginEvent(result, args);
             }
             catch (Exception e)
             {
                 RunTime.WritelnSystemInfo(e.GetErrorInfo());
             }
-
-            if (!result && msg == "")
-            {
-                UIForm.ShowMessage(ShowMessageType.Error, "登录失败！");
-            }
-
-            OnAfterLoginEvent(result, args);
 
             return result;
         }

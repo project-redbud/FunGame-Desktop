@@ -121,11 +121,14 @@ namespace Milimoe.FunGame.Desktop.UI
             return EventResult.Success;
         }
 
-        private async void RegButton_Click(object sender, EventArgs e)
+        private void RegButton_Click(object sender, EventArgs e)
         {
             RegButton.Enabled = false;
-            if (!await Reg_Handler()) RegButton.Enabled = true;
-            else Dispose();
+            TaskUtility.StartAndAwaitTask(async() =>
+            {
+                if (!await Reg_Handler()) RegButton.Enabled = true;
+                else Close();
+            });
         }
 
         private void GoToLogin_Click(object sender, EventArgs e)

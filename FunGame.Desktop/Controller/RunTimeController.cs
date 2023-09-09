@@ -1,5 +1,4 @@
-﻿using Milimoe.FunGame.Core.Api.Transmittal;
-using Milimoe.FunGame.Core.Entity;
+﻿using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
@@ -35,7 +34,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             Close();
         }
 
-        public override bool BeforeConnect()
+        public override bool BeforeConnect(ref string ip, ref int port)
         {
             if (Config.FunGame_isRetrying)
             {
@@ -53,6 +52,13 @@ namespace Milimoe.FunGame.Desktop.Controller
                     throw new CanNotConnectException();
                 }
                 Config.FunGame_isRetrying = true;
+                // 如果服务器地址为空需要获取一次地址
+                if (ip == "" || port <= 0)
+                {
+                    (ip, port) = GetServerAddress();
+                    RunTime.Session.Server_IP = ip;
+                    RunTime.Session.Server_Port = port;
+                }
                 return true;
             }
             else

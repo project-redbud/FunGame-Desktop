@@ -1,7 +1,5 @@
 ﻿using Milimoe.FunGame.Core.Api.Transmittal;
-using Milimoe.FunGame.Core.Controller;
 using Milimoe.FunGame.Core.Entity;
-using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Core.Model;
