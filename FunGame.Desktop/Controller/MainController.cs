@@ -51,7 +51,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 if (Usercfg.LoginKey != Guid.Empty)
                 {
                     DataRequest request = RunTime.NewDataRequest(DataRequestType.RunTime_Logout);
-                    request.AddRequestData("loginkey", Usercfg.LoginKey);
+                    request.AddRequestData("key", Usercfg.LoginKey);
                     await request.SendRequestAsync();
                     if (request.Result == RequestResult.Success)
                     {

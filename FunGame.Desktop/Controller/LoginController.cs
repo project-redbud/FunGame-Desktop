@@ -65,6 +65,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                                     if (user.Id != 0)
                                     {
                                         // 创建User对象并返回到Main
+                                        RunTime.Session.LoginKey = key;
                                         RunTime.Main?.UpdateUI(MainInvokeType.SetUser, user);
                                         result = true;
                                     }
