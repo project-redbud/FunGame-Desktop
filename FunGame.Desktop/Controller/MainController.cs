@@ -86,26 +86,13 @@ namespace Milimoe.FunGame.Desktop.Controller
                 await IntoRoomRequest.SendRequestAsync();
                 if (IntoRoomRequest.Result == RequestResult.Success)
                 {
-                    string roomid = IntoRoomRequest.GetResult<string>("roomid") ?? "";
-                    if (rid == roomid)
-                    {
-                        // 先确认是否是加入的房间，防止服务端返回错误的房间
-                        if (roomid.Trim() != "" && roomid == "-1")
-                        {
-                            Main.GetMessage($"已连接至公共聊天室。");
-                        }
-                        else
-                        {
-                            Usercfg.InRoom = room;
-                        }
-                        return true;
-                    }
+                    return IntoRoomRequest.GetResult<bool>("result");
                 }
                 throw new CanNotIntoRoomException();
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo());
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return false;
             }
         }
@@ -127,7 +114,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo());
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
 
             return result;
@@ -143,7 +130,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo());
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return 0;
             }
         }
@@ -170,7 +157,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo());
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return result;
             }
         }
@@ -192,7 +179,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo());
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
 
             return roomid;
@@ -212,7 +199,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo());
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return false;
             }
         }
