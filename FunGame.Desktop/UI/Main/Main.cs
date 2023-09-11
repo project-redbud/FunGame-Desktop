@@ -858,14 +858,15 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <summary>
         /// 退出游戏时处理
         /// </summary>
-        private async Task ExitFunGame()
+        private void ExitFunGame()
         {
-            if (ShowMessage(ShowMessageType.OKCancel, "你确定关闭游戏？", "退出") == MessageResult.OK)
+            TaskUtility.StartAndAwaitTask(() =>
             {
-                if (MainController != null) await LogOut();
-                RunTime.Controller?.Close();
-                Environment.Exit(0);
-            }
+                if (ShowMessage(ShowMessageType.OKCancel, "你确定关闭游戏？", "退出") == MessageResult.OK)
+                {
+                    InvokeController_Disconnect();
+                }
+            }).OnCompleted(() => Environment.Exit(0));
         }
 
         #endregion
@@ -1443,9 +1444,15 @@ namespace Milimoe.FunGame.Desktop.UI
             {
                 bool result = false;
 
-                TaskUtility.StartAndAwaitTask(() =>
+                TaskUtility.StartAndAwaitTask(async () =>
                 {
                     if (OnBeforeDisconnectEvent(new GeneralEventArgs()) == EventResult.Fail) return;
+
+                    if (Usercfg.LoginUser.Id != 0)
+                    {
+                        await LogOut();
+                    }
+
                     result = RunTime.Controller?.Disconnect() ?? false;
                 }).OnCompleted(() =>
                 {
