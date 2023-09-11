@@ -51,11 +51,11 @@ namespace Milimoe.FunGame.Desktop.UI
             RoomText = new TextBox();
             PresetText = new ComboBox();
             RoomBox = new GroupBox();
-            RefreshRoomList = new Button();
             NowRoomID = new TextBox();
             CopyRoomID = new Button();
             RoomList = new ListBox();
             QueryRoom = new Button();
+            RefreshRoomList = new Button();
             Notice = new GroupBox();
             NoticeText = new TextArea();
             InfoBox = new GroupBox();
@@ -101,7 +101,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Exit.Name = "Exit";
             Exit.RelativeForm = null;
             Exit.Size = new Size(47, 47);
-            Exit.TabIndex = 15;
+            Exit.TabIndex = 16;
             Exit.TextAlign = ContentAlignment.TopLeft;
             Exit.UseVisualStyleBackColor = false;
             Exit.Click += Exit_Click;
@@ -123,7 +123,7 @@ namespace Milimoe.FunGame.Desktop.UI
             MinForm.Name = "MinForm";
             MinForm.RelativeForm = this;
             MinForm.Size = new Size(47, 47);
-            MinForm.TabIndex = 14;
+            MinForm.TabIndex = 15;
             MinForm.TextAlign = ContentAlignment.TopLeft;
             MinForm.UseVisualStyleBackColor = false;
             // 
@@ -162,7 +162,7 @@ namespace Milimoe.FunGame.Desktop.UI
             SendTalkText.Location = new Point(608, 421);
             SendTalkText.Name = "SendTalkText";
             SendTalkText.Size = new Size(51, 27);
-            SendTalkText.TabIndex = 3;
+            SendTalkText.TabIndex = 4;
             SendTalkText.TextAlign = ContentAlignment.TopLeft;
             SendTalkText.UseVisualStyleBackColor = false;
             SendTalkText.Click += SendTalkText_Click;
@@ -175,7 +175,7 @@ namespace Milimoe.FunGame.Desktop.UI
             TalkText.Location = new Point(317, 422);
             TalkText.Name = "TalkText";
             TalkText.Size = new Size(289, 26);
-            TalkText.TabIndex = 2;
+            TalkText.TabIndex = 3;
             TalkText.Text = "向消息队列发送消息...";
             TalkText.WordWrap = false;
             TalkText.Click += TalkText_ClickAndFocused;
@@ -201,7 +201,7 @@ namespace Milimoe.FunGame.Desktop.UI
             CheckMix.Location = new Point(675, 94);
             CheckMix.Name = "CheckMix";
             CheckMix.Size = new Size(123, 24);
-            CheckMix.TabIndex = 6;
+            CheckMix.TabIndex = 7;
             CheckMix.Text = "混战模式房间";
             CheckMix.TextAlign = ContentAlignment.BottomLeft;
             CheckMix.UseVisualStyleBackColor = false;
@@ -214,7 +214,7 @@ namespace Milimoe.FunGame.Desktop.UI
             CheckTeam.Location = new Point(675, 124);
             CheckTeam.Name = "CheckTeam";
             CheckTeam.Size = new Size(123, 24);
-            CheckTeam.TabIndex = 7;
+            CheckTeam.TabIndex = 8;
             CheckTeam.Text = "团队模式房间";
             CheckTeam.TextAlign = ContentAlignment.BottomLeft;
             CheckTeam.UseVisualStyleBackColor = false;
@@ -226,7 +226,7 @@ namespace Milimoe.FunGame.Desktop.UI
             RoomSetting.Location = new Point(665, 225);
             RoomSetting.Name = "RoomSetting";
             RoomSetting.Size = new Size(132, 35);
-            RoomSetting.TabIndex = 10;
+            RoomSetting.TabIndex = 11;
             RoomSetting.Text = "房间设置";
             RoomSetting.UseVisualStyleBackColor = true;
             RoomSetting.Visible = false;
@@ -260,7 +260,7 @@ namespace Milimoe.FunGame.Desktop.UI
             AccountSetting.Location = new Point(665, 317);
             AccountSetting.Name = "AccountSetting";
             AccountSetting.Size = new Size(65, 32);
-            AccountSetting.TabIndex = 11;
+            AccountSetting.TabIndex = 12;
             AccountSetting.Text = "设置";
             AccountSetting.UseVisualStyleBackColor = true;
             // 
@@ -270,7 +270,7 @@ namespace Milimoe.FunGame.Desktop.UI
             About.Location = new Point(732, 317);
             About.Name = "About";
             About.Size = new Size(65, 32);
-            About.TabIndex = 12;
+            About.TabIndex = 13;
             About.Text = "关于";
             About.UseVisualStyleBackColor = true;
             // 
@@ -311,14 +311,13 @@ namespace Milimoe.FunGame.Desktop.UI
             PresetText.Location = new Point(195, 422);
             PresetText.Name = "PresetText";
             PresetText.Size = new Size(121, 26);
-            PresetText.TabIndex = 1;
+            PresetText.TabIndex = 2;
             PresetText.SelectedIndexChanged += PresetText_SelectedIndexChanged;
             // 
             // RoomBox
             // 
             RoomBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             RoomBox.BackColor = Color.Transparent;
-            RoomBox.Controls.Add(RefreshRoomList);
             RoomBox.Controls.Add(NowRoomID);
             RoomBox.Controls.Add(CopyRoomID);
             RoomBox.Controls.Add(RoomList);
@@ -332,18 +331,6 @@ namespace Milimoe.FunGame.Desktop.UI
             RoomBox.TabStop = false;
             RoomBox.Text = "房间列表";
             // 
-            // RefreshRoomList
-            // 
-            RefreshRoomList.Font = new Font("LanaPixel", 12F, FontStyle.Regular, GraphicsUnit.Point);
-            RefreshRoomList.Image = Properties.Resources.refresh;
-            RefreshRoomList.Location = new Point(160, 193);
-            RefreshRoomList.Name = "RefreshRoomList";
-            RefreshRoomList.Size = new Size(24, 24);
-            RefreshRoomList.TabIndex = 5;
-            RefreshRoomList.UseVisualStyleBackColor = true;
-            RefreshRoomList.Visible = false;
-            RefreshRoomList.Click += RefreshRoomList_Click;
-            // 
             // NowRoomID
             // 
             NowRoomID.AllowDrop = true;
@@ -353,7 +340,7 @@ namespace Milimoe.FunGame.Desktop.UI
             NowRoomID.Name = "NowRoomID";
             NowRoomID.ReadOnly = true;
             NowRoomID.Size = new Size(114, 25);
-            NowRoomID.TabIndex = 3;
+            NowRoomID.TabIndex = 1;
             NowRoomID.Text = "1919810";
             NowRoomID.Visible = false;
             NowRoomID.WordWrap = false;
@@ -364,7 +351,7 @@ namespace Milimoe.FunGame.Desktop.UI
             CopyRoomID.Location = new Point(126, 225);
             CopyRoomID.Name = "CopyRoomID";
             CopyRoomID.Size = new Size(51, 27);
-            CopyRoomID.TabIndex = 4;
+            CopyRoomID.TabIndex = 2;
             CopyRoomID.Text = "复制";
             CopyRoomID.UseVisualStyleBackColor = true;
             CopyRoomID.Visible = false;
@@ -392,6 +379,17 @@ namespace Milimoe.FunGame.Desktop.UI
             QueryRoom.Text = "加入";
             QueryRoom.UseVisualStyleBackColor = true;
             QueryRoom.Click += QueryRoom_Click;
+            // 
+            // RefreshRoomList
+            // 
+            RefreshRoomList.Font = new Font("LanaPixel", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            RefreshRoomList.Image = Properties.Resources.refresh;
+            RefreshRoomList.Location = new Point(162, 248);
+            RefreshRoomList.Name = "RefreshRoomList";
+            RefreshRoomList.Size = new Size(24, 24);
+            RefreshRoomList.TabIndex = 1;
+            RefreshRoomList.UseVisualStyleBackColor = true;
+            RefreshRoomList.Click += RefreshRoomList_Click;
             // 
             // Notice
             // 
@@ -488,7 +486,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Logout.Location = new Point(665, 380);
             Logout.Name = "Logout";
             Logout.Size = new Size(132, 39);
-            Logout.TabIndex = 13;
+            Logout.TabIndex = 14;
             Logout.Text = "退出登录";
             Logout.UseVisualStyleBackColor = true;
             Logout.Visible = false;
@@ -501,7 +499,7 @@ namespace Milimoe.FunGame.Desktop.UI
             CheckHasPass.Location = new Point(675, 154);
             CheckHasPass.Name = "CheckHasPass";
             CheckHasPass.Size = new Size(123, 24);
-            CheckHasPass.TabIndex = 8;
+            CheckHasPass.TabIndex = 9;
             CheckHasPass.Text = "带密码的房间";
             CheckHasPass.TextAlign = ContentAlignment.BottomLeft;
             CheckHasPass.UseVisualStyleBackColor = false;
@@ -513,7 +511,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Stock.Location = new Point(661, 56);
             Stock.Name = "Stock";
             Stock.Size = new Size(65, 32);
-            Stock.TabIndex = 4;
+            Stock.TabIndex = 5;
             Stock.Text = "库存";
             Stock.UseVisualStyleBackColor = true;
             // 
@@ -523,7 +521,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Store.Location = new Point(732, 56);
             Store.Name = "Store";
             Store.Size = new Size(65, 32);
-            Store.TabIndex = 5;
+            Store.TabIndex = 6;
             Store.Text = "商店";
             Store.UseVisualStyleBackColor = true;
             // 
@@ -552,7 +550,7 @@ namespace Milimoe.FunGame.Desktop.UI
             StopMatch.Location = new Point(665, 184);
             StopMatch.Name = "StopMatch";
             StopMatch.Size = new Size(132, 35);
-            StopMatch.TabIndex = 9;
+            StopMatch.TabIndex = 10;
             StopMatch.Text = "停止匹配";
             StopMatch.UseVisualStyleBackColor = true;
             StopMatch.Visible = false;
@@ -564,6 +562,7 @@ namespace Milimoe.FunGame.Desktop.UI
             AutoScaleMode = AutoScaleMode.Font;
             BackgroundImage = Properties.Resources.back;
             ClientSize = new Size(800, 450);
+            Controls.Add(RefreshRoomList);
             Controls.Add(StopMatch);
             Controls.Add(Copyright);
             Controls.Add(Store);
@@ -623,6 +622,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Controls.SetChildIndex(Store, 0);
             Controls.SetChildIndex(Copyright, 0);
             Controls.SetChildIndex(StopMatch, 0);
+            Controls.SetChildIndex(RefreshRoomList, 0);
             RoomBox.ResumeLayout(false);
             RoomBox.PerformLayout();
             Notice.ResumeLayout(false);

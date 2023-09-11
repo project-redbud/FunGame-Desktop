@@ -456,6 +456,7 @@ namespace Milimoe.FunGame.Desktop.UI
             AccountSetting.Enabled = isLogon;
             Stock.Enabled = isLogon;
             Store.Enabled = isLogon;
+            RefreshRoomList.Enabled = isLogon;
         }
 
         /// <summary>
