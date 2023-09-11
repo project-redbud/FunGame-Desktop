@@ -51,6 +51,7 @@ namespace Milimoe.FunGame.Desktop.UI
             RoomText = new TextBox();
             PresetText = new ComboBox();
             RoomBox = new GroupBox();
+            RefreshRoomList = new Button();
             NowRoomID = new TextBox();
             CopyRoomID = new Button();
             RoomList = new ListBox();
@@ -317,6 +318,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             RoomBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             RoomBox.BackColor = Color.Transparent;
+            RoomBox.Controls.Add(RefreshRoomList);
             RoomBox.Controls.Add(NowRoomID);
             RoomBox.Controls.Add(CopyRoomID);
             RoomBox.Controls.Add(RoomList);
@@ -330,6 +332,18 @@ namespace Milimoe.FunGame.Desktop.UI
             RoomBox.TabStop = false;
             RoomBox.Text = "房间列表";
             // 
+            // RefreshRoomList
+            // 
+            RefreshRoomList.Font = new Font("LanaPixel", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            RefreshRoomList.Image = Properties.Resources.refresh;
+            RefreshRoomList.Location = new Point(160, 193);
+            RefreshRoomList.Name = "RefreshRoomList";
+            RefreshRoomList.Size = new Size(24, 24);
+            RefreshRoomList.TabIndex = 5;
+            RefreshRoomList.UseVisualStyleBackColor = true;
+            RefreshRoomList.Visible = false;
+            RefreshRoomList.Click += RefreshRoomList_Click;
+            // 
             // NowRoomID
             // 
             NowRoomID.AllowDrop = true;
@@ -341,8 +355,8 @@ namespace Milimoe.FunGame.Desktop.UI
             NowRoomID.Size = new Size(114, 25);
             NowRoomID.TabIndex = 3;
             NowRoomID.Text = "1919810";
-            NowRoomID.WordWrap = false;
             NowRoomID.Visible = false;
+            NowRoomID.WordWrap = false;
             // 
             // CopyRoomID
             // 
@@ -352,8 +366,8 @@ namespace Milimoe.FunGame.Desktop.UI
             CopyRoomID.Size = new Size(51, 27);
             CopyRoomID.TabIndex = 4;
             CopyRoomID.Text = "复制";
-            CopyRoomID.Visible = false;
             CopyRoomID.UseVisualStyleBackColor = true;
+            CopyRoomID.Visible = false;
             CopyRoomID.Click += CopyRoomID_Click;
             // 
             // RoomList
@@ -655,5 +669,6 @@ namespace Milimoe.FunGame.Desktop.UI
         private Library.Component.TransparentRect TransparentRectControl;
         private TextBox NowRoomID;
         private Button CopyRoomID;
+        private Button RefreshRoomList;
     }
 }

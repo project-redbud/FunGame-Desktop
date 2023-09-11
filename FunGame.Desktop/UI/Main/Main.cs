@@ -1004,7 +1004,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void QueryRoom_Click(object sender, EventArgs e)
         {
-            TaskUtility.StartAndAwaitTask(async() => await JoinRoom(false, RoomText.Text));
+            TaskUtility.StartAndAwaitTask(async () => await JoinRoom(false, RoomText.Text));
         }
 
         /// <summary>
@@ -1056,7 +1056,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (RoomList.SelectedItem != null)
             {
-                TaskUtility.StartAndAwaitTask(async() => await JoinRoom(true, RoomList.SelectedItem.ToString() ?? ""));
+                TaskUtility.StartAndAwaitTask(async () => await JoinRoom(true, RoomList.SelectedItem.ToString() ?? ""));
             }
         }
 
@@ -1128,7 +1128,7 @@ namespace Milimoe.FunGame.Desktop.UI
             if (e.KeyCode.Equals(Keys.Enter))
             {
                 // 按下回车加入房间
-                TaskUtility.StartAndAwaitTask(async() => await JoinRoom(false, RoomText.Text));
+                TaskUtility.StartAndAwaitTask(async () => await JoinRoom(false, RoomText.Text));
             }
         }
 
@@ -1178,8 +1178,8 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void Copyright_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            // Copyright 2023 mili.cyou
-            Process.Start(new ProcessStartInfo("https://mili.cyou/fungame") { UseShellExecute = true });
+            // Copyright 2023 milimoe
+            Process.Start(new ProcessStartInfo("https://github.com/milimoe") { UseShellExecute = true });
         }
 
         /// <summary>
@@ -1197,6 +1197,22 @@ namespace Milimoe.FunGame.Desktop.UI
                 SwitchTalkMessage(s);
                 PresetText.SelectedIndex = 0;
             }
+        }
+
+        /// <summary>
+        /// 刷新房间列表
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void RefreshRoomList_Click(object sender, EventArgs e)
+        {
+            TaskUtility.StartAndAwaitTask(async () =>
+            {
+                if (MainController != null)
+                {
+                    await MainController.UpdateRoomAsync();
+                }
+            });
         }
 
         /// <summary>
@@ -1341,7 +1357,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         // 先退出登录再断开连接
                         bool SuccessLogOut = false;
-                        TaskUtility.StartAndAwaitTask(async() =>
+                        TaskUtility.StartAndAwaitTask(async () =>
                         {
                             if (await LogOut()) SuccessLogOut = true;
                         }).OnCompleted(() =>
@@ -1494,7 +1510,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
             return result;
         }
-        
+
         /// <summary>
         /// 创建房间
         /// </summary>
