@@ -1,4 +1,4 @@
-﻿using Milimoe.FunGame.Core.Api.Transmittal;
+﻿using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
@@ -34,112 +34,71 @@ namespace Milimoe.FunGame.Desktop.Controller
             Close();
         }
 
-        public override ConnectResult Connect()
+        public override bool BeforeConnect(ref string ip, ref int port)
         {
-            if (RunTime.Session.Server_IP == "" || RunTime.Session.Server_Port <= 0)
+            if (Config.FunGame_isRetrying)
             {
-                (RunTime.Session.Server_IP, RunTime.Session.Server_Port) = GetServerAddress();
-                if (RunTime.Session.Server_IP == "" || RunTime.Session.Server_Port <= 0)
-                {
-                    Main.ShowMessage(ShowMessageType.Error, "查找可用的服务器失败！");
-                    return ConnectResult.FindServerFailed;
-                }
+                Main.GetMessage("正在连接服务器，请耐心等待。");
+                return false;
             }
-            try
+            if (!Config.FunGame_isConnected)
             {
-                if (Config.FunGame_isRetrying)
+                Main.CurrentRetryTimes++;
+                if (Main.CurrentRetryTimes == 0) Main.GetMessage("开始连接服务器...", TimeType.General);
+                else Main.GetMessage("第" + Main.CurrentRetryTimes + "次重试连接服务器...");
+                // 超过重连次数上限
+                if (Main.CurrentRetryTimes + 1 > Main.MaxRetryTimes)
                 {
-                    Main.GetMessage("正在连接服务器，请耐心等待。");
-                    Config.FunGame_isRetrying = false;
-                    return ConnectResult.CanNotConnect;
-                }
-                if (!Config.FunGame_isConnected)
-                {
-                    Main.CurrentRetryTimes++;
-                    if (Main.CurrentRetryTimes == 0) Main.GetMessage("开始连接服务器...", TimeType.General);
-                    else Main.GetMessage("第" + Main.CurrentRetryTimes + "次重试连接服务器...");
-                    // 超过重连次数上限
-                    if (Main.CurrentRetryTimes + 1 > Main.MaxRetryTimes)
-                    {
-                        throw new CanNotConnectException();
-                    }
-                    // 与服务器建立连接
-                    Socket?.Close();
-                    Config.FunGame_isRetrying = true;
-                    _Socket = Socket.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port);
-                    if (Socket != null && Socket.Connected)
-                    {
-                        // 设置可复用Socket
-                        RunTime.Socket = Socket;
-                        // 发送连接请求
-                        DataRequest request = RunTime.NewDataRequest(DataRequestType.RunTime_Connect);
-                        request.SendRequest();
-                        if (request.Result == RequestResult.Success)
-                        {
-                            bool success = request.GetResult<bool>("success");
-                            string msg = request.GetResult<string>("msg") ?? "";
-                            if (!success)
-                            {
-                                // 服务器拒绝连接
-                                if (msg != "")
-                                {
-                                    Main.GetMessage(msg);
-                                    Main.ShowMessage(ShowMessageType.Error, msg);
-                                }
-                                return ConnectResult.ConnectFailed;
-                            }
-                            else
-                            {
-                                if (msg != "")
-                                {
-                                    Main.GetMessage(msg);
-                                }
-                                Guid token = request.GetResult<Guid>("token");
-                                string servername = request.GetResult<string>("servername") ?? "";
-                                string notice = request.GetResult<string>("notice") ?? "";
-                                Config.FunGame_ServerName = servername;
-                                Config.FunGame_Notice = notice;
-                                Socket!.Token = token;
-                                Usercfg.SocketToken = token;
-                                Main.GetMessage($"已连接服务器：{servername}。\n\n********** 服务器公告 **********\n\n{notice}\n\n");
-                                // 设置等待登录的黄灯
-                                Main.UpdateUI(MainInvokeType.WaitLoginAndSetYellow);
-                                Main.GetMessage("连接服务器成功，请登录账号以体验FunGame。");
-                                Main.UpdateUI(MainInvokeType.Connected);
-                                StartReceiving();
-                                Task.Run(() =>
-                                {
-                                    while (true)
-                                    {
-                                        if (_IsReceiving)
-                                        {
-                                            break;
-                                        }
-                                    }
-                                });
-                                return ConnectResult.Success;
-                            }
-                        }
-                        Config.FunGame_isRetrying = false;
-                        Socket.Close();
-                        return ConnectResult.ConnectFailed;
-                    }
-                    Socket?.Close();
-                    Config.FunGame_isRetrying = false;
                     throw new CanNotConnectException();
                 }
-                else
+                Config.FunGame_isRetrying = true;
+                // 如果服务器地址为空需要获取一次地址
+                if (ip == "" || port <= 0)
                 {
-                    Main.GetMessage("已连接至服务器，请勿重复连接。");
-                    return ConnectResult.CanNotConnect;
+                    (ip, port) = GetServerAddress();
+                    RunTime.Session.Server_IP = ip;
+                    RunTime.Session.Server_Port = port;
                 }
+                return true;
             }
-            catch (Exception e)
+            else
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                Main.GetMessage("已连接至服务器，请勿重复连接。");
+                return false;
+            }
+        }
+
+        public override void AfterConnect(object[] ConnectArgs)
+        {
+            Config.FunGame_isRetrying = false;
+
+            ConnectResult result = (ConnectResult)ConnectArgs[0];
+            string msg = (string)ConnectArgs[1];
+            string servername = (string)ConnectArgs[2];
+            string notice = (string)ConnectArgs[3];
+
+            if (msg != "")
+            {
+                Main.GetMessage(msg);
+                if (result != ConnectResult.Success) Main.ShowMessage(ShowMessageType.Error, msg);
+            }
+
+            if (result == ConnectResult.Success)
+            {
+                // 设置可复用Socket
+                RunTime.Socket = Socket;
+                Config.FunGame_ServerName = servername;
+                Config.FunGame_Notice = notice;
+                Usercfg.SocketToken = Socket?.Token ?? Guid.Empty;
+                Main.GetMessage($"已连接服务器：{servername}。\n\n********** 服务器公告 **********\n\n{notice}\n\n");
+                // 设置等待登录的黄灯
+                Main.UpdateUI(MainInvokeType.WaitLoginAndSetYellow);
+                Main.GetMessage("连接服务器成功，请登录账号以体验FunGame。");
+                Main.UpdateUI(MainInvokeType.Connected);
+            }
+            else
+            {
                 Main.UpdateUI(MainInvokeType.SetRed);
-                Config.FunGame_isRetrying = false;
-                return ConnectResult.ConnectFailed;
             }
         }
 
@@ -157,8 +116,9 @@ namespace Milimoe.FunGame.Desktop.Controller
 
         protected override void SocketHandler_Disconnect(SocketObject ServerMessage)
         {
+            // 断开与服务器的连接
             string msg = "";
-            if (ServerMessage.Parameters.Length > 0) msg = ServerMessage.GetParam<string>(0)!;
+            if (ServerMessage.Parameters.Length > 0) msg = ServerMessage.GetParam<string>(0) ?? "";
             Main.GetMessage(msg);
             Main.UpdateUI(MainInvokeType.Disconnect);
             Close();
@@ -168,10 +128,40 @@ namespace Milimoe.FunGame.Desktop.Controller
 
         protected override void SocketHandler_HeartBeat(SocketObject ServerMessage)
         {
+            // 收到心跳包时更新与服务器的连接延迟
             if (Socket != null && Socket.Connected && Usercfg.LoginUser.Id != 0)
             {
                 Main.UpdateUI(MainInvokeType.SetGreenAndPing);
             }
+        }
+
+        protected override void SocketHandler_ForceLogout(SocketObject ServerMessage)
+        {
+            // 服务器强制下线登录
+            string msg = "";
+            if (ServerMessage.Length > 0) msg = ServerMessage.GetParam<string>(0) ?? "";
+            Usercfg.LoginKey = Guid.Empty;
+            Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
+        }
+
+        protected override void SocketHandler_Chat(SocketObject ServerMessage)
+        {
+            // 收到房间聊天信息
+            string user = "", msg = "";
+            if (ServerMessage.Length > 0) user = ServerMessage.GetParam<string>(0) ?? "";
+            if (ServerMessage.Length > 1) msg = ServerMessage.GetParam<string>(1) ?? "";
+            if (user != Usercfg.LoginUserName)
+            {
+                Main.GetMessage(msg, TimeType.None);
+            }
+        }
+
+        protected override void SocketHandler_UpdateRoomMaster(SocketObject ServerMessage)
+        {
+            // 收到房间更换房主的信息
+            Room room = General.HallInstance;
+            if (ServerMessage.Length > 0) room = ServerMessage.GetParam<Room>(0) ?? General.HallInstance;
+            if (room.Roomid != "-1" && room.Roomid == Usercfg.InRoom.Roomid) Main.UpdateUI(MainInvokeType.UpdateRoomMaster, room);
         }
     }
 }

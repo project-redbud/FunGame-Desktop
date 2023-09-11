@@ -1,4 +1,5 @@
-﻿using Milimoe.FunGame.Core.Library.Constant;
+﻿using Milimoe.FunGame.Core.Api.Utility;
+using Milimoe.FunGame.Core.Library.Constant;
 
 namespace Milimoe.FunGame.Desktop.Library.Component
 {
@@ -7,7 +8,6 @@ namespace Milimoe.FunGame.Desktop.Library.Component
         private MessageResult MessageResult = MessageResult.Cancel;
         private string InputResult = "";
         private readonly int AutoClose = 0;
-        private readonly Task? TaskAutoClose;
 
         private const string TITLE_TIP = "提示";
         private const string TITLE_WARNING = "警告";
@@ -113,17 +113,24 @@ namespace Milimoe.FunGame.Desktop.Library.Component
             }
             if (AutoClose > 0)
             {
-                TaskAutoClose = Task.Factory.StartNew(() =>
+                TaskUtility.StartAndAwaitTask(async () =>
                 {
-                    Thread.Sleep(1);
                     string msg = MsgText.Text;
                     int s = AutoClose;
-                    BeginInvoke(() => ChangeSecond(msg, s));
-                    while (s > 0)
+                    await Task.Run(() =>
                     {
-                        Thread.Sleep(1000);
+                        while (IsHandleCreated)
+                        {
+                            break;
+                        }
+                    });
+                    BeginInvoke(() => ChangeSecond(msg, s));
+                    while (!Disposing)
+                    {
+                        if (s > 0) await Task.Delay(1000);
+                        else break;
                         s--;
-                    if (IsHandleCreated) BeginInvoke(() => ChangeSecond(msg, s));
+                        BeginInvoke(() => ChangeSecond(msg, s));
                     }
                     MessageResult = MessageResult.OK;
                     Close();
@@ -147,7 +154,6 @@ namespace Milimoe.FunGame.Desktop.Library.Component
                 BUTTON_RETRY => MessageResult.Retry,
                 _ => MessageResult.Cancel
             };
-            TaskAutoClose?.Wait(1);
             Dispose();
         }
 

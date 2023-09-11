@@ -53,7 +53,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         }
                         else
                         {
-                            ShowMessage(ShowMessageType.Error, "账号名长度不符合要求：最多6个中文字符或12个英文字符");
+                            ShowMessage(ShowMessageType.Error, "账号名长度不符合要求：3~12个字符数（一个中文2个字符）");
                             UsernameText.Focus();
                             return false;
                         }
@@ -68,7 +68,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 if (password != "")
                 {
                     int length = password.Length;
-                    if (length < 6 || length > 15) // 字节范围 3~12
+                    if (length < 6 || length > 15) // 字节范围 6~15
                     {
                         ShowMessage(ShowMessageType.Error, "密码长度不符合要求：6~15个字符数");
                         PasswordText.Focus();
@@ -121,11 +121,14 @@ namespace Milimoe.FunGame.Desktop.UI
             return EventResult.Success;
         }
 
-        private async void RegButton_Click(object sender, EventArgs e)
+        private void RegButton_Click(object sender, EventArgs e)
         {
             RegButton.Enabled = false;
-            if (!await Reg_Handler()) RegButton.Enabled = true;
-            else Dispose();
+            TaskUtility.StartAndAwaitTask(async() =>
+            {
+                if (!await Reg_Handler()) RegButton.Enabled = true;
+                else Close();
+            });
         }
 
         private void GoToLogin_Click(object sender, EventArgs e)

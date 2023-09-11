@@ -156,7 +156,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             SetServerStatusLight((int)LightType.Red);
                             SetButtonEnableIfLogon(false, ClientState.WaitConnect);
                             LogoutAccount();
-                            MainController?.Dispose();
+                            MainController?.MainController_Disposed();
                             CloseConnectedWindows();
                             break;
 
@@ -171,7 +171,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             SetServerStatusLight((int)LightType.Yellow);
                             SetButtonEnableIfLogon(false, ClientState.WaitConnect);
                             LogoutAccount();
-                            MainController?.Dispose();
+                            MainController?.MainController_Disposed();
                             break;
 
                         case MainInvokeType.LogIn:
@@ -239,7 +239,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 catch (Exception e)
                 {
                     WritelnGameInfo(e.GetErrorInfo());
-                    UpdateUI(MainInvokeType.SetRed);
+                    UpdateUI(MainInvokeType.Disconnected);
                 }
             }
             InvokeUpdateUI(action);
@@ -743,21 +743,18 @@ namespace Milimoe.FunGame.Desktop.UI
                 ShowMessage(ShowMessageType.Warning, "已在房间中，无法创建房间。");
                 return;
             }
-            if (MainController != null)
+            string roomid = await InvokeController_CreateRoom(RoomType, Password);
+            if (MainController is not null && roomid != "-1")
             {
-                string roomid = await MainController.CreateRoomAsync(RoomType, Password);
-                if (roomid != "" && roomid != "-1")
-                {
-                    await MainController.UpdateRoomAsync();
-                    Room r = GetRoom(roomid);
-                    await InvokeController_IntoRoom(r);
-                    SetRoomid(r);
-                    InRoom();
-                    WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + RoomType + "房间");
-                    WritelnGameInfo(">> 创建" + RoomType + "房间成功！房间号： " + roomid);
-                    ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
-                    return;
-                }
+                await MainController.UpdateRoomAsync();
+                Room r = GetRoom(roomid);
+                await InvokeController_IntoRoom(r);
+                SetRoomid(r);
+                InRoom();
+                WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + RoomType + "房间");
+                WritelnGameInfo(">> 创建" + RoomType + "房间成功！房间号： " + roomid);
+                ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
+                return;
             }
             ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间失败！", "创建失败");
         }
@@ -861,14 +858,15 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <summary>
         /// 退出游戏时处理
         /// </summary>
-        private async Task ExitFunGame()
+        private void ExitFunGame()
         {
-            if (ShowMessage(ShowMessageType.OKCancel, "你确定关闭游戏？", "退出") == MessageResult.OK)
+            TaskUtility.StartAndAwaitTask(() =>
             {
-                if (MainController != null) await LogOut();
-                RunTime.Controller?.Close();
-                Environment.Exit(0);
-            }
+                if (ShowMessage(ShowMessageType.OKCancel, "你确定关闭游戏？", "退出") == MessageResult.OK)
+                {
+                    InvokeController_Disconnect();
+                }
+            }).OnCompleted(() => Environment.Exit(0));
         }
 
         #endregion
@@ -1208,7 +1206,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void Main_Disposed(object? sender, EventArgs e)
         {
-            MainController?.Dispose();
+            MainController?.MainController_Disposed();
         }
 
         /// <summary>
@@ -1380,7 +1378,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         return true;
                     }
                     ErrorIPAddressType ErrorType = NetworkUtility.IsServerAddress(ip, port);
-                    if (ErrorType == Core.Library.Constant.ErrorIPAddressType.None)
+                    if (ErrorType == ErrorIPAddressType.None)
                     {
                         RunTime.Session.Server_IP = ip;
                         RunTime.Session.Server_Port = port;
@@ -1388,8 +1386,8 @@ namespace Milimoe.FunGame.Desktop.UI
                         Config.FunGame_isAutoRetry = true;
                         InvokeController_Connect();
                     }
-                    else if (ErrorType == Core.Library.Constant.ErrorIPAddressType.IsNotIP) ShowMessage(ShowMessageType.Error, "这不是一个IP地址！");
-                    else if (ErrorType == Core.Library.Constant.ErrorIPAddressType.IsNotPort) ShowMessage(ShowMessageType.Error, "这不是一个端口号！\n正确范围：1~65535");
+                    else if (ErrorType == ErrorIPAddressType.IsNotIP) ShowMessage(ShowMessageType.Error, "这不是一个IP地址！");
+                    else if (ErrorType == ErrorIPAddressType.IsNotPort) ShowMessage(ShowMessageType.Error, "这不是一个端口号！\n正确范围：1~65535");
                     else ShowMessage(ShowMessageType.Error, "格式错误！\n这不是一个服务器地址。");
                     break;
                 default:
@@ -1416,13 +1414,18 @@ namespace Milimoe.FunGame.Desktop.UI
                 TaskUtility.StartAndAwaitTask(() =>
                 {
                     if (OnBeforeConnectEvent(EventArgs) == EventResult.Fail) return;
-                    result = RunTime.Controller?.Connect() ?? result;
+                    result = RunTime.Controller?.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port) ?? result;
                     EventArgs.ConnectResult = result;
                 }).OnCompleted(() =>
                 {
                     if (result == ConnectResult.Success) OnSucceedConnectEvent(EventArgs);
                     else OnFailedConnectEvent(EventArgs);
                     OnAfterConnectEvent(EventArgs);
+                }).OnError(e =>
+                {
+                    GetMessage(e.GetErrorInfo(), TimeType.None);
+                    UpdateUI(MainInvokeType.SetRed);
+                    Config.FunGame_isRetrying = false;
                 });
             }
             catch (Exception e)
@@ -1441,9 +1444,15 @@ namespace Milimoe.FunGame.Desktop.UI
             {
                 bool result = false;
 
-                TaskUtility.StartAndAwaitTask(() =>
+                TaskUtility.StartAndAwaitTask(async () =>
                 {
                     if (OnBeforeDisconnectEvent(new GeneralEventArgs()) == EventResult.Fail) return;
+
+                    if (Usercfg.LoginUser.Id != 0)
+                    {
+                        await LogOut();
+                    }
+
                     result = RunTime.Controller?.Disconnect() ?? false;
                 }).OnCompleted(() =>
                 {
@@ -1484,6 +1493,34 @@ namespace Milimoe.FunGame.Desktop.UI
             }
 
             return result;
+        }
+        
+        /// <summary>
+        /// 创建房间
+        /// </summary>
+        /// <param name="room"></param>
+        /// <returns></returns>
+        public async Task<string> InvokeController_CreateRoom(string RoomType, string Password = "")
+        {
+            string roomid = "-1";
+
+            try
+            {
+                RoomEventArgs EventArgs = new(RoomType, Password);
+                if (OnBeforeCreateRoomEvent(EventArgs) == EventResult.Fail) return roomid;
+
+                roomid = MainController is null ? "-1" : await MainController.CreateRoomAsync(RoomType, Password);
+
+                if (roomid != "-1") OnSucceedCreateRoomEvent(EventArgs);
+                else OnFailedCreateRoomEvent(EventArgs);
+                OnAfterCreateRoomEvent(EventArgs);
+            }
+            catch (Exception e)
+            {
+                GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return roomid;
         }
 
         /// <summary>
