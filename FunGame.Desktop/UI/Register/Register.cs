@@ -116,7 +116,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             string username = ((RegisterEventArgs)e).Username;
             string password = ((RegisterEventArgs)e).Password;
-            TaskUtility.StartAndAwaitTask(async () => await LoginController.LoginAccountAsync(username, password));
+            TaskUtility.StartAndAwaitTask(async () => await LoginController.LoginAccountAsync(username, password, encrypt: false));
             RunTime.Login?.Close();
             return EventResult.Success;
         }

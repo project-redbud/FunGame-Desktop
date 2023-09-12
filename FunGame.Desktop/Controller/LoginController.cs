@@ -22,14 +22,14 @@ namespace Milimoe.FunGame.Desktop.Controller
             UIForm = form;
         }
 
-        public async Task<bool> LoginAccountAsync(string username, string password, string autokey = "")
+        public async Task<bool> LoginAccountAsync(string username, string password, string autokey = "", bool encrypt = true)
         {
             bool result = false;
             string msg = "";
 
             try
             {
-                password = password.Encrypt(username);
+                if (encrypt) password = password.Encrypt(username);
                 LoginEventArgs args = new(username, password, autokey);
 
                 if (OnBeforeLoginEvent(args))
