@@ -41,7 +41,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                     {
                         case RegInvokeType.InputVerifyCode:
                             {
-                                while (true)
+                                while (!result)
                                 {
                                     string verifycode = ShowMessage.InputMessageCancel("请输入注册邮件中的6位数字验证码", "注册验证码", out MessageResult cancel);
                                     if (cancel != MessageResult.Cancel)
