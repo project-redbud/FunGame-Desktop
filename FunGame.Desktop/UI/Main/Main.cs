@@ -1511,6 +1511,34 @@ namespace Milimoe.FunGame.Desktop.UI
 
             return result;
         }
+        
+        /// <summary>
+        /// 创建房间
+        /// </summary>
+        /// <param name="room"></param>
+        /// <returns></returns>
+        public async Task<string> InvokeController_CreateRoom(string RoomType, string Password = "")
+        {
+            string roomid = "-1";
+
+            try
+            {
+                RoomEventArgs EventArgs = new(RoomType, Password);
+                if (OnBeforeCreateRoomEvent(EventArgs) == EventResult.Fail) return roomid;
+
+                roomid = MainController is null ? "-1" : await MainController.CreateRoomAsync(RoomType, Password);
+
+                if (roomid != "-1") OnSucceedCreateRoomEvent(EventArgs);
+                else OnFailedCreateRoomEvent(EventArgs);
+                OnAfterCreateRoomEvent(EventArgs);
+            }
+            catch (Exception e)
+            {
+                GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return roomid;
+        }
 
         /// <summary>
         /// 创建房间
