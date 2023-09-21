@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
+using Milimoe.FunGame.Core.Library.Common.Plugin;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
@@ -64,6 +65,9 @@ namespace Milimoe.FunGame.Desktop.UI
                         break;
                     }
                 }
+                // 加载插件
+                LoadPlugins();
+                // 自动连接服务器
                 if (Config.FunGame_isAutoConnect) InvokeController_Connect();
             });
         }
@@ -832,6 +836,25 @@ namespace Milimoe.FunGame.Desktop.UI
         }
 
         /// <summary>
+        /// 加载所有插件
+        /// </summary>
+        private void LoadPlugins()
+        {
+            try
+            {
+                PluginLoader.LoadPlugins(RunTime.Plugins);
+                foreach (KeyValuePair<string, BasePlugin> kv in RunTime.Plugins)
+                {
+                    GetMessage("Load: " + kv.Value.Name);
+                }
+            }
+            catch (Exception e)
+            {
+                GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+        }
+
+        /// <summary>
         /// 显示FunGame信息
         /// </summary>
         private void ShowFunGameInfo()
@@ -861,13 +884,21 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         private void ExitFunGame()
         {
+            bool exit = false;
             TaskUtility.StartAndAwaitTask(() =>
             {
                 if (ShowMessage(ShowMessageType.OKCancel, "你确定关闭游戏？", "退出") == MessageResult.OK)
                 {
                     InvokeController_Disconnect();
+                    exit = true;
                 }
-            }).OnCompleted(() => Environment.Exit(0));
+            }).OnCompleted(() =>
+            {
+                if (exit)
+                {
+                    Environment.Exit(0);
+                }
+            });
         }
 
         #endregion
