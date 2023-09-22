@@ -842,8 +842,8 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             try
             {
-                PluginLoader.LoadPlugins(RunTime.Plugins);
-                foreach (KeyValuePair<string, BasePlugin> kv in RunTime.Plugins)
+                RunTime.PluginLoader = PluginLoader.LoadPlugins();
+                foreach (KeyValuePair<string, BasePlugin> kv in RunTime.PluginLoader.Plugins)
                 {
                     GetMessage("Load: " + kv.Value.Name);
                 }
