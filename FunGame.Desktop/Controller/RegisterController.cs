@@ -26,7 +26,8 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 password = password.Encrypt(username);
                 RegisterEventArgs RegEventArgs = new(username, password, email);
-                if (Register.OnBeforeRegEvent(RegEventArgs) == EventResult.Fail) return false;
+                Register.OnBeforeRegEvent(RegEventArgs);
+                if (RegEventArgs.Cancel) return false;
 
                 DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.Reg_GetRegVerifyCode);
                 request.AddRequestData("username", username);

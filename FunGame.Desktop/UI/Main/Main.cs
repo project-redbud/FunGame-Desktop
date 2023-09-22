@@ -1263,7 +1263,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="sender"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        public EventResult FailedConnectEvent(object sender, GeneralEventArgs e)
+        public void FailedConnectEvent(object sender, GeneralEventArgs e)
         {
             // 自动重连
             if (Config.FunGame_isConnected && Config.FunGame_isAutoRetry && CurrentRetryTimes <= MaxRetryTimes)
@@ -1276,7 +1276,6 @@ namespace Milimoe.FunGame.Desktop.UI
                 GetMessage("连接服务器失败，5秒后自动尝试重连。");
             }
             else GetMessage("无法连接至服务器，请检查你的网络连接。");
-            return EventResult.Success;
         }
 
         /// <summary>
@@ -1285,7 +1284,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="sender"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        public EventResult SucceedConnectEvent(object sender, GeneralEventArgs e)
+        public void SucceedConnectEvent(object sender, GeneralEventArgs e)
         {
             // 创建MainController
             MainController = new MainController(this);
@@ -1294,7 +1293,6 @@ namespace Milimoe.FunGame.Desktop.UI
                 // 自动登录
                 RunTime.Controller?.AutoLogin(Config.FunGame_AutoLoginUser, Config.FunGame_AutoLoginPassword, Config.FunGame_AutoLoginKey);
             }
-            return EventResult.Success;
         }
 
         /// <summary>
@@ -1303,10 +1301,9 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="sender"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        private EventResult SucceedLoginEvent(object sender, GeneralEventArgs e)
+        private void SucceedLoginEvent(object sender, GeneralEventArgs e)
         {
             TaskUtility.StartAndAwaitTask(SucceedLoginEvent_Handler);
-            return EventResult.Success;
         }
 
         #endregion
@@ -1461,7 +1458,8 @@ namespace Milimoe.FunGame.Desktop.UI
 
                 TaskUtility.StartAndAwaitTask(() =>
                 {
-                    if (OnBeforeConnectEvent(EventArgs) == EventResult.Fail) return;
+                    OnBeforeConnectEvent(EventArgs);
+                    if (EventArgs.Cancel) return;
                     result = RunTime.Controller?.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port) ?? result;
                     EventArgs.ConnectResult = result;
                 }).OnCompleted(() =>
@@ -1491,10 +1489,12 @@ namespace Milimoe.FunGame.Desktop.UI
             try
             {
                 bool result = false;
+                GeneralEventArgs EventArgs = new();
 
                 TaskUtility.StartAndAwaitTask(async () =>
                 {
-                    if (OnBeforeDisconnectEvent(new GeneralEventArgs()) == EventResult.Fail) return;
+                    OnBeforeDisconnectEvent(EventArgs);
+                    if (EventArgs.Cancel) return;
 
                     if (Usercfg.LoginUser.Id != 0)
                     {
@@ -1504,9 +1504,9 @@ namespace Milimoe.FunGame.Desktop.UI
                     result = RunTime.Controller?.Disconnect() ?? false;
                 }).OnCompleted(() =>
                 {
-                    if (result) OnSucceedDisconnectEvent(new GeneralEventArgs());
-                    else OnFailedDisconnectEvent(new GeneralEventArgs());
-                    OnAfterDisconnectEvent(new GeneralEventArgs());
+                    if (result) OnSucceedDisconnectEvent(EventArgs);
+                    else OnFailedDisconnectEvent(EventArgs);
+                    OnAfterDisconnectEvent(EventArgs);
                 });
             }
             catch (Exception e)
@@ -1527,7 +1527,8 @@ namespace Milimoe.FunGame.Desktop.UI
             try
             {
                 RoomEventArgs EventArgs = new(room);
-                if (OnBeforeIntoRoomEvent(EventArgs) == EventResult.Fail) return result;
+                OnBeforeIntoRoomEvent(EventArgs);
+                if (EventArgs.Cancel) return result;
 
                 result = MainController is not null && await MainController.IntoRoomAsync(room);
 
@@ -1555,7 +1556,8 @@ namespace Milimoe.FunGame.Desktop.UI
             try
             {
                 RoomEventArgs EventArgs = new(RoomType, Password);
-                if (OnBeforeCreateRoomEvent(EventArgs) == EventResult.Fail) return roomid;
+                OnBeforeCreateRoomEvent(EventArgs);
+                if (EventArgs.Cancel) return roomid;
 
                 roomid = MainController is null ? "-1" : await MainController.CreateRoomAsync(RoomType, Password);
 
@@ -1583,7 +1585,8 @@ namespace Milimoe.FunGame.Desktop.UI
             try
             {
                 RoomEventArgs EventArgs = new(room);
-                if (OnBeforeIntoRoomEvent(EventArgs) == EventResult.Fail) return result;
+                OnBeforeIntoRoomEvent(EventArgs);
+                if (EventArgs.Cancel) return result;
 
                 result = MainController is not null && await MainController.QuitRoomAsync(room.Roomid, isMaster);
 
@@ -1610,7 +1613,8 @@ namespace Milimoe.FunGame.Desktop.UI
             try
             {
                 GeneralEventArgs EventArgs = new();
-                if (OnBeforeLogoutEvent(EventArgs) == EventResult.Fail) return result;
+                OnBeforeLogoutEvent(EventArgs);
+                if (EventArgs.Cancel) return result;
 
                 if (Usercfg.LoginUser.Id == 0) return result;
 

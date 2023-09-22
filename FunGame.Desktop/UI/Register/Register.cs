@@ -112,13 +112,12 @@ namespace Milimoe.FunGame.Desktop.UI
             Dispose();
         }
 
-        private EventResult SucceedRegEvent(object sender, GeneralEventArgs e)
+        private void SucceedRegEvent(object sender, GeneralEventArgs e)
         {
             string username = ((RegisterEventArgs)e).Username;
             string password = ((RegisterEventArgs)e).Password;
             TaskUtility.StartAndAwaitTask(async () => await LoginController.LoginAccountAsync(username, password, encrypt: false));
             RunTime.Login?.Close();
-            return EventResult.Success;
         }
 
         private void RegButton_Click(object sender, EventArgs e)

@@ -161,7 +161,8 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             if (UIForm.GetType() == typeof(Login))
             {
-                return ((Login)UIForm).OnBeforeLoginEvent(LoginEventArgs) == EventResult.Success;
+                ((Login)UIForm).OnBeforeLoginEvent(LoginEventArgs);
+                return !LoginEventArgs.Cancel;
             }
             return true;
         }
