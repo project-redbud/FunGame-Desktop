@@ -31,6 +31,10 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 if (encrypt) password = password.Encrypt(username);
                 LoginEventArgs args = new(username, password, autokey);
+                if (RunTime.Controller != null)
+                {
+                    args.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this, UIForm };
+                }
 
                 if (OnBeforeLoginEvent(args))
                 {
@@ -65,6 +69,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                                     if (user.Id != 0)
                                     {
                                         // 创建User对象并返回到Main
+                                        args.Username = user.Username;
                                         RunTime.Session.LoginKey = key;
                                         RunTime.Main?.UpdateUI(MainInvokeType.SetUser, user);
                                         result = true;

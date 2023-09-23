@@ -1,6 +1,5 @@
 ﻿using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Library.Common.Event;
-using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
@@ -123,7 +122,7 @@ namespace Milimoe.FunGame.Desktop.UI
         private void RegButton_Click(object sender, EventArgs e)
         {
             RegButton.Enabled = false;
-            TaskUtility.StartAndAwaitTask(async() =>
+            TaskUtility.StartAndAwaitTask(async () =>
             {
                 if (!await Reg_Handler()) RegButton.Enabled = true;
                 else Close();

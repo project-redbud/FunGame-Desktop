@@ -11,6 +11,8 @@ namespace Milimoe.FunGame.Desktop.Controller
 {
     public class RunTimeController : Core.Controller.RunTimeController
     {
+        public readonly Action<string> WritelnSystemInfoForPlugin;
+
         private readonly Main Main;
         private readonly Core.Model.Session Usercfg = RunTime.Session;
         private readonly LoginController LoginController;
@@ -19,18 +21,24 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             Main = main;
             LoginController = new(Main);
+            WritelnSystemInfoForPlugin = new Action<string>(WritelnSystemInfo);
         }
 
         public override void WritelnSystemInfo(string msg)
         {
-            Main?.GetMessage(msg);
+            Main.GetMessage(msg);
         }
 
         public override void Error(Exception e)
         {
             Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             Main.UpdateUI(MainInvokeType.Disconnected);
-            Main.OnFailedConnectEvent(new ConnectEventArgs(RunTime.Session.Server_IP, RunTime.Session.Server_Port));
+            ConnectEventArgs args = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port, ConnectResult.ConnectFailed);
+            if (RunTime.Controller != null)
+            {
+                args.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this, Main };
+            }
+            Main.OnFailedConnectEvent(args);
             Close();
         }
 
@@ -122,8 +130,6 @@ namespace Milimoe.FunGame.Desktop.Controller
             Main.GetMessage(msg);
             Main.UpdateUI(MainInvokeType.Disconnect);
             Close();
-            Main.OnSucceedDisconnectEvent(new GeneralEventArgs());
-            Main.OnAfterDisconnectEvent(new GeneralEventArgs());
         }
 
         protected override void SocketHandler_HeartBeat(SocketObject ServerMessage)

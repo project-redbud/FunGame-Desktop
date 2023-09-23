@@ -845,7 +845,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RunTime.PluginLoader = PluginLoader.LoadPlugins();
                 foreach (KeyValuePair<string, BasePlugin> kv in RunTime.PluginLoader.Plugins)
                 {
-                    GetMessage("Load: " + kv.Value.Name);
+                    GetMessage("[PluginLoader] Load: " + kv.Value.Name);
                 }
             }
             catch (Exception e)
@@ -1451,22 +1451,38 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         private void InvokeController_Connect()
         {
+            ConnectEventArgs EventArgs = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port);
+            if (RunTime.Controller != null)
+            {
+                EventArgs.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this };
+            }
+
             try
             {
-                ConnectEventArgs EventArgs = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port);
                 ConnectResult result = ConnectResult.CanNotConnect;
 
                 TaskUtility.StartAndAwaitTask(() =>
                 {
                     OnBeforeConnectEvent(EventArgs);
                     if (EventArgs.Cancel) return;
+                    RunTime.PluginLoader?.OnBeforeConnectEvent(EventArgs);
+                    if (EventArgs.Cancel) return;
                     result = RunTime.Controller?.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port) ?? result;
                     EventArgs.ConnectResult = result;
                 }).OnCompleted(() =>
                 {
-                    if (result == ConnectResult.Success) OnSucceedConnectEvent(EventArgs);
-                    else OnFailedConnectEvent(EventArgs);
+                    if (result == ConnectResult.Success)
+                    {
+                        OnSucceedConnectEvent(EventArgs);
+                        RunTime.PluginLoader?.OnSucceedConnectEvent(EventArgs);
+                    }
+                    else
+                    {
+                        OnFailedConnectEvent(EventArgs);
+                        RunTime.PluginLoader?.OnFailedConnectEvent(EventArgs);
+                    }
                     OnAfterConnectEvent(EventArgs);
+                    RunTime.PluginLoader?.OnAfterConnectEvent(EventArgs);
                 }).OnError(e =>
                 {
                     GetMessage(e.GetErrorInfo(), TimeType.None);
@@ -1477,6 +1493,10 @@ namespace Milimoe.FunGame.Desktop.UI
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedConnectEvent(EventArgs);
+                RunTime.PluginLoader?.OnFailedConnectEvent(EventArgs);
+                OnAfterConnectEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterConnectEvent(EventArgs);
             }
         }
 
@@ -1486,14 +1506,21 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         public void InvokeController_Disconnect()
         {
+            GeneralEventArgs EventArgs = new();
+            if (RunTime.Controller != null)
+            {
+                EventArgs.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this };
+            }
+
             try
             {
                 bool result = false;
-                GeneralEventArgs EventArgs = new();
 
                 TaskUtility.StartAndAwaitTask(async () =>
                 {
                     OnBeforeDisconnectEvent(EventArgs);
+                    if (EventArgs.Cancel) return;
+                    RunTime.PluginLoader?.OnBeforeDisconnectEvent(EventArgs);
                     if (EventArgs.Cancel) return;
 
                     if (Usercfg.LoginUser.Id != 0)
@@ -1504,14 +1531,27 @@ namespace Milimoe.FunGame.Desktop.UI
                     result = RunTime.Controller?.Disconnect() ?? false;
                 }).OnCompleted(() =>
                 {
-                    if (result) OnSucceedDisconnectEvent(EventArgs);
-                    else OnFailedDisconnectEvent(EventArgs);
+                    if (result)
+                    {
+                        OnSucceedDisconnectEvent(EventArgs);
+                        RunTime.PluginLoader?.OnSucceedDisconnectEvent(EventArgs);
+                    }
+                    else
+                    {
+                        OnFailedDisconnectEvent(EventArgs);
+                        RunTime.PluginLoader?.OnFailedDisconnectEvent(EventArgs);
+                    }
                     OnAfterDisconnectEvent(EventArgs);
+                    RunTime.PluginLoader?.OnAfterDisconnectEvent(EventArgs);
                 });
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedDisconnectEvent(EventArgs);
+                RunTime.PluginLoader?.OnFailedDisconnectEvent(EventArgs);
+                OnAfterDisconnectEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterDisconnectEvent(EventArgs);
             }
         }
 
@@ -1522,28 +1562,47 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         public async Task<bool> InvokeController_IntoRoom(Room room)
         {
+            RoomEventArgs EventArgs = new(room);
+            if (RunTime.Controller != null)
+            {
+                EventArgs.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this };
+            }
             bool result = false;
 
             try
             {
-                RoomEventArgs EventArgs = new(room);
                 OnBeforeIntoRoomEvent(EventArgs);
+                if (EventArgs.Cancel) return result;
+                RunTime.PluginLoader?.OnBeforeIntoRoomEvent(EventArgs);
                 if (EventArgs.Cancel) return result;
 
                 result = MainController is not null && await MainController.IntoRoomAsync(room);
 
-                if (result) OnSucceedIntoRoomEvent(EventArgs);
-                else OnFailedIntoRoomEvent(EventArgs);
+                if (result)
+                {
+                    OnSucceedIntoRoomEvent(EventArgs);
+                    RunTime.PluginLoader?.OnSucceedIntoRoomEvent(EventArgs);
+                }
+                else
+                {
+                    OnFailedIntoRoomEvent(EventArgs);
+                    RunTime.PluginLoader?.OnFailedIntoRoomEvent(EventArgs);
+                }
                 OnAfterIntoRoomEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterIntoRoomEvent(EventArgs);
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedIntoRoomEvent(EventArgs);
+                RunTime.PluginLoader?.OnFailedIntoRoomEvent(EventArgs);
+                OnAfterIntoRoomEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterIntoRoomEvent(EventArgs);
             }
 
             return result;
         }
-        
+
         /// <summary>
         /// 创建房间
         /// </summary>
@@ -1551,19 +1610,34 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         public async Task<string> InvokeController_CreateRoom(string RoomType, string Password = "")
         {
+            RoomEventArgs EventArgs = new(RoomType, Password);
+            if (RunTime.Controller != null)
+            {
+                EventArgs.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this };
+            }
             string roomid = "-1";
 
             try
             {
-                RoomEventArgs EventArgs = new(RoomType, Password);
                 OnBeforeCreateRoomEvent(EventArgs);
+                if (EventArgs.Cancel) return roomid;
+                RunTime.PluginLoader?.OnBeforeCreateRoomEvent(EventArgs);
                 if (EventArgs.Cancel) return roomid;
 
                 roomid = MainController is null ? "-1" : await MainController.CreateRoomAsync(RoomType, Password);
 
-                if (roomid != "-1") OnSucceedCreateRoomEvent(EventArgs);
-                else OnFailedCreateRoomEvent(EventArgs);
+                if (roomid != "-1")
+                {
+                    OnSucceedCreateRoomEvent(EventArgs);
+                    RunTime.PluginLoader?.OnSucceedCreateRoomEvent(EventArgs);
+                }
+                else
+                {
+                    OnFailedCreateRoomEvent(EventArgs);
+                    RunTime.PluginLoader?.OnFailedCreateRoomEvent(EventArgs);
+                }
                 OnAfterCreateRoomEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterCreateRoomEvent(EventArgs);
             }
             catch (Exception e)
             {
@@ -1580,23 +1654,42 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         public async Task<bool> InvokeController_QuitRoom(Room room, bool isMaster)
         {
+            RoomEventArgs EventArgs = new(room);
+            if (RunTime.Controller != null)
+            {
+                EventArgs.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this };
+            }
             bool result = false;
 
             try
             {
-                RoomEventArgs EventArgs = new(room);
                 OnBeforeIntoRoomEvent(EventArgs);
+                if (EventArgs.Cancel) return result;
+                RunTime.PluginLoader?.OnBeforeIntoRoomEvent(EventArgs);
                 if (EventArgs.Cancel) return result;
 
                 result = MainController is not null && await MainController.QuitRoomAsync(room.Roomid, isMaster);
 
-                if (result) OnSucceedIntoRoomEvent(EventArgs);
-                else OnFailedIntoRoomEvent(EventArgs);
+                if (result)
+                {
+                    OnSucceedIntoRoomEvent(EventArgs);
+                    RunTime.PluginLoader?.OnSucceedIntoRoomEvent(EventArgs);
+                }
+                else
+                {
+                    OnFailedIntoRoomEvent(EventArgs);
+                    RunTime.PluginLoader?.OnFailedIntoRoomEvent(EventArgs);
+                }
                 OnAfterIntoRoomEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterIntoRoomEvent(EventArgs);
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedIntoRoomEvent(EventArgs);
+                RunTime.PluginLoader?.OnFailedIntoRoomEvent(EventArgs);
+                OnAfterIntoRoomEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterIntoRoomEvent(EventArgs);
             }
 
             return result;
@@ -1608,12 +1701,18 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         public async Task<bool> LogOut()
         {
+            GeneralEventArgs EventArgs = new();
+            if (RunTime.Controller != null)
+            {
+                EventArgs.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this };
+            }
             bool result = false;
 
             try
             {
-                GeneralEventArgs EventArgs = new();
                 OnBeforeLogoutEvent(EventArgs);
+                if (EventArgs.Cancel) return result;
+                RunTime.PluginLoader?.OnBeforeLogoutEvent(EventArgs);
                 if (EventArgs.Cancel) return result;
 
                 if (Usercfg.LoginUser.Id == 0) return result;
@@ -1627,13 +1726,26 @@ namespace Milimoe.FunGame.Desktop.UI
 
                 result = MainController is not null && await MainController.LogOutAsync();
 
-                if (result) OnSucceedLogoutEvent(EventArgs);
-                else OnFailedLogoutEvent(EventArgs);
+                if (result)
+                {
+                    OnSucceedLogoutEvent(EventArgs);
+                    RunTime.PluginLoader?.OnSucceedLogoutEvent(EventArgs);
+                }
+                else
+                {
+                    OnFailedLogoutEvent(EventArgs);
+                    RunTime.PluginLoader?.OnFailedLogoutEvent(EventArgs);
+                }
                 OnAfterLogoutEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterLogoutEvent(EventArgs);
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedLogoutEvent(EventArgs);
+                RunTime.PluginLoader?.OnFailedLogoutEvent(EventArgs);
+                OnAfterLogoutEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterLogoutEvent(EventArgs);
             }
 
             return result;
