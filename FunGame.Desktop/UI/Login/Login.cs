@@ -101,7 +101,6 @@ namespace Milimoe.FunGame.Desktop.UI
         private void BeforeLoginEvent(object sender, LoginEventArgs e)
         {
             RunTime.Main?.OnBeforeLoginEvent(e);
-            if (e.Cancel) return;
             RunTime.PluginLoader?.OnBeforeLoginEvent(e);
             if (e.Cancel) return;
         }

@@ -1457,47 +1457,39 @@ namespace Milimoe.FunGame.Desktop.UI
                 EventArgs.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this };
             }
 
-            try
-            {
-                ConnectResult result = ConnectResult.CanNotConnect;
+            ConnectResult result = ConnectResult.CanNotConnect;
 
-                TaskUtility.StartAndAwaitTask(() =>
-                {
-                    OnBeforeConnectEvent(EventArgs);
-                    if (EventArgs.Cancel) return;
-                    RunTime.PluginLoader?.OnBeforeConnectEvent(EventArgs);
-                    if (EventArgs.Cancel) return;
-                    result = RunTime.Controller?.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port) ?? result;
-                    EventArgs.ConnectResult = result;
-                }).OnCompleted(() =>
-                {
-                    if (result == ConnectResult.Success)
-                    {
-                        OnSucceedConnectEvent(EventArgs);
-                        RunTime.PluginLoader?.OnSucceedConnectEvent(EventArgs);
-                    }
-                    else
-                    {
-                        OnFailedConnectEvent(EventArgs);
-                        RunTime.PluginLoader?.OnFailedConnectEvent(EventArgs);
-                    }
-                    OnAfterConnectEvent(EventArgs);
-                    RunTime.PluginLoader?.OnAfterConnectEvent(EventArgs);
-                }).OnError(e =>
-                {
-                    GetMessage(e.GetErrorInfo(), TimeType.None);
-                    UpdateUI(MainInvokeType.SetRed);
-                    Config.FunGame_isRetrying = false;
-                });
-            }
-            catch (Exception e)
+            TaskUtility.StartAndAwaitTask(() =>
             {
-                GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnBeforeConnectEvent(EventArgs);
+                RunTime.PluginLoader?.OnBeforeConnectEvent(EventArgs);
+                if (EventArgs.Cancel) return;
+                result = RunTime.Controller?.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port) ?? result;
+                EventArgs.ConnectResult = result;
+            }).OnCompleted(() =>
+            {
+                if (result == ConnectResult.Success)
+                {
+                    OnSucceedConnectEvent(EventArgs);
+                    RunTime.PluginLoader?.OnSucceedConnectEvent(EventArgs);
+                }
+                else
+                {
+                    OnFailedConnectEvent(EventArgs);
+                    RunTime.PluginLoader?.OnFailedConnectEvent(EventArgs);
+                }
+                OnAfterConnectEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterConnectEvent(EventArgs);
+            }).OnError(e =>
+            {
+                GetMessage(e.InnerException?.ToString() ?? e.ToString(), TimeType.None);
+                UpdateUI(MainInvokeType.SetRed);
+                Config.FunGame_isRetrying = false;
                 OnFailedConnectEvent(EventArgs);
                 RunTime.PluginLoader?.OnFailedConnectEvent(EventArgs);
                 OnAfterConnectEvent(EventArgs);
                 RunTime.PluginLoader?.OnAfterConnectEvent(EventArgs);
-            }
+            });
         }
 
         /// <summary>
@@ -1572,7 +1564,6 @@ namespace Milimoe.FunGame.Desktop.UI
             try
             {
                 OnBeforeSendTalkEvent(EventArgs);
-                if (EventArgs.Cancel) return result;
                 RunTime.PluginLoader?.OnBeforeSendTalkEvent(EventArgs);
                 if (EventArgs.Cancel) return result;
 
@@ -1620,7 +1611,6 @@ namespace Milimoe.FunGame.Desktop.UI
             try
             {
                 OnBeforeIntoRoomEvent(EventArgs);
-                if (EventArgs.Cancel) return result;
                 RunTime.PluginLoader?.OnBeforeIntoRoomEvent(EventArgs);
                 if (EventArgs.Cancel) return result;
 
@@ -1712,7 +1702,6 @@ namespace Milimoe.FunGame.Desktop.UI
             try
             {
                 OnBeforeIntoRoomEvent(EventArgs);
-                if (EventArgs.Cancel) return result;
                 RunTime.PluginLoader?.OnBeforeIntoRoomEvent(EventArgs);
                 if (EventArgs.Cancel) return result;
 
@@ -1759,7 +1748,6 @@ namespace Milimoe.FunGame.Desktop.UI
             try
             {
                 OnBeforeLogoutEvent(EventArgs);
-                if (EventArgs.Cancel) return result;
                 RunTime.PluginLoader?.OnBeforeLogoutEvent(EventArgs);
                 if (EventArgs.Cancel) return result;
 

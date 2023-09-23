@@ -31,7 +31,6 @@ namespace Milimoe.FunGame.Desktop.Controller
                     RegEventArgs.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this, Register };
                 }
                 Register.OnBeforeRegEvent(RegEventArgs);
-                if (RegEventArgs.Cancel) return false;
                 RunTime.PluginLoader?.OnBeforeRegEvent(RegEventArgs);
                 if (RegEventArgs.Cancel) return false;
 
