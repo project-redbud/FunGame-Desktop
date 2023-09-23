@@ -719,7 +719,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 {
                     TaskUtility.StartAndAwaitTask(async () =>
                     {
-                        if (!await MainController.ChatAsync(" [ " + Usercfg.LoginUserName + " ] 说： " + text))
+                        if (!await InvokeController_SendTalk(" [ " + Usercfg.LoginUserName + " ] 说： " + text))
                         {
                             WritelnGameInfo("联网消息发送失败。");
                         }
@@ -845,7 +845,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RunTime.PluginLoader = PluginLoader.LoadPlugins();
                 foreach (KeyValuePair<string, BasePlugin> kv in RunTime.PluginLoader.Plugins)
                 {
-                    GetMessage("[PluginLoader] Load: " + kv.Value.Name);
+                    GetMessage("[ PluginLoader ] Load: " + kv.Value.Name);
                 }
             }
             catch (Exception e)
@@ -1555,6 +1555,54 @@ namespace Milimoe.FunGame.Desktop.UI
             }
         }
 
+        /// <summary>
+        /// 发送聊天信息
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public async Task<bool> InvokeController_SendTalk(string msg)
+        {
+            SendTalkEventArgs EventArgs = new(msg);
+            if (RunTime.Controller != null)
+            {
+                EventArgs.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this };
+            }
+            bool result = false;
+
+            try
+            {
+                OnBeforeSendTalkEvent(EventArgs);
+                if (EventArgs.Cancel) return result;
+                RunTime.PluginLoader?.OnBeforeSendTalkEvent(EventArgs);
+                if (EventArgs.Cancel) return result;
+
+                result = MainController is not null && await MainController.ChatAsync(msg);
+
+                if (result)
+                {
+                    OnSucceedSendTalkEvent(EventArgs);
+                    RunTime.PluginLoader?.OnSucceedSendTalkEvent(EventArgs);
+                }
+                else
+                {
+                    OnFailedSendTalkEvent(EventArgs);
+                    RunTime.PluginLoader?.OnFailedSendTalkEvent(EventArgs);
+                }
+                OnAfterSendTalkEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterSendTalkEvent(EventArgs);
+            }
+            catch (Exception e)
+            {
+                GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedSendTalkEvent(EventArgs);
+                RunTime.PluginLoader?.OnFailedSendTalkEvent(EventArgs);
+                OnAfterSendTalkEvent(EventArgs);
+                RunTime.PluginLoader?.OnAfterSendTalkEvent(EventArgs);
+            }
+
+            return result;
+        }
+        
         /// <summary>
         /// 进入房间
         /// </summary>
