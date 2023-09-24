@@ -1,4 +1,5 @@
-﻿using Milimoe.FunGame.Core.Api.Utility;
+﻿using Milimoe.FunGame.Core.Api.Transmittal;
+using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Common.Network;
@@ -26,7 +27,11 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             try
             {
-                RunTime.PluginLoader = PluginLoader.LoadPlugins();
+                RunTime.PluginLoader = PluginLoader.LoadPlugins(
+                    new Action<string>(WritelnSystemInfo),
+                    new Func<DataRequestType, DataRequest>(NewDataRequest),
+                    new Func<DataRequestType, DataRequest>(NewLongRunningDataRequest),
+                    RunTime.Session, RunTime.Config);
                 foreach (string name in RunTime.PluginLoader.Plugins.Keys)
                 {
                     Main.GetMessage("[ PluginLoader ] Load: " + name);
