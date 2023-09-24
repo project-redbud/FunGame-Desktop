@@ -11,36 +11,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IRegEventHandler.SucceedEventHandler? SucceedReg;
         public event IRegEventHandler.FailedEventHandler? FailedReg;
 
-        public void OnAfterRegEvent(RegisterEventArgs e)
+        public void OnAfterRegEvent(object sender, RegisterEventArgs e)
         {
-            if (AfterReg != null)
-            {
-                AfterReg(this, e);
-            }
+            AfterReg?.Invoke(sender, e);
         }
 
-        public void OnBeforeRegEvent(RegisterEventArgs e)
+        public void OnBeforeRegEvent(object sender, RegisterEventArgs e)
         {
-            if (BeforeReg != null)
-            {
-                BeforeReg(this, e);
-            }
+            BeforeReg?.Invoke(sender, e);
         }
 
-        public void OnFailedRegEvent(RegisterEventArgs e)
+        public void OnFailedRegEvent(object sender, RegisterEventArgs e)
         {
-            if (FailedReg != null)
-            {
-                FailedReg(this, e);
-            }
+            FailedReg?.Invoke(sender, e);
         }
 
-        public void OnSucceedRegEvent(RegisterEventArgs e)
+        public void OnSucceedRegEvent(object sender, RegisterEventArgs e)
         {
-            if (SucceedReg != null)
-            {
-                SucceedReg(this, e);
-            }
+            SucceedReg?.Invoke(sender, e);
         }
     }
 }

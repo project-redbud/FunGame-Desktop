@@ -26,12 +26,8 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 password = password.Encrypt(username);
                 RegisterEventArgs RegEventArgs = new(username, password, email);
-                if (RunTime.Controller != null)
-                {
-                    RegEventArgs.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this, Register };
-                }
-                Register.OnBeforeRegEvent(RegEventArgs);
-                RunTime.PluginLoader?.OnBeforeRegEvent(RegEventArgs);
+                Register.OnBeforeRegEvent(Register, RegEventArgs);
+                RunTime.PluginLoader?.OnBeforeRegEvent(Register, RegEventArgs);
                 if (RegEventArgs.Cancel) return false;
 
                 DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.Reg_GetRegVerifyCode);
@@ -85,16 +81,16 @@ namespace Milimoe.FunGame.Desktop.Controller
 
                 if (result)
                 {
-                    Register.OnSucceedRegEvent(RegEventArgs);
-                    RunTime.PluginLoader?.OnSucceedRegEvent(RegEventArgs);
+                    Register.OnSucceedRegEvent(Register, RegEventArgs);
+                    RunTime.PluginLoader?.OnSucceedRegEvent(Register, RegEventArgs);
                 }
                 else
                 {
-                    Register.OnFailedRegEvent(RegEventArgs);
-                    RunTime.PluginLoader?.OnFailedRegEvent(RegEventArgs);
+                    Register.OnFailedRegEvent(Register, RegEventArgs);
+                    RunTime.PluginLoader?.OnFailedRegEvent(Register, RegEventArgs);
                 }
-                Register.OnAfterRegEvent(RegEventArgs);
-                RunTime.PluginLoader?.OnAfterRegEvent(RegEventArgs);
+                Register.OnAfterRegEvent(Register, RegEventArgs);
+                RunTime.PluginLoader?.OnAfterRegEvent(Register, RegEventArgs);
             }
             catch (Exception e)
             {

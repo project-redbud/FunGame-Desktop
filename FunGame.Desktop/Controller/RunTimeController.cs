@@ -1,4 +1,5 @@
-﻿using Milimoe.FunGame.Core.Entity;
+﻿using Milimoe.FunGame.Core.Api.Utility;
+using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
@@ -11,8 +12,6 @@ namespace Milimoe.FunGame.Desktop.Controller
 {
     public class RunTimeController : Core.Controller.RunTimeController
     {
-        public readonly Action<string> WritelnSystemInfoForPlugin;
-
         private readonly Main Main;
         private readonly Core.Model.Session Usercfg = RunTime.Session;
         private readonly LoginController LoginController;
@@ -21,7 +20,22 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             Main = main;
             LoginController = new(Main);
-            WritelnSystemInfoForPlugin = new Action<string>(WritelnSystemInfo);
+        }
+
+        public void LoadPlugins()
+        {
+            try
+            {
+                RunTime.PluginLoader = PluginLoader.LoadPlugins();
+                foreach (string name in RunTime.PluginLoader.Plugins.Keys)
+                {
+                    Main.GetMessage("[ PluginLoader ] Load: " + name);
+                }
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
         }
 
         public override void WritelnSystemInfo(string msg)
@@ -34,11 +48,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             Main.UpdateUI(MainInvokeType.Disconnected);
             ConnectEventArgs args = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port, ConnectResult.ConnectFailed);
-            if (RunTime.Controller != null)
-            {
-                args.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this, Main };
-            }
-            Main.OnFailedConnectEvent(args);
+            Main.OnFailedConnectEvent(Main, args);
             Close();
         }
 

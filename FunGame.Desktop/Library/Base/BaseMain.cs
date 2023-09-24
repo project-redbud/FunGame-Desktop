@@ -12,36 +12,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IConnectEventHandler.SucceedEventHandler? SucceedConnect;
         public event IConnectEventHandler.FailedEventHandler? FailedConnect;
 
-        public void OnAfterConnectEvent(ConnectEventArgs e)
+        public void OnAfterConnectEvent(object sender, ConnectEventArgs e)
         {
-            if (AfterConnect != null)
-            {
-                AfterConnect(this, e);
-            }
+            AfterConnect?.Invoke(sender, e);
         }
 
-        public void OnBeforeConnectEvent(ConnectEventArgs e)
+        public void OnBeforeConnectEvent(object sender, ConnectEventArgs e)
         {
-            if (BeforeConnect != null)
-            {
-                BeforeConnect(this, e);
-            }
+            BeforeConnect?.Invoke(sender, e);
         }
 
-        public void OnSucceedConnectEvent(ConnectEventArgs e)
+        public void OnSucceedConnectEvent(object sender, ConnectEventArgs e)
         {
-            if (SucceedConnect != null)
-            {
-                SucceedConnect(this, e);
-            }
+            SucceedConnect?.Invoke(sender, e);
         }
 
-        public void OnFailedConnectEvent(ConnectEventArgs e)
+        public void OnFailedConnectEvent(object sender, ConnectEventArgs e)
         {
-            if (FailedConnect != null)
-            {
-                FailedConnect(this, e);
-            }
+            FailedConnect?.Invoke(sender, e);
         }
 
         public event IEventHandler.BeforeEventHandler? BeforeDisconnect;
@@ -49,36 +37,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IEventHandler.SucceedEventHandler? SucceedDisconnect;
         public event IEventHandler.FailedEventHandler? FailedDisconnect;
 
-        public void OnAfterDisconnectEvent(GeneralEventArgs e)
+        public void OnAfterDisconnectEvent(object sender, GeneralEventArgs e)
         {
-            if (AfterDisconnect != null)
-            {
-                AfterDisconnect(this, e);
-            }
+            AfterDisconnect?.Invoke(sender, e);
         }
 
-        public void OnBeforeDisconnectEvent(GeneralEventArgs e)
+        public void OnBeforeDisconnectEvent(object sender, GeneralEventArgs e)
         {
-            if (BeforeDisconnect != null)
-            {
-                BeforeDisconnect(this, e);
-            }
+            BeforeDisconnect?.Invoke(sender, e);
         }
 
-        public void OnFailedDisconnectEvent(GeneralEventArgs e)
+        public void OnFailedDisconnectEvent(object sender, GeneralEventArgs e)
         {
-            if (FailedDisconnect != null)
-            {
-                FailedDisconnect(this, e);
-            }
+            FailedDisconnect?.Invoke(sender, e);
         }
 
-        public void OnSucceedDisconnectEvent(GeneralEventArgs e)
+        public void OnSucceedDisconnectEvent(object sender, GeneralEventArgs e)
         {
-            if (SucceedDisconnect != null)
-            {
-                SucceedDisconnect(this, e);
-            }
+            SucceedDisconnect?.Invoke(sender, e);
         }
 
         public event ILoginEventHandler.BeforeEventHandler? BeforeLogin;
@@ -86,36 +62,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event ILoginEventHandler.SucceedEventHandler? SucceedLogin;
         public event ILoginEventHandler.FailedEventHandler? FailedLogin;
 
-        public void OnBeforeLoginEvent(LoginEventArgs e)
+        public void OnBeforeLoginEvent(object sender, LoginEventArgs e)
         {
-            if (BeforeLogin != null)
-            {
-                BeforeLogin(this, e);
-            }
+            BeforeLogin?.Invoke(sender, e);
         }
 
-        public void OnAfterLoginEvent(LoginEventArgs e)
+        public void OnAfterLoginEvent(object sender, LoginEventArgs e)
         {
-            if (AfterLogin != null)
-            {
-                AfterLogin(this, e);
-            }
+            AfterLogin?.Invoke(sender, e);
         }
 
-        public void OnSucceedLoginEvent(LoginEventArgs e)
+        public void OnSucceedLoginEvent(object sender, LoginEventArgs e)
         {
-            if (SucceedLogin != null)
-            {
-                SucceedLogin(this, e);
-            }
+            SucceedLogin?.Invoke(sender, e);
         }
 
-        public void OnFailedLoginEvent(LoginEventArgs e)
+        public void OnFailedLoginEvent(object sender, LoginEventArgs e)
         {
-            if (FailedLogin != null)
-            {
-                FailedLogin(this, e);
-            }
+            FailedLogin?.Invoke(sender, e);
         }
 
         public event IEventHandler.BeforeEventHandler? BeforeLogout;
@@ -123,36 +87,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IEventHandler.SucceedEventHandler? SucceedLogout;
         public event IEventHandler.FailedEventHandler? FailedLogout;
 
-        public void OnAfterLogoutEvent(GeneralEventArgs e)
+        public void OnAfterLogoutEvent(object sender, GeneralEventArgs e)
         {
-            if (AfterLogout != null)
-            {
-                AfterLogout(this, e);
-            }
+            AfterLogout?.Invoke(sender, e);
         }
 
-        public void OnBeforeLogoutEvent(GeneralEventArgs e)
+        public void OnBeforeLogoutEvent(object sender, GeneralEventArgs e)
         {
-            if (BeforeLogout != null)
-            {
-                BeforeLogout(this, e);
-            }
+            BeforeLogout?.Invoke(sender, e);
         }
 
-        public void OnFailedLogoutEvent(GeneralEventArgs e)
+        public void OnFailedLogoutEvent(object sender, GeneralEventArgs e)
         {
-            if (FailedLogout != null)
-            {
-                FailedLogout(this, e);
-            }
+            FailedLogout?.Invoke(sender, e);
         }
 
-        public void OnSucceedLogoutEvent(GeneralEventArgs e)
+        public void OnSucceedLogoutEvent(object sender, GeneralEventArgs e)
         {
-            if (SucceedLogout != null)
-            {
-                SucceedLogout(this, e);
-            }
+            SucceedLogout?.Invoke(sender, e);
         }
 
         public event IIntoRoomEventHandler.BeforeEventHandler? BeforeIntoRoom;
@@ -160,36 +112,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IIntoRoomEventHandler.SucceedEventHandler? SucceedIntoRoom;
         public event IIntoRoomEventHandler.FailedEventHandler? FailedIntoRoom;
 
-        public void OnBeforeIntoRoomEvent(RoomEventArgs e)
+        public void OnBeforeIntoRoomEvent(object sender, RoomEventArgs e)
         {
-            if (BeforeIntoRoom != null)
-            {
-                BeforeIntoRoom(this, e);
-            }
+            BeforeIntoRoom?.Invoke(sender, e);
         }
 
-        public void OnAfterIntoRoomEvent(RoomEventArgs e)
+        public void OnAfterIntoRoomEvent(object sender, RoomEventArgs e)
         {
-            if (AfterIntoRoom != null)
-            {
-                AfterIntoRoom(this, e);
-            }
+            AfterIntoRoom?.Invoke(sender, e);
         }
 
-        public void OnSucceedIntoRoomEvent(RoomEventArgs e)
+        public void OnSucceedIntoRoomEvent(object sender, RoomEventArgs e)
         {
-            if (SucceedIntoRoom != null)
-            {
-                SucceedIntoRoom(this, e);
-            }
+            SucceedIntoRoom?.Invoke(sender, e);
         }
 
-        public void OnFailedIntoRoomEvent(RoomEventArgs e)
+        public void OnFailedIntoRoomEvent(object sender, RoomEventArgs e)
         {
-            if (FailedIntoRoom != null)
-            {
-                FailedIntoRoom(this, e);
-            }
+            FailedIntoRoom?.Invoke(sender, e);
         }
 
         public event ISendTalkEventHandler.BeforeEventHandler? BeforeSendTalk;
@@ -197,36 +137,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event ISendTalkEventHandler.SucceedEventHandler? SucceedSendTalk;
         public event ISendTalkEventHandler.FailedEventHandler? FailedSendTalk;
 
-        public void OnBeforeSendTalkEvent(SendTalkEventArgs e)
+        public void OnBeforeSendTalkEvent(object sender, SendTalkEventArgs e)
         {
-            if (BeforeSendTalk != null)
-            {
-                BeforeSendTalk(this, e);
-            }
+            BeforeSendTalk?.Invoke(sender, e);
         }
 
-        public void OnAfterSendTalkEvent(SendTalkEventArgs e)
+        public void OnAfterSendTalkEvent(object sender, SendTalkEventArgs e)
         {
-            if (AfterSendTalk != null)
-            {
-                AfterSendTalk(this, e);
-            }
+            AfterSendTalk?.Invoke(sender, e);
         }
 
-        public void OnSucceedSendTalkEvent(SendTalkEventArgs e)
+        public void OnSucceedSendTalkEvent(object sender, SendTalkEventArgs e)
         {
-            if (SucceedSendTalk != null)
-            {
-                SucceedSendTalk(this, e);
-            }
+            SucceedSendTalk?.Invoke(sender, e);
         }
 
-        public void OnFailedSendTalkEvent(SendTalkEventArgs e)
+        public void OnFailedSendTalkEvent(object sender, SendTalkEventArgs e)
         {
-            if (FailedSendTalk != null)
-            {
-                FailedSendTalk(this, e);
-            }
+            FailedSendTalk?.Invoke(sender, e);
         }
 
         public event ICreateRoomEventHandler.BeforeEventHandler? BeforeCreateRoom;
@@ -234,36 +162,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event ICreateRoomEventHandler.SucceedEventHandler? SucceedCreateRoom;
         public event ICreateRoomEventHandler.FailedEventHandler? FailedCreateRoom;
 
-        public void OnBeforeCreateRoomEvent(RoomEventArgs e)
+        public void OnBeforeCreateRoomEvent(object sender, RoomEventArgs e)
         {
-            if (BeforeCreateRoom != null)
-            {
-                BeforeCreateRoom(this, e);
-            }
+            BeforeCreateRoom?.Invoke(sender, e);
         }
 
-        public void OnAfterCreateRoomEvent(RoomEventArgs e)
+        public void OnAfterCreateRoomEvent(object sender, RoomEventArgs e)
         {
-            if (AfterCreateRoom != null)
-            {
-                AfterCreateRoom(this, e);
-            }
+            AfterCreateRoom?.Invoke(sender, e);
         }
 
-        public void OnSucceedCreateRoomEvent(RoomEventArgs e)
+        public void OnSucceedCreateRoomEvent(object sender, RoomEventArgs e)
         {
-            if (SucceedCreateRoom != null)
-            {
-                SucceedCreateRoom(this, e);
-            }
+            SucceedCreateRoom?.Invoke(sender, e);
         }
 
-        public void OnFailedCreateRoomEvent(RoomEventArgs e)
+        public void OnFailedCreateRoomEvent(object sender, RoomEventArgs e)
         {
-            if (FailedCreateRoom != null)
-            {
-                FailedCreateRoom(this, e);
-            }
+            FailedCreateRoom?.Invoke(sender, e);
         }
 
         public event IQuitRoomEventHandler.BeforeEventHandler? BeforeQuitRoom;
@@ -271,36 +187,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IQuitRoomEventHandler.SucceedEventHandler? SucceedQuitRoom;
         public event IQuitRoomEventHandler.FailedEventHandler? FailedQuitRoom;
 
-        public void OnBeforeQuitRoomEvent(RoomEventArgs e)
+        public void OnBeforeQuitRoomEvent(object sender, RoomEventArgs e)
         {
-            if (BeforeQuitRoom != null)
-            {
-                BeforeQuitRoom(this, e);
-            }
+            BeforeQuitRoom?.Invoke(sender, e);
         }
 
-        public void OnAfterQuitRoomEvent(RoomEventArgs e)
+        public void OnAfterQuitRoomEvent(object sender, RoomEventArgs e)
         {
-            if (AfterQuitRoom != null)
-            {
-                AfterQuitRoom(this, e);
-            }
+            AfterQuitRoom?.Invoke(sender, e);
         }
 
-        public void OnSucceedQuitRoomEvent(RoomEventArgs e)
+        public void OnSucceedQuitRoomEvent(object sender, RoomEventArgs e)
         {
-            if (SucceedQuitRoom != null)
-            {
-                SucceedQuitRoom(this, e);
-            }
+            SucceedQuitRoom?.Invoke(sender, e);
         }
 
-        public void OnFailedQuitRoomEvent(RoomEventArgs e)
+        public void OnFailedQuitRoomEvent(object sender, RoomEventArgs e)
         {
-            if (FailedQuitRoom != null)
-            {
-                FailedQuitRoom(this, e);
-            }
+            FailedQuitRoom?.Invoke(sender, e);
         }
 
         public event IEventHandler.BeforeEventHandler? BeforeStartMatch;
@@ -308,36 +212,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IEventHandler.SucceedEventHandler? SucceedStartMatch;
         public event IEventHandler.FailedEventHandler? FailedStartMatch;
 
-        public void OnBeforeStartMatchEvent(GeneralEventArgs e)
+        public void OnBeforeStartMatchEvent(object sender, GeneralEventArgs e)
         {
-            if (BeforeStartMatch != null)
-            {
-                BeforeStartMatch(this, e);
-            }
+            BeforeStartMatch?.Invoke(sender, e);
         }
 
-        public void OnAfterStartMatchEvent(GeneralEventArgs e)
+        public void OnAfterStartMatchEvent(object sender, GeneralEventArgs e)
         {
-            if (AfterStartMatch != null)
-            {
-                AfterStartMatch(this, e);
-            }
+            AfterStartMatch?.Invoke(sender, e);
         }
 
-        public void OnSucceedStartMatchEvent(GeneralEventArgs e)
+        public void OnSucceedStartMatchEvent(object sender, GeneralEventArgs e)
         {
-            if (SucceedStartMatch != null)
-            {
-                SucceedStartMatch(this, e);
-            }
+            SucceedStartMatch?.Invoke(sender, e);
         }
 
-        public void OnFailedStartMatchEvent(GeneralEventArgs e)
+        public void OnFailedStartMatchEvent(object sender, GeneralEventArgs e)
         {
-            if (FailedStartMatch != null)
-            {
-                FailedStartMatch(this, e);
-            }
+            FailedStartMatch?.Invoke(sender, e);
         }
 
         public event IEventHandler.BeforeEventHandler? BeforeStartGame;
@@ -345,36 +237,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IEventHandler.SucceedEventHandler? SucceedStartGame;
         public event IEventHandler.FailedEventHandler? FailedStartGame;
 
-        public void OnBeforeStartGameEvent(GeneralEventArgs e)
+        public void OnBeforeStartGameEvent(object sender, GeneralEventArgs e)
         {
-            if (BeforeStartGame != null)
-            {
-                BeforeStartGame(this, e);
-            }
+            BeforeStartGame?.Invoke(sender, e);
         }
 
-        public void OnAfterStartGameEvent(GeneralEventArgs e)
+        public void OnAfterStartGameEvent(object sender, GeneralEventArgs e)
         {
-            if (AfterStartGame != null)
-            {
-                AfterStartGame(this, e);
-            }
+            AfterStartGame?.Invoke(sender, e);
         }
 
-        public void OnSucceedStartGameEvent(GeneralEventArgs e)
+        public void OnSucceedStartGameEvent(object sender, GeneralEventArgs e)
         {
-            if (SucceedStartGame != null)
-            {
-                SucceedStartGame(this, e);
-            }
+            SucceedStartGame?.Invoke(sender, e);
         }
 
-        public void OnFailedStartGameEvent(GeneralEventArgs e)
+        public void OnFailedStartGameEvent(object sender, GeneralEventArgs e)
         {
-            if (FailedStartGame != null)
-            {
-                FailedStartGame(this, e);
-            }
+            FailedStartGame?.Invoke(sender, e);
         }
 
         public event IEventHandler.BeforeEventHandler? BeforeOpenInventory;
@@ -382,36 +262,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IEventHandler.SucceedEventHandler? SucceedOpenInventory;
         public event IEventHandler.FailedEventHandler? FailedOpenInventory;
 
-        public void OnBeforeOpenInventoryEvent(GeneralEventArgs e)
+        public void OnBeforeOpenInventoryEvent(object sender, GeneralEventArgs e)
         {
-            if (BeforeOpenInventory != null)
-            {
-                BeforeOpenInventory(this, e);
-            }
+            BeforeOpenInventory?.Invoke(sender, e);
         }
 
-        public void OnAfterOpenInventoryEvent(GeneralEventArgs e)
+        public void OnAfterOpenInventoryEvent(object sender, GeneralEventArgs e)
         {
-            if (AfterOpenInventory != null)
-            {
-                AfterOpenInventory(this, e);
-            }
+            AfterOpenInventory?.Invoke(sender, e);
         }
 
-        public void OnSucceedOpenInventoryEvent(GeneralEventArgs e)
+        public void OnSucceedOpenInventoryEvent(object sender, GeneralEventArgs e)
         {
-            if (SucceedOpenInventory != null)
-            {
-                SucceedOpenInventory(this, e);
-            }
+            SucceedOpenInventory?.Invoke(sender, e);
         }
 
-        public void OnFailedOpenInventoryEvent(GeneralEventArgs e)
+        public void OnFailedOpenInventoryEvent(object sender, GeneralEventArgs e)
         {
-            if (FailedOpenInventory != null)
-            {
-                FailedOpenInventory(this, e);
-            }
+            FailedOpenInventory?.Invoke(sender, e);
         }
 
         public event IEventHandler.BeforeEventHandler? BeforeOpenStore;
@@ -419,36 +287,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IEventHandler.SucceedEventHandler? SucceedOpenStore;
         public event IEventHandler.FailedEventHandler? FailedOpenStore;
 
-        public void OnBeforeOpenStoreEvent(GeneralEventArgs e)
+        public void OnBeforeOpenStoreEvent(object sender, GeneralEventArgs e)
         {
-            if (BeforeOpenStore != null)
-            {
-                BeforeOpenStore(this, e);
-            }
+            BeforeOpenStore?.Invoke(sender, e);
         }
 
-        public void OnAfterOpenStoreEvent(GeneralEventArgs e)
+        public void OnAfterOpenStoreEvent(object sender, GeneralEventArgs e)
         {
-            if (AfterOpenStore != null)
-            {
-                AfterOpenStore(this, e);
-            }
+            AfterOpenStore?.Invoke(sender, e);
         }
 
-        public void OnSucceedOpenStoreEvent(GeneralEventArgs e)
+        public void OnSucceedOpenStoreEvent(object sender, GeneralEventArgs e)
         {
-            if (SucceedOpenStore != null)
-            {
-                SucceedOpenStore(this, e);
-            }
+            SucceedOpenStore?.Invoke(sender, e);
         }
 
-        public void OnFailedOpenStoreEvent(GeneralEventArgs e)
+        public void OnFailedOpenStoreEvent(object sender, GeneralEventArgs e)
         {
-            if (FailedOpenStore != null)
-            {
-                FailedOpenStore(this, e);
-            }
+            FailedOpenStore?.Invoke(sender, e);
         }
     }
 }

@@ -11,36 +11,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event ILoginEventHandler.SucceedEventHandler? SucceedLogin;
         public event ILoginEventHandler.FailedEventHandler? FailedLogin;
 
-        public void OnAfterLoginEvent(LoginEventArgs e)
+        public void OnAfterLoginEvent(object sender, LoginEventArgs e)
         {
-            if (AfterLogin != null)
-            {
-                AfterLogin.Invoke(this, e);
-            }
+            AfterLogin?.Invoke(sender, e);
         }
 
-        public void OnBeforeLoginEvent(LoginEventArgs e)
+        public void OnBeforeLoginEvent(object sender, LoginEventArgs e)
         {
-            if (BeforeLogin != null)
-            {
-                BeforeLogin.Invoke(this, e);
-            }
+            BeforeLogin?.Invoke(sender, e);
         }
 
-        public void OnFailedLoginEvent(LoginEventArgs e)
+        public void OnFailedLoginEvent(object sender, LoginEventArgs e)
         {
-            if (FailedLogin != null)
-            {
-                FailedLogin.Invoke(this, e);
-            }
+            FailedLogin?.Invoke(sender, e);
         }
 
-        public void OnSucceedLoginEvent(LoginEventArgs e)
+        public void OnSucceedLoginEvent(object sender, LoginEventArgs e)
         {
-            if (SucceedLogin != null)
-            {
-                SucceedLogin.Invoke(this, e);
-            }
+            SucceedLogin?.Invoke(sender, e);
         }
     }
 }

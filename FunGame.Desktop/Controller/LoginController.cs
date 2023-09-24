@@ -31,10 +31,6 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 if (encrypt) password = password.Encrypt(username);
                 LoginEventArgs args = new(username, password, autokey);
-                if (RunTime.Controller != null)
-                {
-                    args.Parameters = new object[] { RunTime.Controller.WritelnSystemInfoForPlugin, RunTime.Session, RunTime.Config, this, UIForm };
-                }
 
                 if (OnBeforeLoginEvent(args))
                 {
@@ -166,7 +162,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             if (UIForm.GetType() == typeof(Login))
             {
-                ((Login)UIForm).OnBeforeLoginEvent(LoginEventArgs);
+                ((Login)UIForm).OnBeforeLoginEvent(UIForm, LoginEventArgs);
                 return !LoginEventArgs.Cancel;
             }
             return true;
@@ -179,13 +175,13 @@ namespace Milimoe.FunGame.Desktop.Controller
                 if (UIForm.GetType() == typeof(Login))
                 {
                     Login login = (Login)UIForm;
-                    if (result) login.OnSucceedLoginEvent(LoginEventArgs);
-                    else login.OnFailedLoginEvent(LoginEventArgs);
-                    login.OnAfterLoginEvent(LoginEventArgs);
+                    if (result) login.OnSucceedLoginEvent(UIForm, LoginEventArgs);
+                    else login.OnFailedLoginEvent(UIForm, LoginEventArgs);
+                    login.OnAfterLoginEvent(UIForm, LoginEventArgs);
                 }
                 else if (UIForm.GetType() == typeof(Main))
                 {
-                    if (result) ((Main)UIForm).OnSucceedLoginEvent(LoginEventArgs);
+                    if (result) ((Main)UIForm).OnSucceedLoginEvent(UIForm, LoginEventArgs);
                 }
             }
             catch (Exception e)
