@@ -161,9 +161,9 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public async Task<string> CreateRoomAsync(string RoomType, string Password = "")
+        public async Task<Room> CreateRoomAsync(string RoomType, string Password = "")
         {
-            string roomid = "-1";
+            Room room = General.HallInstance;
 
             try
             {
@@ -173,7 +173,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 await CreateRoomRequest.SendRequestAsync();
                 if (CreateRoomRequest.Result == RequestResult.Success)
                 {
-                    roomid = CreateRoomRequest.GetResult<string>("roomid") ?? "-1";
+                    room = CreateRoomRequest.GetResult<Room>("room") ?? room;
                 }
             }
             catch (Exception e)
@@ -181,7 +181,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
 
-            return roomid;
+            return room;
         }
 
         public async Task<bool> ChatAsync(string msg)

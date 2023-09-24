@@ -82,6 +82,10 @@ namespace Milimoe.FunGame.Desktop.UI
             FailedConnect += FailedConnectEvent;
             SucceedConnect += SucceedConnectEvent;
             SucceedLogin += SucceedLoginEvent;
+            SucceedIntoRoom += SucceedIntoRoomEvent;
+            FailedIntoRoom += FailedIntoRoomEvent;
+            SucceedCreateRoom += SucceedCreateRoomEvent;
+            FailedCreateRoom += FailedCreateRoomEvent;
         }
 
         #endregion
@@ -492,7 +496,7 @@ namespace Milimoe.FunGame.Desktop.UI
         }
 
         /// <summary>
-        /// 重复处理加入房间的方法
+        /// 加入房间的具体处理方法
         /// </summary>
         /// <param name="roomid"></param>
         /// <returns></returns>
@@ -505,17 +509,20 @@ namespace Milimoe.FunGame.Desktop.UI
                 {
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
-                        if (ShowMessage(ShowMessageType.YesNo, "已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
+                        if (await MainController.GetRoomPlayerCountAsync(roomid) < 8)
                         {
-                            Room r = GetRoom(roomid);
-                            if (MainController != null && await MainController.IntoRoomAsync(r))
+                            if (ShowMessage(ShowMessageType.YesNo, "已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
                             {
-                                SetRoomid(r);
-                                InRoom();
-                                return true;
+                                Room r = GetRoom(roomid);
+                                return await InvokeController_IntoRoom(r);
                             }
+                            return false;
                         }
-                        return false;
+                        else
+                        {
+                            ShowMessage(ShowMessageType.Warning, "房间已满，拒绝加入！");
+                            return false;
+                        }
                     }
                     else
                     {
@@ -748,20 +755,13 @@ namespace Milimoe.FunGame.Desktop.UI
                 ShowMessage(ShowMessageType.Warning, "已在房间中，无法创建房间。");
                 return;
             }
-            string roomid = await InvokeController_CreateRoom(RoomType, Password);
-            if (MainController is not null && roomid != "-1")
+            Room room = await InvokeController_CreateRoom(RoomType, Password);
+            if (MainController is not null && room.Roomid != "-1")
             {
                 await MainController.UpdateRoomAsync();
-                Room r = GetRoom(roomid);
-                await InvokeController_IntoRoom(r);
-                SetRoomid(r);
-                InRoom();
-                WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + RoomType + "房间");
-                WritelnGameInfo(">> 创建" + RoomType + "房间成功！房间号： " + roomid);
-                ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
+                await InvokeController_IntoRoom(room);
                 return;
             }
-            ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间失败！", "创建失败");
         }
 
         /// <summary>
@@ -1093,13 +1093,13 @@ namespace Milimoe.FunGame.Desktop.UI
             bool IsMix = CheckMix.Checked;
             bool IsTeam = CheckTeam.Checked;
             bool IsHasPass = CheckHasPass.Checked;
-            if (IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_All;
-            else if (IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_AllHasPass;
-            else if (IsMix && !IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_Mix;
-            else if (IsMix && !IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_MixHasPass;
-            else if (!IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_Team;
-            else if (!IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_TeamHasPass;
-            else Config.FunGame_GameMode = GameMode.GameMode_All;
+            if (IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.All;
+            else if (IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.AllHasPass;
+            else if (IsMix && !IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.Mix;
+            else if (IsMix && !IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.MixHasPass;
+            else if (!IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.Team;
+            else if (!IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.TeamHasPass;
+            else Config.FunGame_GameMode = GameMode.All;
         }
 
         /// <summary>
@@ -1287,6 +1287,51 @@ namespace Milimoe.FunGame.Desktop.UI
             TaskUtility.StartAndAwaitTask(SucceedLoginEvent_Handler);
         }
 
+        /// <summary>
+        /// 进入房间失败后触发事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FailedIntoRoomEvent(object sender, RoomEventArgs e)
+        {
+            ShowMessage(ShowMessageType.Warning, "加入房间失败！");
+        }
+
+        /// <summary>
+        /// 成功进入房间后触发事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SucceedIntoRoomEvent(object sender, RoomEventArgs e)
+        {
+            SetRoomid(e.Room);
+            InRoom();
+        }
+
+        /// <summary>
+        /// 创建房间失败后触发事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FailedCreateRoomEvent(object sender, RoomEventArgs e)
+        {
+            ShowMessage(ShowMessageType.General, "创建" + e.RoomTypeString + "房间失败！", "创建失败");
+        }
+
+        /// <summary>
+        /// 成功创建房间后触发事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SucceedCreateRoomEvent(object sender, RoomEventArgs e)
+        {
+            SetRoomid(e.Room);
+            InRoom();
+            WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + e.RoomTypeString + "房间");
+            WritelnGameInfo(">> 创建" + e.RoomTypeString + "房间成功！房间号： " + e.RoomID);
+            ShowMessage(ShowMessageType.General, "创建" + e.RoomTypeString + "房间成功！\n房间号是 -> [ " + e.RoomID + " ]", "创建成功");
+        }
+
         #endregion
 
         #region 工具方法
@@ -1329,10 +1374,10 @@ namespace Milimoe.FunGame.Desktop.UI
                     GameInfo.Clear();
                     break;
                 case Constant.FunGame_CreateMix:
-                    TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(GameMode.GameMode_Mix));
+                    TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(GameMode.Mix));
                     break;
                 case Constant.FunGame_CreateTeam:
-                    TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(GameMode.GameMode_Team));
+                    TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(GameMode.Team));
                     break;
                 case Constant.FunGame_StartGame:
                     break;
@@ -1459,6 +1504,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RunTime.PluginLoader?.OnAfterConnectEvent(this, EventArgs);
             }).OnError(e =>
             {
+                EventArgs.ConnectResult = ConnectResult.ConnectFailed;
                 GetMessage(e.InnerException?.ToString() ?? e.ToString(), TimeType.None);
                 UpdateUI(MainInvokeType.SetRed);
                 Config.FunGame_isRetrying = false;
@@ -1581,18 +1627,21 @@ namespace Milimoe.FunGame.Desktop.UI
 
                 result = MainController is not null && await MainController.IntoRoomAsync(room);
 
-                if (result)
+                if (room.Roomid != "-1")
                 {
-                    OnSucceedIntoRoomEvent(this, EventArgs);
-                    RunTime.PluginLoader?.OnSucceedIntoRoomEvent(this, EventArgs);
+                    if (result)
+                    {
+                        OnSucceedIntoRoomEvent(this, EventArgs);
+                        RunTime.PluginLoader?.OnSucceedIntoRoomEvent(this, EventArgs);
+                    }
+                    else
+                    {
+                        OnFailedIntoRoomEvent(this, EventArgs);
+                        RunTime.PluginLoader?.OnFailedIntoRoomEvent(this, EventArgs);
+                    }
+                    OnAfterIntoRoomEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnAfterIntoRoomEvent(this, EventArgs);
                 }
-                else
-                {
-                    OnFailedIntoRoomEvent(this, EventArgs);
-                    RunTime.PluginLoader?.OnFailedIntoRoomEvent(this, EventArgs);
-                }
-                OnAfterIntoRoomEvent(this, EventArgs);
-                RunTime.PluginLoader?.OnAfterIntoRoomEvent(this, EventArgs);
             }
             catch (Exception e)
             {
@@ -1611,22 +1660,23 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
-        public async Task<string> InvokeController_CreateRoom(string RoomType, string Password = "")
+        public async Task<Room> InvokeController_CreateRoom(string RoomType, string Password = "")
         {
             RoomEventArgs EventArgs = new(RoomType, Password);
-            string roomid = "-1";
+            Room room = General.HallInstance;
 
             try
             {
                 OnBeforeCreateRoomEvent(this, EventArgs);
-                if (EventArgs.Cancel) return roomid;
+                if (EventArgs.Cancel) return room;
                 RunTime.PluginLoader?.OnBeforeCreateRoomEvent(this, EventArgs);
-                if (EventArgs.Cancel) return roomid;
+                if (EventArgs.Cancel) return room;
 
-                roomid = MainController is null ? "-1" : await MainController.CreateRoomAsync(RoomType, Password);
+                room = MainController is null ? room : await MainController.CreateRoomAsync(RoomType, Password);
 
-                if (roomid != "-1")
+                if (room.Roomid != "-1")
                 {
+                    EventArgs = new(room);
                     OnSucceedCreateRoomEvent(this, EventArgs);
                     RunTime.PluginLoader?.OnSucceedCreateRoomEvent(this, EventArgs);
                 }
@@ -1641,9 +1691,13 @@ namespace Milimoe.FunGame.Desktop.UI
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedCreateRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnFailedCreateRoomEvent(this, EventArgs);
+                OnAfterCreateRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterCreateRoomEvent(this, EventArgs);
             }
 
-            return roomid;
+            return room;
         }
 
         /// <summary>
@@ -1666,24 +1720,24 @@ namespace Milimoe.FunGame.Desktop.UI
 
                 if (result)
                 {
-                    OnSucceedIntoRoomEvent(this, EventArgs);
-                    RunTime.PluginLoader?.OnSucceedIntoRoomEvent(this, EventArgs);
+                    OnSucceedQuitRoomEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnSucceedQuitRoomEvent(this, EventArgs);
                 }
                 else
                 {
-                    OnFailedIntoRoomEvent(this, EventArgs);
-                    RunTime.PluginLoader?.OnFailedIntoRoomEvent(this, EventArgs);
+                    OnFailedQuitRoomEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnFailedQuitRoomEvent(this, EventArgs);
                 }
-                OnAfterIntoRoomEvent(this, EventArgs);
-                RunTime.PluginLoader?.OnAfterIntoRoomEvent(this, EventArgs);
+                OnAfterQuitRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterQuitRoomEvent(this, EventArgs);
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
-                OnFailedIntoRoomEvent(this, EventArgs);
-                RunTime.PluginLoader?.OnFailedIntoRoomEvent(this, EventArgs);
-                OnAfterIntoRoomEvent(this, EventArgs);
-                RunTime.PluginLoader?.OnAfterIntoRoomEvent(this, EventArgs);
+                OnFailedQuitRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnFailedQuitRoomEvent(this, EventArgs);
+                OnAfterQuitRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterQuitRoomEvent(this, EventArgs);
             }
 
             return result;
@@ -1708,9 +1762,8 @@ namespace Milimoe.FunGame.Desktop.UI
 
                 if (Usercfg.InRoom.Roomid != "-1")
                 {
-                    string roomid = Usercfg.InRoom.Roomid;
                     bool isMaster = Usercfg.InRoom.RoomMaster?.Id == Usercfg.LoginUser?.Id;
-                    MainController?.QuitRoomAsync(roomid, isMaster);
+                    await InvokeController_QuitRoom(Usercfg.InRoom, isMaster);
                 }
 
                 result = MainController is not null && await MainController.LogOutAsync();
