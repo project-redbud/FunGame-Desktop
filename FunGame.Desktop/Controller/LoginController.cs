@@ -65,6 +65,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                                     if (user.Id != 0)
                                     {
                                         // 创建User对象并返回到Main
+                                        args.Username = user.Username;
                                         RunTime.Session.LoginKey = key;
                                         RunTime.Main?.UpdateUI(MainInvokeType.SetUser, user);
                                         result = true;
@@ -161,7 +162,8 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             if (UIForm.GetType() == typeof(Login))
             {
-                return ((Login)UIForm).OnBeforeLoginEvent(LoginEventArgs) == EventResult.Success;
+                ((Login)UIForm).OnBeforeLoginEvent(UIForm, LoginEventArgs);
+                return !LoginEventArgs.Cancel;
             }
             return true;
         }
@@ -173,13 +175,13 @@ namespace Milimoe.FunGame.Desktop.Controller
                 if (UIForm.GetType() == typeof(Login))
                 {
                     Login login = (Login)UIForm;
-                    if (result) login.OnSucceedLoginEvent(LoginEventArgs);
-                    else login.OnFailedLoginEvent(LoginEventArgs);
-                    login.OnAfterLoginEvent(LoginEventArgs);
+                    if (result) login.OnSucceedLoginEvent(UIForm, LoginEventArgs);
+                    else login.OnFailedLoginEvent(UIForm, LoginEventArgs);
+                    login.OnAfterLoginEvent(UIForm, LoginEventArgs);
                 }
                 else if (UIForm.GetType() == typeof(Main))
                 {
-                    if (result) ((Main)UIForm).OnSucceedLoginEvent(LoginEventArgs);
+                    if (result) ((Main)UIForm).OnSucceedLoginEvent(UIForm, LoginEventArgs);
                 }
             }
             catch (Exception e)

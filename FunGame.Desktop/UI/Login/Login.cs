@@ -85,29 +85,30 @@ namespace Milimoe.FunGame.Desktop.UI
             UsernameText.Focus();
         }
 
-        public EventResult FailedLoginEvent(object sender, LoginEventArgs e)
+        public void FailedLoginEvent(object sender, LoginEventArgs e)
         {
             GoToLogin.Enabled = true;
-            RunTime.Main?.OnFailedLoginEvent(e);
-            return EventResult.Success;
+            RunTime.Main?.OnFailedLoginEvent(sender, e);
+            RunTime.PluginLoader?.OnFailedLoginEvent(sender, e);
         }
 
-        private EventResult SucceedLoginEvent(object sender, LoginEventArgs e)
+        private void SucceedLoginEvent(object sender, LoginEventArgs e)
         {
-            RunTime.Main?.OnSucceedLoginEvent(e);
-            return EventResult.Success;
+            RunTime.Main?.OnSucceedLoginEvent(sender, e);
+            RunTime.PluginLoader?.OnSucceedLoginEvent(sender, e);
         }
 
-        private EventResult BeforeLoginEvent(object sender, LoginEventArgs e)
+        private void BeforeLoginEvent(object sender, LoginEventArgs e)
         {
-            if (RunTime.Main?.OnBeforeLoginEvent(e) == EventResult.Fail) return EventResult.Fail;
-            return EventResult.Success;
+            RunTime.Main?.OnBeforeLoginEvent(sender, e);
+            RunTime.PluginLoader?.OnBeforeLoginEvent(sender, e);
+            if (e.Cancel) return;
         }
 
-        private EventResult AfterLoginEvent(object sender, LoginEventArgs e)
+        private void AfterLoginEvent(object sender, LoginEventArgs e)
         {
-            RunTime.Main?.OnAfterLoginEvent(e);
-            return EventResult.Success;
+            RunTime.Main?.OnAfterLoginEvent(sender, e);
+            RunTime.PluginLoader?.OnAfterLoginEvent(sender, e);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Milimoe.FunGame.Core.Interface;
 using Milimoe.FunGame.Core.Library.Common.Event;
-using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Desktop.Library.Component;
 
 namespace Milimoe.FunGame.Desktop.Library.Base
@@ -12,40 +11,24 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public event IRegEventHandler.SucceedEventHandler? SucceedReg;
         public event IRegEventHandler.FailedEventHandler? FailedReg;
 
-        public EventResult OnAfterRegEvent(RegisterEventArgs e)
+        public void OnAfterRegEvent(object sender, RegisterEventArgs e)
         {
-            if (AfterReg != null)
-            {
-                return AfterReg(this, e);
-            }
-            else return EventResult.NoEventImplement;
+            AfterReg?.Invoke(sender, e);
         }
 
-        public EventResult OnBeforeRegEvent(RegisterEventArgs e)
+        public void OnBeforeRegEvent(object sender, RegisterEventArgs e)
         {
-            if (BeforeReg != null)
-            {
-                return BeforeReg(this, e);
-            }
-            else return EventResult.NoEventImplement;
+            BeforeReg?.Invoke(sender, e);
         }
 
-        public EventResult OnFailedRegEvent(RegisterEventArgs e)
+        public void OnFailedRegEvent(object sender, RegisterEventArgs e)
         {
-            if (FailedReg != null)
-            {
-                return FailedReg(this, e);
-            }
-            else return EventResult.NoEventImplement;
+            FailedReg?.Invoke(sender, e);
         }
 
-        public EventResult OnSucceedRegEvent(RegisterEventArgs e)
+        public void OnSucceedRegEvent(object sender, RegisterEventArgs e)
         {
-            if (SucceedReg != null)
-            {
-                return SucceedReg(this, e);
-            }
-            else return EventResult.NoEventImplement;
+            SucceedReg?.Invoke(sender, e);
         }
     }
 }

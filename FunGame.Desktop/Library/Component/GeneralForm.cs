@@ -79,7 +79,7 @@ namespace Milimoe.FunGame.Desktop.Library.Component
 
             return input;
         }
-        
+
         /// <summary>
         /// 提供公共方法给Controller发送消息弹窗（这样可以防止跨线程时，弹窗不在最上层）<para/>
         /// 支持返回点击的按钮，用于判断是否取消输入

@@ -159,7 +159,7 @@ namespace Milimoe.FunGame.Desktop.Library.Component
 
         public static MessageResult Message(string msg, string title, int autoclose = 0)
         {
-            object[] objs = { title, msg, autoclose, MessageButtonType.OK, BUTTON_OK};
+            object[] objs = { title, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
             MessageResult result = new ShowMessage(objs).MessageResult;
             return result;
         }
@@ -212,7 +212,7 @@ namespace Milimoe.FunGame.Desktop.Library.Component
             string result = new ShowMessage(objs).InputResult;
             return result;
         }
-        
+
         public static string InputMessageCancel(string msg, string title, out MessageResult cancel)
         {
             object[] objs = { title, msg, 0, MessageButtonType.Input };

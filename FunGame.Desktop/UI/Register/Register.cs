@@ -1,6 +1,5 @@
 ﻿using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Library.Common.Event;
-using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
 using Milimoe.FunGame.Desktop.Library;
@@ -112,19 +111,18 @@ namespace Milimoe.FunGame.Desktop.UI
             Dispose();
         }
 
-        private EventResult SucceedRegEvent(object sender, GeneralEventArgs e)
+        private void SucceedRegEvent(object sender, GeneralEventArgs e)
         {
             string username = ((RegisterEventArgs)e).Username;
             string password = ((RegisterEventArgs)e).Password;
             TaskUtility.StartAndAwaitTask(async () => await LoginController.LoginAccountAsync(username, password, encrypt: false));
             RunTime.Login?.Close();
-            return EventResult.Success;
         }
 
         private void RegButton_Click(object sender, EventArgs e)
         {
             RegButton.Enabled = false;
-            TaskUtility.StartAndAwaitTask(async() =>
+            TaskUtility.StartAndAwaitTask(async () =>
             {
                 if (!await Reg_Handler()) RegButton.Enabled = true;
                 else Close();

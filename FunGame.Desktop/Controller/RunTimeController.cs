@@ -1,4 +1,6 @@
-﻿using Milimoe.FunGame.Core.Entity;
+﻿using Milimoe.FunGame.Core.Api.Transmittal;
+using Milimoe.FunGame.Core.Api.Utility;
+using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Common.Network;
 using Milimoe.FunGame.Core.Library.Constant;
@@ -21,16 +23,37 @@ namespace Milimoe.FunGame.Desktop.Controller
             LoginController = new(Main);
         }
 
+        public void LoadPlugins()
+        {
+            try
+            {
+                RunTime.PluginLoader = PluginLoader.LoadPlugins(
+                    new Action<string>(WritelnSystemInfo),
+                    new Func<DataRequestType, DataRequest>(NewDataRequest),
+                    new Func<DataRequestType, DataRequest>(NewLongRunningDataRequest),
+                    RunTime.Session, RunTime.Config);
+                foreach (string name in RunTime.PluginLoader.Plugins.Keys)
+                {
+                    Main.GetMessage("[ PluginLoader ] Load: " + name);
+                }
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+        }
+
         public override void WritelnSystemInfo(string msg)
         {
-            Main?.GetMessage(msg);
+            Main.GetMessage(msg);
         }
 
         public override void Error(Exception e)
         {
             Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             Main.UpdateUI(MainInvokeType.Disconnected);
-            Main.OnFailedConnectEvent(new ConnectEventArgs(RunTime.Session.Server_IP, RunTime.Session.Server_Port));
+            ConnectEventArgs args = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port, ConnectResult.ConnectFailed);
+            Main.OnFailedConnectEvent(Main, args);
             Close();
         }
 
@@ -122,8 +145,6 @@ namespace Milimoe.FunGame.Desktop.Controller
             Main.GetMessage(msg);
             Main.UpdateUI(MainInvokeType.Disconnect);
             Close();
-            Main.OnSucceedDisconnectEvent(new GeneralEventArgs());
-            Main.OnAfterDisconnectEvent(new GeneralEventArgs());
         }
 
         protected override void SocketHandler_HeartBeat(SocketObject ServerMessage)

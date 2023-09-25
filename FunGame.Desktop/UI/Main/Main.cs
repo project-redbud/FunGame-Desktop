@@ -66,7 +66,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     }
                 }
                 // 加载插件
-                LoadPlugins();
+                RunTime.Controller.LoadPlugins();
                 // 自动连接服务器
                 if (Config.FunGame_isAutoConnect) InvokeController_Connect();
             });
@@ -82,6 +82,10 @@ namespace Milimoe.FunGame.Desktop.UI
             FailedConnect += FailedConnectEvent;
             SucceedConnect += SucceedConnectEvent;
             SucceedLogin += SucceedLoginEvent;
+            SucceedIntoRoom += SucceedIntoRoomEvent;
+            FailedIntoRoom += FailedIntoRoomEvent;
+            SucceedCreateRoom += SucceedCreateRoomEvent;
+            FailedCreateRoom += FailedCreateRoomEvent;
         }
 
         #endregion
@@ -492,7 +496,7 @@ namespace Milimoe.FunGame.Desktop.UI
         }
 
         /// <summary>
-        /// 重复处理加入房间的方法
+        /// 加入房间的具体处理方法
         /// </summary>
         /// <param name="roomid"></param>
         /// <returns></returns>
@@ -505,17 +509,20 @@ namespace Milimoe.FunGame.Desktop.UI
                 {
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
-                        if (ShowMessage(ShowMessageType.YesNo, "已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
+                        if (await MainController.GetRoomPlayerCountAsync(roomid) < 8)
                         {
-                            Room r = GetRoom(roomid);
-                            if (MainController != null && await MainController.IntoRoomAsync(r))
+                            if (ShowMessage(ShowMessageType.YesNo, "已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
                             {
-                                SetRoomid(r);
-                                InRoom();
-                                return true;
+                                Room r = GetRoom(roomid);
+                                return await InvokeController_IntoRoom(r);
                             }
+                            return false;
                         }
-                        return false;
+                        else
+                        {
+                            ShowMessage(ShowMessageType.Warning, "房间已满，拒绝加入！");
+                            return false;
+                        }
                     }
                     else
                     {
@@ -719,7 +726,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 {
                     TaskUtility.StartAndAwaitTask(async () =>
                     {
-                        if (!await MainController.ChatAsync(" [ " + Usercfg.LoginUserName + " ] 说： " + text))
+                        if (!await InvokeController_SendTalk(" [ " + Usercfg.LoginUserName + " ] 说： " + text))
                         {
                             WritelnGameInfo("联网消息发送失败。");
                         }
@@ -748,20 +755,13 @@ namespace Milimoe.FunGame.Desktop.UI
                 ShowMessage(ShowMessageType.Warning, "已在房间中，无法创建房间。");
                 return;
             }
-            string roomid = await InvokeController_CreateRoom(RoomType, Password);
-            if (MainController is not null && roomid != "-1")
+            Room room = await InvokeController_CreateRoom(RoomType, Password);
+            if (MainController is not null && room.Roomid != "-1")
             {
                 await MainController.UpdateRoomAsync();
-                Room r = GetRoom(roomid);
-                await InvokeController_IntoRoom(r);
-                SetRoomid(r);
-                InRoom();
-                WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + RoomType + "房间");
-                WritelnGameInfo(">> 创建" + RoomType + "房间成功！房间号： " + roomid);
-                ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间成功！\n房间号是 -> [ " + roomid + " ]", "创建成功");
+                await InvokeController_IntoRoom(room);
                 return;
             }
-            ShowMessage(ShowMessageType.General, "创建" + RoomType + "房间失败！", "创建失败");
         }
 
         /// <summary>
@@ -832,25 +832,6 @@ namespace Milimoe.FunGame.Desktop.UI
                     this.Light.Image = Properties.Resources.yellow;
                 else if (ping >= 200)
                     this.Light.Image = Properties.Resources.red;
-            }
-        }
-
-        /// <summary>
-        /// 加载所有插件
-        /// </summary>
-        private void LoadPlugins()
-        {
-            try
-            {
-                PluginLoader.LoadPlugins(RunTime.Plugins);
-                foreach (KeyValuePair<string, BasePlugin> kv in RunTime.Plugins)
-                {
-                    GetMessage("Load: " + kv.Value.Name);
-                }
-            }
-            catch (Exception e)
-            {
-                GetMessage(e.GetErrorInfo(), TimeType.None);
             }
         }
 
@@ -1112,13 +1093,13 @@ namespace Milimoe.FunGame.Desktop.UI
             bool IsMix = CheckMix.Checked;
             bool IsTeam = CheckTeam.Checked;
             bool IsHasPass = CheckHasPass.Checked;
-            if (IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_All;
-            else if (IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_AllHasPass;
-            else if (IsMix && !IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_Mix;
-            else if (IsMix && !IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_MixHasPass;
-            else if (!IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_Team;
-            else if (!IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.GameMode_TeamHasPass;
-            else Config.FunGame_GameMode = GameMode.GameMode_All;
+            if (IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.All;
+            else if (IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.AllHasPass;
+            else if (IsMix && !IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.Mix;
+            else if (IsMix && !IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.MixHasPass;
+            else if (!IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.Team;
+            else if (!IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.TeamHasPass;
+            else Config.FunGame_GameMode = GameMode.All;
         }
 
         /// <summary>
@@ -1263,7 +1244,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="sender"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        public EventResult FailedConnectEvent(object sender, GeneralEventArgs e)
+        public void FailedConnectEvent(object sender, GeneralEventArgs e)
         {
             // 自动重连
             if (Config.FunGame_isConnected && Config.FunGame_isAutoRetry && CurrentRetryTimes <= MaxRetryTimes)
@@ -1276,7 +1257,6 @@ namespace Milimoe.FunGame.Desktop.UI
                 GetMessage("连接服务器失败，5秒后自动尝试重连。");
             }
             else GetMessage("无法连接至服务器，请检查你的网络连接。");
-            return EventResult.Success;
         }
 
         /// <summary>
@@ -1285,7 +1265,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="sender"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        public EventResult SucceedConnectEvent(object sender, GeneralEventArgs e)
+        public void SucceedConnectEvent(object sender, GeneralEventArgs e)
         {
             // 创建MainController
             MainController = new MainController(this);
@@ -1294,7 +1274,6 @@ namespace Milimoe.FunGame.Desktop.UI
                 // 自动登录
                 RunTime.Controller?.AutoLogin(Config.FunGame_AutoLoginUser, Config.FunGame_AutoLoginPassword, Config.FunGame_AutoLoginKey);
             }
-            return EventResult.Success;
         }
 
         /// <summary>
@@ -1303,10 +1282,54 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="sender"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        private EventResult SucceedLoginEvent(object sender, GeneralEventArgs e)
+        private void SucceedLoginEvent(object sender, GeneralEventArgs e)
         {
             TaskUtility.StartAndAwaitTask(SucceedLoginEvent_Handler);
-            return EventResult.Success;
+        }
+
+        /// <summary>
+        /// 进入房间失败后触发事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FailedIntoRoomEvent(object sender, RoomEventArgs e)
+        {
+            ShowMessage(ShowMessageType.Warning, "加入房间失败！");
+        }
+
+        /// <summary>
+        /// 成功进入房间后触发事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SucceedIntoRoomEvent(object sender, RoomEventArgs e)
+        {
+            SetRoomid(e.Room);
+            InRoom();
+        }
+
+        /// <summary>
+        /// 创建房间失败后触发事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FailedCreateRoomEvent(object sender, RoomEventArgs e)
+        {
+            ShowMessage(ShowMessageType.General, "创建" + e.RoomTypeString + "房间失败！", "创建失败");
+        }
+
+        /// <summary>
+        /// 成功创建房间后触发事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SucceedCreateRoomEvent(object sender, RoomEventArgs e)
+        {
+            SetRoomid(e.Room);
+            InRoom();
+            WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + e.RoomTypeString + "房间");
+            WritelnGameInfo(">> 创建" + e.RoomTypeString + "房间成功！房间号： " + e.RoomID);
+            ShowMessage(ShowMessageType.General, "创建" + e.RoomTypeString + "房间成功！\n房间号是 -> [ " + e.RoomID + " ]", "创建成功");
         }
 
         #endregion
@@ -1351,10 +1374,10 @@ namespace Milimoe.FunGame.Desktop.UI
                     GameInfo.Clear();
                     break;
                 case Constant.FunGame_CreateMix:
-                    TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(GameMode.GameMode_Mix));
+                    TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(GameMode.Mix));
                     break;
                 case Constant.FunGame_CreateTeam:
-                    TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(GameMode.GameMode_Team));
+                    TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(GameMode.Team));
                     break;
                 case Constant.FunGame_StartGame:
                     break;
@@ -1454,32 +1477,42 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         private void InvokeController_Connect()
         {
-            try
-            {
-                ConnectEventArgs EventArgs = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port);
-                ConnectResult result = ConnectResult.CanNotConnect;
+            ConnectEventArgs EventArgs = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port);
 
-                TaskUtility.StartAndAwaitTask(() =>
-                {
-                    if (OnBeforeConnectEvent(EventArgs) == EventResult.Fail) return;
-                    result = RunTime.Controller?.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port) ?? result;
-                    EventArgs.ConnectResult = result;
-                }).OnCompleted(() =>
-                {
-                    if (result == ConnectResult.Success) OnSucceedConnectEvent(EventArgs);
-                    else OnFailedConnectEvent(EventArgs);
-                    OnAfterConnectEvent(EventArgs);
-                }).OnError(e =>
-                {
-                    GetMessage(e.GetErrorInfo(), TimeType.None);
-                    UpdateUI(MainInvokeType.SetRed);
-                    Config.FunGame_isRetrying = false;
-                });
-            }
-            catch (Exception e)
+            ConnectResult result = ConnectResult.CanNotConnect;
+
+            TaskUtility.StartAndAwaitTask(() =>
             {
-                GetMessage(e.GetErrorInfo(), TimeType.None);
-            }
+                OnBeforeConnectEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnBeforeConnectEvent(this, EventArgs);
+                if (EventArgs.Cancel) return;
+                result = RunTime.Controller?.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port) ?? result;
+                EventArgs.ConnectResult = result;
+            }).OnCompleted(() =>
+            {
+                if (result == ConnectResult.Success)
+                {
+                    OnSucceedConnectEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnSucceedConnectEvent(this, EventArgs);
+                }
+                else
+                {
+                    OnFailedConnectEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnFailedConnectEvent(this, EventArgs);
+                }
+                OnAfterConnectEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterConnectEvent(this, EventArgs);
+            }).OnError(e =>
+            {
+                EventArgs.ConnectResult = ConnectResult.ConnectFailed;
+                GetMessage(e.InnerException?.ToString() ?? e.ToString(), TimeType.None);
+                UpdateUI(MainInvokeType.SetRed);
+                Config.FunGame_isRetrying = false;
+                OnFailedConnectEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnFailedConnectEvent(this, EventArgs);
+                OnAfterConnectEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterConnectEvent(this, EventArgs);
+            });
         }
 
         /// <summary>
@@ -1488,13 +1521,18 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         public void InvokeController_Disconnect()
         {
+            GeneralEventArgs EventArgs = new();
+
             try
             {
                 bool result = false;
 
                 TaskUtility.StartAndAwaitTask(async () =>
                 {
-                    if (OnBeforeDisconnectEvent(new GeneralEventArgs()) == EventResult.Fail) return;
+                    OnBeforeDisconnectEvent(this, EventArgs);
+                    if (EventArgs.Cancel) return;
+                    RunTime.PluginLoader?.OnBeforeDisconnectEvent(this, EventArgs);
+                    if (EventArgs.Cancel) return;
 
                     if (Usercfg.LoginUser.Id != 0)
                     {
@@ -1504,17 +1542,73 @@ namespace Milimoe.FunGame.Desktop.UI
                     result = RunTime.Controller?.Disconnect() ?? false;
                 }).OnCompleted(() =>
                 {
-                    if (result) OnSucceedDisconnectEvent(new GeneralEventArgs());
-                    else OnFailedDisconnectEvent(new GeneralEventArgs());
-                    OnAfterDisconnectEvent(new GeneralEventArgs());
+                    if (result)
+                    {
+                        OnSucceedDisconnectEvent(this, EventArgs);
+                        RunTime.PluginLoader?.OnSucceedDisconnectEvent(this, EventArgs);
+                    }
+                    else
+                    {
+                        OnFailedDisconnectEvent(this, EventArgs);
+                        RunTime.PluginLoader?.OnFailedDisconnectEvent(this, EventArgs);
+                    }
+                    OnAfterDisconnectEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnAfterDisconnectEvent(this, EventArgs);
                 });
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedDisconnectEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnFailedDisconnectEvent(this, EventArgs);
+                OnAfterDisconnectEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterDisconnectEvent(this, EventArgs);
             }
         }
 
+        /// <summary>
+        /// 发送聊天信息
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public async Task<bool> InvokeController_SendTalk(string msg)
+        {
+            SendTalkEventArgs EventArgs = new(msg);
+            bool result = false;
+
+            try
+            {
+                OnBeforeSendTalkEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnBeforeSendTalkEvent(this, EventArgs);
+                if (EventArgs.Cancel) return result;
+
+                result = MainController is not null && await MainController.ChatAsync(msg);
+
+                if (result)
+                {
+                    OnSucceedSendTalkEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnSucceedSendTalkEvent(this, EventArgs);
+                }
+                else
+                {
+                    OnFailedSendTalkEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnFailedSendTalkEvent(this, EventArgs);
+                }
+                OnAfterSendTalkEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterSendTalkEvent(this, EventArgs);
+            }
+            catch (Exception e)
+            {
+                GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedSendTalkEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnFailedSendTalkEvent(this, EventArgs);
+                OnAfterSendTalkEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterSendTalkEvent(this, EventArgs);
+            }
+
+            return result;
+        }
+        
         /// <summary>
         /// 进入房间
         /// </summary>
@@ -1522,53 +1616,88 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         public async Task<bool> InvokeController_IntoRoom(Room room)
         {
+            RoomEventArgs EventArgs = new(room);
             bool result = false;
 
             try
             {
-                RoomEventArgs EventArgs = new(room);
-                if (OnBeforeIntoRoomEvent(EventArgs) == EventResult.Fail) return result;
+                OnBeforeIntoRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnBeforeIntoRoomEvent(this, EventArgs);
+                if (EventArgs.Cancel) return result;
 
                 result = MainController is not null && await MainController.IntoRoomAsync(room);
 
-                if (result) OnSucceedIntoRoomEvent(EventArgs);
-                else OnFailedIntoRoomEvent(EventArgs);
-                OnAfterIntoRoomEvent(EventArgs);
+                if (room.Roomid != "-1")
+                {
+                    if (result)
+                    {
+                        OnSucceedIntoRoomEvent(this, EventArgs);
+                        RunTime.PluginLoader?.OnSucceedIntoRoomEvent(this, EventArgs);
+                    }
+                    else
+                    {
+                        OnFailedIntoRoomEvent(this, EventArgs);
+                        RunTime.PluginLoader?.OnFailedIntoRoomEvent(this, EventArgs);
+                    }
+                    OnAfterIntoRoomEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnAfterIntoRoomEvent(this, EventArgs);
+                }
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedIntoRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnFailedIntoRoomEvent(this, EventArgs);
+                OnAfterIntoRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterIntoRoomEvent(this, EventArgs);
             }
 
             return result;
         }
-        
+
         /// <summary>
         /// 创建房间
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
-        public async Task<string> InvokeController_CreateRoom(string RoomType, string Password = "")
+        public async Task<Room> InvokeController_CreateRoom(string RoomType, string Password = "")
         {
-            string roomid = "-1";
+            RoomEventArgs EventArgs = new(RoomType, Password);
+            Room room = General.HallInstance;
 
             try
             {
-                RoomEventArgs EventArgs = new(RoomType, Password);
-                if (OnBeforeCreateRoomEvent(EventArgs) == EventResult.Fail) return roomid;
+                OnBeforeCreateRoomEvent(this, EventArgs);
+                if (EventArgs.Cancel) return room;
+                RunTime.PluginLoader?.OnBeforeCreateRoomEvent(this, EventArgs);
+                if (EventArgs.Cancel) return room;
 
-                roomid = MainController is null ? "-1" : await MainController.CreateRoomAsync(RoomType, Password);
+                room = MainController is null ? room : await MainController.CreateRoomAsync(RoomType, Password);
 
-                if (roomid != "-1") OnSucceedCreateRoomEvent(EventArgs);
-                else OnFailedCreateRoomEvent(EventArgs);
-                OnAfterCreateRoomEvent(EventArgs);
+                if (room.Roomid != "-1")
+                {
+                    EventArgs = new(room);
+                    OnSucceedCreateRoomEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnSucceedCreateRoomEvent(this, EventArgs);
+                }
+                else
+                {
+                    OnFailedCreateRoomEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnFailedCreateRoomEvent(this, EventArgs);
+                }
+                OnAfterCreateRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterCreateRoomEvent(this, EventArgs);
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedCreateRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnFailedCreateRoomEvent(this, EventArgs);
+                OnAfterCreateRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterCreateRoomEvent(this, EventArgs);
             }
 
-            return roomid;
+            return room;
         }
 
         /// <summary>
@@ -1578,22 +1707,37 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         public async Task<bool> InvokeController_QuitRoom(Room room, bool isMaster)
         {
+            RoomEventArgs EventArgs = new(room);
             bool result = false;
 
             try
             {
-                RoomEventArgs EventArgs = new(room);
-                if (OnBeforeIntoRoomEvent(EventArgs) == EventResult.Fail) return result;
+                OnBeforeIntoRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnBeforeIntoRoomEvent(this, EventArgs);
+                if (EventArgs.Cancel) return result;
 
                 result = MainController is not null && await MainController.QuitRoomAsync(room.Roomid, isMaster);
 
-                if (result) OnSucceedIntoRoomEvent(EventArgs);
-                else OnFailedIntoRoomEvent(EventArgs);
-                OnAfterIntoRoomEvent(EventArgs);
+                if (result)
+                {
+                    OnSucceedQuitRoomEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnSucceedQuitRoomEvent(this, EventArgs);
+                }
+                else
+                {
+                    OnFailedQuitRoomEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnFailedQuitRoomEvent(this, EventArgs);
+                }
+                OnAfterQuitRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterQuitRoomEvent(this, EventArgs);
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedQuitRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnFailedQuitRoomEvent(this, EventArgs);
+                OnAfterQuitRoomEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterQuitRoomEvent(this, EventArgs);
             }
 
             return result;
@@ -1605,31 +1749,45 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         public async Task<bool> LogOut()
         {
+            GeneralEventArgs EventArgs = new();
             bool result = false;
 
             try
             {
-                GeneralEventArgs EventArgs = new();
-                if (OnBeforeLogoutEvent(EventArgs) == EventResult.Fail) return result;
+                OnBeforeLogoutEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnBeforeLogoutEvent(this, EventArgs);
+                if (EventArgs.Cancel) return result;
 
                 if (Usercfg.LoginUser.Id == 0) return result;
 
                 if (Usercfg.InRoom.Roomid != "-1")
                 {
-                    string roomid = Usercfg.InRoom.Roomid;
                     bool isMaster = Usercfg.InRoom.RoomMaster?.Id == Usercfg.LoginUser?.Id;
-                    MainController?.QuitRoomAsync(roomid, isMaster);
+                    await InvokeController_QuitRoom(Usercfg.InRoom, isMaster);
                 }
 
                 result = MainController is not null && await MainController.LogOutAsync();
 
-                if (result) OnSucceedLogoutEvent(EventArgs);
-                else OnFailedLogoutEvent(EventArgs);
-                OnAfterLogoutEvent(EventArgs);
+                if (result)
+                {
+                    OnSucceedLogoutEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnSucceedLogoutEvent(this, EventArgs);
+                }
+                else
+                {
+                    OnFailedLogoutEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnFailedLogoutEvent(this, EventArgs);
+                }
+                OnAfterLogoutEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterLogoutEvent(this, EventArgs);
             }
             catch (Exception e)
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedLogoutEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnFailedLogoutEvent(this, EventArgs);
+                OnAfterLogoutEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterLogoutEvent(this, EventArgs);
             }
 
             return result;
