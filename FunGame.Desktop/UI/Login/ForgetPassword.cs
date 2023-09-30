@@ -19,7 +19,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
         private void FindPassword_Click(object sender, EventArgs e)
         {
-            TaskUtility.StartAndAwaitTask(async () =>
+            TaskUtility.NewTask(async () =>
             {
                 if (RunTime.Socket != null)
                 {

@@ -69,7 +69,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             GoToLogin.Enabled = false;
             bool result = false;
-            TaskUtility.StartAndAwaitTask(async () =>
+            TaskUtility.NewTask(async () =>
             {
                 result = await Login_Handler();
             }).OnCompleted(() =>

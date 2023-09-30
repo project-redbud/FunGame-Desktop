@@ -113,7 +113,7 @@ namespace Milimoe.FunGame.Desktop.Library.Component
             }
             if (AutoClose > 0)
             {
-                TaskUtility.StartAndAwaitTask(async () =>
+                TaskUtility.NewTask(async () =>
                 {
                     string msg = MsgText.Text;
                     int s = AutoClose;

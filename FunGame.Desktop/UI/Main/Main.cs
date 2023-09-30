@@ -56,7 +56,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 创建RunTime
             RunTime.Controller = new RunTimeController(this);
             // 窗口句柄创建后，进行委托
-            TaskUtility.StartAndAwaitTask(() =>
+            TaskUtility.NewTask(() =>
             {
                 while (true)
                 {
@@ -724,7 +724,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 if (isLeave) TalkText_Leave(); // 回车不离开焦点
                 if (MainController != null && Usercfg.LoginUser.Id != 0 && !SwitchTalkMessage(text))
                 {
-                    TaskUtility.StartAndAwaitTask(async () =>
+                    TaskUtility.NewTask(async () =>
                     {
                         if (!await InvokeController_SendTalk(" [ " + Usercfg.LoginUserName + " ] 说： " + text))
                         {
@@ -866,7 +866,7 @@ namespace Milimoe.FunGame.Desktop.UI
         private void ExitFunGame()
         {
             bool exit = false;
-            TaskUtility.StartAndAwaitTask(() =>
+            TaskUtility.NewTask(() =>
             {
                 if (ShowMessage(ShowMessageType.OKCancel, "你确定关闭游戏？", "退出") == MessageResult.OK)
                 {
@@ -893,7 +893,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void Exit_Click(object sender, EventArgs e)
         {
-            TaskUtility.StartAndAwaitTask(ExitFunGame);
+            TaskUtility.NewTask(ExitFunGame);
         }
 
         /// <summary>
@@ -960,7 +960,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 ShowMessage(ShowMessageType.Warning, "请勾选你要创建的房间类型！");
                 return;
             }
-            TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(Config.FunGame_GameMode, password));
+            TaskUtility.NewTask(() => CreateRoom_Handler(Config.FunGame_GameMode, password));
         }
 
         /// <summary>
@@ -973,7 +973,7 @@ namespace Milimoe.FunGame.Desktop.UI
             string roomid = Usercfg.InRoom.Roomid;
             bool isMaster = Usercfg.InRoom.RoomMaster?.Id == Usercfg.LoginUser.Id;
             bool result = false;
-            TaskUtility.StartAndAwaitTask(async () =>
+            TaskUtility.NewTask(async () =>
             {
                 if (await InvokeController_QuitRoom(Usercfg.InRoom, isMaster))
                 {
@@ -1017,7 +1017,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void QueryRoom_Click(object sender, EventArgs e)
         {
-            TaskUtility.StartAndAwaitTask(async () => await JoinRoom(false, RoomText.Text));
+            TaskUtility.NewTask(async () => await JoinRoom(false, RoomText.Text));
         }
 
         /// <summary>
@@ -1027,7 +1027,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void Logout_Click(object sender, EventArgs e)
         {
-            TaskUtility.StartAndAwaitTask(async () =>
+            TaskUtility.NewTask(async () =>
             {
                 if (ShowMessage(ShowMessageType.OKCancel, "你确定要退出登录吗？", "退出登录") == MessageResult.OK)
                 {
@@ -1069,7 +1069,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (RoomList.SelectedItem != null)
             {
-                TaskUtility.StartAndAwaitTask(async () => await JoinRoom(true, RoomList.SelectedItem.ToString() ?? ""));
+                TaskUtility.NewTask(async () => await JoinRoom(true, RoomList.SelectedItem.ToString() ?? ""));
             }
         }
 
@@ -1141,7 +1141,7 @@ namespace Milimoe.FunGame.Desktop.UI
             if (e.KeyCode.Equals(Keys.Enter))
             {
                 // 按下回车加入房间
-                TaskUtility.StartAndAwaitTask(async () => await JoinRoom(false, RoomText.Text));
+                TaskUtility.NewTask(async () => await JoinRoom(false, RoomText.Text));
             }
         }
 
@@ -1219,7 +1219,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void RefreshRoomList_Click(object sender, EventArgs e)
         {
-            TaskUtility.StartAndAwaitTask(async () =>
+            TaskUtility.NewTask(async () =>
             {
                 if (MainController != null)
                 {
@@ -1284,7 +1284,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <returns></returns>
         private void SucceedLoginEvent(object sender, GeneralEventArgs e)
         {
-            TaskUtility.StartAndAwaitTask(SucceedLoginEvent_Handler);
+            TaskUtility.NewTask(SucceedLoginEvent_Handler);
         }
 
         /// <summary>
@@ -1374,10 +1374,10 @@ namespace Milimoe.FunGame.Desktop.UI
                     GameInfo.Clear();
                     break;
                 case Constant.FunGame_CreateMix:
-                    TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(GameMode.Mix));
+                    TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Mix));
                     break;
                 case Constant.FunGame_CreateTeam:
-                    TaskUtility.StartAndAwaitTask(() => CreateRoom_Handler(GameMode.Team));
+                    TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Team));
                     break;
                 case Constant.FunGame_StartGame:
                     break;
@@ -1412,7 +1412,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         // 先退出登录再断开连接
                         bool SuccessLogOut = false;
-                        TaskUtility.StartAndAwaitTask(async () =>
+                        TaskUtility.NewTask(async () =>
                         {
                             if (await LogOut()) SuccessLogOut = true;
                         }).OnCompleted(() =>
@@ -1481,7 +1481,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
             ConnectResult result = ConnectResult.CanNotConnect;
 
-            TaskUtility.StartAndAwaitTask(() =>
+            TaskUtility.NewTask(() =>
             {
                 OnBeforeConnectEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnBeforeConnectEvent(this, EventArgs);
@@ -1522,48 +1522,42 @@ namespace Milimoe.FunGame.Desktop.UI
         public void InvokeController_Disconnect()
         {
             GeneralEventArgs EventArgs = new();
+            bool result = false;
 
-            try
+            TaskUtility.NewTask(async () =>
             {
-                bool result = false;
+                OnBeforeDisconnectEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnBeforeDisconnectEvent(this, EventArgs);
+                if (EventArgs.Cancel) return;
 
-                TaskUtility.StartAndAwaitTask(async () =>
+                if (Usercfg.LoginUser.Id != 0)
                 {
-                    OnBeforeDisconnectEvent(this, EventArgs);
-                    if (EventArgs.Cancel) return;
-                    RunTime.PluginLoader?.OnBeforeDisconnectEvent(this, EventArgs);
-                    if (EventArgs.Cancel) return;
+                    await LogOut();
+                }
 
-                    if (Usercfg.LoginUser.Id != 0)
-                    {
-                        await LogOut();
-                    }
-
-                    result = RunTime.Controller?.Disconnect() ?? false;
-                }).OnCompleted(() =>
+                result = RunTime.Controller?.Disconnect() ?? false;
+            }).OnCompleted(() =>
+            {
+                if (result)
                 {
-                    if (result)
-                    {
-                        OnSucceedDisconnectEvent(this, EventArgs);
-                        RunTime.PluginLoader?.OnSucceedDisconnectEvent(this, EventArgs);
-                    }
-                    else
-                    {
-                        OnFailedDisconnectEvent(this, EventArgs);
-                        RunTime.PluginLoader?.OnFailedDisconnectEvent(this, EventArgs);
-                    }
-                    OnAfterDisconnectEvent(this, EventArgs);
-                    RunTime.PluginLoader?.OnAfterDisconnectEvent(this, EventArgs);
-                });
-            }
-            catch (Exception e)
+                    OnSucceedDisconnectEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnSucceedDisconnectEvent(this, EventArgs);
+                }
+                else
+                {
+                    OnFailedDisconnectEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnFailedDisconnectEvent(this, EventArgs);
+                }
+                OnAfterDisconnectEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterDisconnectEvent(this, EventArgs);
+            }).OnError(e =>
             {
                 GetMessage(e.GetErrorInfo(), TimeType.None);
                 OnFailedDisconnectEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnFailedDisconnectEvent(this, EventArgs);
                 OnAfterDisconnectEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnAfterDisconnectEvent(this, EventArgs);
-            }
+            });
         }
 
         /// <summary>
@@ -1668,7 +1662,6 @@ namespace Milimoe.FunGame.Desktop.UI
             try
             {
                 OnBeforeCreateRoomEvent(this, EventArgs);
-                if (EventArgs.Cancel) return room;
                 RunTime.PluginLoader?.OnBeforeCreateRoomEvent(this, EventArgs);
                 if (EventArgs.Cancel) return room;
 

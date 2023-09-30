@@ -115,14 +115,14 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             string username = ((RegisterEventArgs)e).Username;
             string password = ((RegisterEventArgs)e).Password;
-            TaskUtility.StartAndAwaitTask(async () => await LoginController.LoginAccountAsync(username, password, encrypt: false));
+            TaskUtility.NewTask(async () => await LoginController.LoginAccountAsync(username, password, encrypt: false));
             RunTime.Login?.Close();
         }
 
         private void RegButton_Click(object sender, EventArgs e)
         {
             RegButton.Enabled = false;
-            TaskUtility.StartAndAwaitTask(async () =>
+            TaskUtility.NewTask(async () =>
             {
                 if (!await Reg_Handler()) RegButton.Enabled = true;
                 else Close();
