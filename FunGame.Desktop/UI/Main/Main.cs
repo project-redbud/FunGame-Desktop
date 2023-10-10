@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
-using Milimoe.FunGame.Core.Library.Common.Plugin;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
