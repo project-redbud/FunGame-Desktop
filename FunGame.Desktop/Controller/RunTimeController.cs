@@ -147,6 +147,16 @@ namespace Milimoe.FunGame.Desktop.Controller
             Close();
         }
 
+        protected override void SocketHandler_System(SocketObject ServerMessage)
+        {
+            // 收到系统消息，直接发送弹窗
+            string msg = "";
+            ShowMessageType type = ShowMessageType.General;
+            if (ServerMessage.Parameters.Length > 0) msg = ServerMessage.GetParam<string>(0) ?? "";
+            if (ServerMessage.Parameters.Length > 1) type = ServerMessage.GetParam<ShowMessageType>(1);
+            Main.ShowMessage(type, msg, "系统消息", 60);
+        }
+
         protected override void SocketHandler_HeartBeat(SocketObject ServerMessage)
         {
             // 收到心跳包时更新与服务器的连接延迟
@@ -183,6 +193,21 @@ namespace Milimoe.FunGame.Desktop.Controller
             Room room = General.HallInstance;
             if (ServerMessage.Length > 0) room = ServerMessage.GetParam<Room>(0) ?? General.HallInstance;
             if (room.Roomid != "-1" && room.Roomid == Usercfg.InRoom.Roomid) Main.UpdateUI(MainInvokeType.UpdateRoomMaster, room);
+        }
+
+        protected override void SocketHandler_MatchRoom(SocketObject ServerMessage)
+        {
+            // 匹配成功，询问是否加入房间
+            Room room = General.HallInstance;
+            if (ServerMessage.Length > 0) room = ServerMessage.GetParam<Room>(0) ?? General.HallInstance;
+            if (room.Roomid == "-1")
+            {
+                Main.ShowMessage(ShowMessageType.General, "暂时无法找到符合条件的房间。", "匹配失败");
+            }
+            else if (Main.ShowMessage(ShowMessageType.YesNo, "已找到符合条件的房间，是否加入？", "匹配成功", 10) == MessageResult.Yes)
+            {
+                Main.UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, room);
+            }
         }
     }
 }

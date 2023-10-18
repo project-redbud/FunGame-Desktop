@@ -15,6 +15,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         private readonly Session Usercfg = RunTime.Session;
         private readonly DataRequest ChatRequest;
         private readonly DataRequest CreateRoomRequest;
+        private readonly DataRequest MatchRoomRequest;
         private readonly DataRequest GetRoomPlayerCountRequest;
         private readonly DataRequest UpdateRoomRequest;
         private readonly DataRequest IntoRoomRequest;
@@ -25,6 +26,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             Main = main;
             ChatRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_Chat);
             CreateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_CreateRoom);
+            MatchRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_MatchRoom);
             GetRoomPlayerCountRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Room_GetRoomPlayerCount);
             UpdateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_UpdateRoom);
             IntoRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_IntoRoom);
@@ -182,6 +184,29 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
 
             return room;
+        }
+        
+        public async Task<bool> MatchRoomAsync(string RoomType, bool isCancel = false)
+        {
+            bool result = false;
+
+            try
+            {
+                MatchRoomRequest.AddRequestData("roomtype", RoomType);
+                MatchRoomRequest.AddRequestData("matcher", Usercfg.LoginUser);
+                MatchRoomRequest.AddRequestData("iscancel", isCancel);
+                await MatchRoomRequest.SendRequestAsync();
+                if (MatchRoomRequest.Result == RequestResult.Success)
+                {
+                    result = MatchRoomRequest.GetResult<bool>("result");
+                }
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return result;
         }
 
         public async Task<bool> ChatAsync(string msg)

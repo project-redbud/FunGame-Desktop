@@ -26,15 +26,10 @@ namespace Milimoe.FunGame.Desktop.UI
         /**
          * 变量
          */
-        private Task? MatchFunGame = null; // 匹配线程（即将删除）
         private MainController? MainController = null;
         private readonly Core.Model.RoomList Rooms = RunTime.RoomList;
         private readonly Core.Model.Session Usercfg = RunTime.Session;
-
-        /**
-         * 委托【即将删除】
-         */
-        Action<int, object[]?>? StartMatch_Action = null;
+        private int _MatchSeconds = 0; // 记录匹配房间的秒数
 
         public Main()
         {
@@ -236,6 +231,13 @@ namespace Milimoe.FunGame.Desktop.UI
                                     string msg = $"房间 [ {r.Roomid} ] 的房主已变更为" + (r.RoomMaster.Username != Usercfg.LoginUserName ? $" [ {r.RoomMaster.Username} ]" : "您") + "。";
                                     GetMessage(msg, TimeType.TimeOnly);
                                 }
+                            }
+                            break;
+
+                        case MainInvokeType.MatchRoom:
+                            if (objs != null && objs.Length > 0)
+                            {
+                                StartMatch_Method((StartMatchState)objs[0], objs[1..]);
                             }
                             break;
 
@@ -539,77 +541,70 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="i">主要参数：触发方法的哪一个分支</param>
         /// <param name="objs">可传多个参数</param>
-        private void StartMatch_Method(int i, object[]? objs = null)
+        private void StartMatch_Method(StartMatchState status, params object[] objs)
         {
-            switch (i)
+            switch (status)
             {
-                case (int)StartMatchState.Matching:
+                case StartMatchState.Matching:
                     // 开始匹配
-                    Config.FunGame_isMatching = true;
-                    int loop = 0;
-                    string roomid = Convert.ToString(new Random().Next(1, 10000));
-                    // 匹配中 匹配成功返回房间号
-                    Task.Factory.StartNew(() =>
+                    if (MainController != null)
                     {
-                        // 创建新线程，防止主界面阻塞
-                        Thread.Sleep(3000);
-                        while (loop < 10000 && Config.FunGame_isMatching)
+                        TaskUtility.NewTask(async () =>
                         {
-                            loop++;
-                            if (loop == Convert.ToInt32(roomid))
+                            if (await MainController.MatchRoomAsync(Config.FunGame_GameMode))
                             {
-                                // 创建委托，操作主界面
-                                StartMatch_Action = (int i, object[]? objs) =>
+                                Config.FunGame_isMatching = true;
+                                _MatchSeconds = 0;
+                                // 开始匹配
+                                while (Config.FunGame_isMatching)
                                 {
-                                    StartMatch_Method(i, objs);
-                                };
-                                if (InvokeRequired)
-                                {
-                                    Invoke(StartMatch_Action, (int)StartMatchState.Success, new object[] { roomid });
+                                    if (_MatchSeconds < 60)
+                                    {
+                                        await Task.Delay(1000);
+                                        _MatchSeconds++;
+                                        SetMatchSecondsText();
+                                    }
+                                    else
+                                    {
+                                        // 达到60秒时
+                                        if (await MainController.MatchRoomAsync(Config.FunGame_GameMode, true))
+                                        {
+                                            // 取消匹配
+                                            UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, General.HallInstance);
+                                            break;
+                                        }
+                                    }
                                 }
-                                else
-                                {
-                                    StartMatch_Action((int)StartMatchState.Success, new object[] { roomid });
-                                }
-                                break;
                             }
-                        }
-                    });
-                    break;
-                case (int)StartMatchState.Success:
-                    Config.FunGame_isMatching = false;
-                    // 匹配成功返回房间号
-                    roomid = "-1";
-                    if (objs != null) roomid = (string)objs[0];
-                    if (!roomid.Equals(-1))
-                    {
-                        WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 匹配成功");
-                        WritelnGameInfo(">> 房间号： " + roomid);
-                        SetRoomid(GetRoom(roomid));
+                        });
                     }
                     else
                     {
                         WritelnGameInfo("ERROR：匹配失败！");
+                    }
+                    break;
+                case StartMatchState.Success:
+                    Config.FunGame_isMatching = false;
+                    // 匹配成功返回房间号
+                    Room room = General.HallInstance;
+                    if (objs != null) room = (Room)objs[0];
+                    if (room.Roomid != "-1")
+                    {
+                        WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 匹配成功");
+                        WritelnGameInfo(">> 房间号： " + room.Roomid);
+                        SetRoomid(GetRoom(room.Roomid));
+                    }
+                    else
+                    {
+                        WritelnGameInfo("ERROR：匹配失败！暂时无法找到符合条件的房间。");
                         break;
                     }
                     // 设置按钮可见性
                     InRoom();
-                    // 创建委托，操作主界面
-                    StartMatch_Action = (i, objs) =>
-                    {
-                        StartMatch_Method(i, objs);
-                    };
-                    if (InvokeRequired)
-                    {
-                        Invoke(StartMatch_Action, (int)StartMatchState.Enable, new object[] { true });
-                    }
-                    else
-                    {
-                        StartMatch_Action((int)StartMatchState.Enable, new object[] { true });
-                    }
-                    MatchFunGame = null;
+                    // 更新按钮图标和文字
+                    UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Enable, true);
                     break;
-                case (int)StartMatchState.Enable:
+                case StartMatchState.Enable:
                     // 设置匹配过程中的各种按钮是否可用
                     bool isPause = false;
                     if (objs != null) isPause = (bool)objs[0];
@@ -620,27 +615,25 @@ namespace Milimoe.FunGame.Desktop.UI
                     RoomBox.Enabled = isPause;
                     Login.Enabled = isPause;
                     break;
-                case (int)StartMatchState.Cancel:
+                case StartMatchState.Cancel:
+                    Config.FunGame_isMatching = false;
                     WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 终止匹配");
                     WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已终止匹配。");
-                    Config.FunGame_isMatching = false;
-                    StartMatch_Action = (i, objs) =>
-                    {
-                        StartMatch_Method(i, objs);
-                    };
-                    if (InvokeRequired)
-                    {
-                        Invoke(StartMatch_Action, (int)StartMatchState.Enable, new object[] { true });
-                    }
-                    else
-                    {
-                        StartMatch_Action((int)StartMatchState.Enable, new object[] { true });
-                    }
-                    MatchFunGame = null;
+                    UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Enable, true);
                     StopMatch.Visible = false;
                     StartMatch.Visible = true;
                     break;
             }
+        }
+
+        private void SetMatchSecondsText()
+        {
+            if (_MatchSeconds <= 0) return;
+            if (_MatchSeconds < 60)
+            {
+                StopMatch.Text = _MatchSeconds + " 秒";
+            }
+            else StopMatch.Text = "1 分 " + (_MatchSeconds - 60) + " 秒";
         }
 
         /// <summary>
@@ -685,18 +678,13 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         private void StopMatch_Click()
         {
-            StartMatch_Action = (i, objs) =>
+            TaskUtility.NewTask(async () =>
             {
-                StartMatch_Method(i, objs);
-            };
-            if (InvokeRequired)
-            {
-                Invoke(StartMatch_Action, (int)StartMatchState.Cancel, new object[] { true });
-            }
-            else
-            {
-                StartMatch_Action((int)StartMatchState.Cancel, new object[] { true });
-            }
+                if (MainController != null && await MainController.MatchRoomAsync(Config.FunGame_GameMode, true))
+                {
+                    UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
+                }
+            });
         }
 
         /// <summary>
@@ -881,6 +869,25 @@ namespace Milimoe.FunGame.Desktop.UI
             });
         }
 
+        /// <summary>
+        /// 鼠标离开停止匹配按钮时，恢复按钮文本为匹配时长
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        private void StopMatch_MouseLeave(object? sender, EventArgs e) => SetMatchSecondsText();
+
+        /// <summary>
+        /// 鼠标轻触停止匹配按钮时，将文本从匹配时长转为停止匹配
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        private void StopMatch_MouseHover(object? sender, EventArgs e)
+        {
+            StopMatch.Text = "停止匹配";
+        }
+
         #endregion
 
         #region 事件
@@ -911,25 +918,9 @@ namespace Milimoe.FunGame.Desktop.UI
             StartMatch.Visible = false;
             StopMatch.Visible = true;
             // 暂停其他按钮
-            StartMatch_Method((int)StartMatchState.Enable, new object[] { false });
-            // 创建委托，开始匹配
-            StartMatch_Action = (i, objs) =>
-            {
-                StartMatch_Method(i, objs);
-            };
-            // 创建新线程匹配
-            MatchFunGame = Task.Factory.StartNew(() =>
-            {
-
-                if (InvokeRequired)
-                {
-                    Invoke(StartMatch_Action, (int)StartMatchState.Matching, null);
-                }
-                else
-                {
-                    StartMatch_Action((int)StartMatchState.Matching, null);
-                }
-            });
+            UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Enable, false);
+            // 开始匹配
+            UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Matching);
         }
 
         /// <summary>
