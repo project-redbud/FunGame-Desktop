@@ -203,6 +203,8 @@ namespace Milimoe.FunGame.Desktop.Controller
             if (room.Roomid == "-1")
             {
                 Main.ShowMessage(ShowMessageType.General, "暂时无法找到符合条件的房间。", "匹配失败");
+                Main.UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, room);
+                Main.UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
             }
             else if (Main.ShowMessage(ShowMessageType.YesNo, "已找到符合条件的房间，是否加入？", "匹配成功", 10) == MessageResult.Yes)
             {

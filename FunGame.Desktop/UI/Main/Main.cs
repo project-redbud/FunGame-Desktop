@@ -555,6 +555,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             {
                                 Config.FunGame_isMatching = true;
                                 _MatchSeconds = 0;
+                                SetMatchSecondsText();
                                 // 开始匹配
                                 while (Config.FunGame_isMatching)
                                 {
@@ -571,6 +572,7 @@ namespace Milimoe.FunGame.Desktop.UI
                                         {
                                             // 取消匹配
                                             UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, General.HallInstance);
+                                            UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
                                             break;
                                         }
                                     }
@@ -628,7 +630,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
         private void SetMatchSecondsText()
         {
-            if (_MatchSeconds <= 0) return;
+            if (_MatchSeconds <= 0) StopMatch.Text = "停止匹配";
             if (_MatchSeconds < 60)
             {
                 StopMatch.Text = _MatchSeconds + " 秒";
