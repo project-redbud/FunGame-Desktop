@@ -460,12 +460,16 @@ namespace Milimoe.FunGame.Desktop.UI
             CheckTeam.Enabled = isLogon;
             CheckHasPass.Enabled = isLogon;
             StartMatch.Enabled = isLogon;
-            CreateRoom.Enabled = isLogon;
-            RoomBox.Enabled = isLogon;
             AccountSetting.Enabled = isLogon;
             Stock.Enabled = isLogon;
             Store.Enabled = isLogon;
-            RefreshRoomList.Enabled = isLogon;
+            if (!Config.FunGame_isMatching)
+            {
+                // 匹配中时不修改部分按钮状态
+                RoomBox.Enabled = isLogon;
+                CreateRoom.Enabled = isLogon;
+                RefreshRoomList.Enabled = isLogon;
+            }
         }
 
         /// <summary>
@@ -564,17 +568,15 @@ namespace Milimoe.FunGame.Desktop.UI
                                         await Task.Delay(1000);
                                         _MatchSeconds++;
                                         SetMatchSecondsText();
+                                        continue;
                                     }
-                                    else
+                                    // 达到60秒时
+                                    if (await MainController.MatchRoomAsync(Config.FunGame_GameMode, true))
                                     {
-                                        // 达到60秒时
-                                        if (await MainController.MatchRoomAsync(Config.FunGame_GameMode, true))
-                                        {
-                                            // 取消匹配
-                                            UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, General.HallInstance);
-                                            UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
-                                            break;
-                                        }
+                                        // 取消匹配
+                                        UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, General.HallInstance);
+                                        UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
+                                        break;
                                     }
                                 }
                             }
@@ -601,21 +603,20 @@ namespace Milimoe.FunGame.Desktop.UI
                         WritelnGameInfo("ERROR：匹配失败！暂时无法找到符合条件的房间。");
                         break;
                     }
-                    // 设置按钮可见性
-                    InRoom();
                     // 更新按钮图标和文字
                     UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Enable, true);
                     break;
                 case StartMatchState.Enable:
                     // 设置匹配过程中的各种按钮是否可用
-                    bool isPause = false;
-                    if (objs != null) isPause = (bool)objs[0];
-                    CheckMix.Enabled = isPause;
-                    CheckTeam.Enabled = isPause;
-                    CheckHasPass.Enabled = isPause;
-                    CreateRoom.Enabled = isPause;
-                    RoomBox.Enabled = isPause;
-                    Login.Enabled = isPause;
+                    bool isEnabel = false;
+                    if (objs != null) isEnabel = (bool)objs[0];
+                    CheckMix.Enabled = isEnabel;
+                    CheckTeam.Enabled = isEnabel;
+                    CheckHasPass.Enabled = isEnabel;
+                    CreateRoom.Enabled = isEnabel;
+                    RoomBox.Enabled = isEnabel;
+                    RefreshRoomList.Enabled = isEnabel;
+                    Logout.Enabled = isEnabel;
                     break;
                 case StartMatchState.Cancel:
                     Config.FunGame_isMatching = false;
@@ -1400,7 +1401,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     }
                     break;
                 case Constant.FunGame_Disconnect:
-                    if (Config.FunGame_isConnected && MainController != null)
+                    if (Config.FunGame_isConnected && !Config.FunGame_isMatching && MainController != null)
                     {
                         // 先退出登录再断开连接
                         bool SuccessLogOut = false;
