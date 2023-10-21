@@ -411,6 +411,7 @@ namespace Milimoe.FunGame.Desktop.UI
             SetRoomid(Usercfg.InRoom);
             QuitRoom.Visible = false;
             StartMatch.Visible = true;
+            StopMatch.Visible = false;
             RoomSetting.Visible = false;
             CreateRoom.Visible = true;
             NowRoomID.Visible = false;
@@ -424,6 +425,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             // 显示：退出房间、房间设置、当前房间号、复制房间号
             // 隐藏：停止匹配、创建房间
+            StartMatch.Visible = false;
             StopMatch.Visible = false;
             QuitRoom.Visible = true;
             CreateRoom.Visible = false;
@@ -558,8 +560,6 @@ namespace Milimoe.FunGame.Desktop.UI
                             if (await MainController.MatchRoomAsync(Config.FunGame_GameMode))
                             {
                                 Config.FunGame_isMatching = true;
-                                _MatchSeconds = 0;
-                                SetMatchSecondsText();
                                 // 开始匹配
                                 while (Config.FunGame_isMatching)
                                 {
@@ -588,7 +588,6 @@ namespace Milimoe.FunGame.Desktop.UI
                     }
                     break;
                 case StartMatchState.Success:
-                    Config.FunGame_isMatching = false;
                     // 匹配成功返回房间号
                     Room room = General.HallInstance;
                     if (objs != null) room = (Room)objs[0];
@@ -629,6 +628,9 @@ namespace Milimoe.FunGame.Desktop.UI
             }
         }
 
+        /// <summary>
+        /// 更新当前匹配时间
+        /// </summary>
         private void SetMatchSecondsText()
         {
             if (_MatchSeconds <= 0) StopMatch.Text = "停止匹配";
@@ -913,6 +915,8 @@ namespace Milimoe.FunGame.Desktop.UI
         private void StartMatch_Click(object sender, EventArgs e)
         {
             // 开始匹配
+            _MatchSeconds = 0;
+            SetMatchSecondsText();
             WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 开始匹配");
             WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 开始匹配");
             WriteGameInfo(">> 匹配参数：");

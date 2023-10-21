@@ -198,6 +198,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         protected override void SocketHandler_MatchRoom(SocketObject ServerMessage)
         {
             // 匹配成功，询问是否加入房间
+            Config.FunGame_isMatching = false;
             Room room = General.HallInstance;
             if (ServerMessage.Length > 0) room = ServerMessage.GetParam<Room>(0) ?? General.HallInstance;
             if (room.Roomid == "-1")
