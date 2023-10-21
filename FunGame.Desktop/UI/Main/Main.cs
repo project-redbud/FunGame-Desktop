@@ -589,21 +589,33 @@ namespace Milimoe.FunGame.Desktop.UI
                     break;
                 case StartMatchState.Success:
                     // 匹配成功返回房间号
-                    Room room = General.HallInstance;
-                    if (objs != null) room = (Room)objs[0];
-                    if (room.Roomid != "-1")
+                    TaskUtility.NewTask(async () =>
                     {
-                        WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 匹配成功");
-                        WritelnGameInfo(">> 房间号： " + room.Roomid);
-                        SetRoomid(GetRoom(room.Roomid));
-                    }
-                    else
-                    {
-                        WritelnGameInfo("ERROR：匹配失败！暂时无法找到符合条件的房间。");
-                        break;
-                    }
-                    // 更新按钮图标和文字
-                    UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Enable, true);
+                        Room room = General.HallInstance;
+                        if (objs != null) room = (Room)objs[0];
+                        if (room.Roomid != "-1")
+                        {
+                            GetMessage("匹配成功 -> 房间号： " + room.Roomid);
+                            if (MainController != null) await MainController.UpdateRoomAsync();
+                            Room target = GetRoom(room.Roomid);
+                            if (target.Roomid != "-1")
+                            {
+                                SetRoomid(target);
+                            }
+                            else
+                            {
+                                GetMessage("加入房间失败！原因：房间号不存在或已被解散。");
+                            }
+                        }
+                        else
+                        {
+                            GetMessage("匹配失败！暂时无法找到符合条件的房间。");
+                        }
+                        // 更新按钮图标和文字
+                        UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Enable, true);
+                        StopMatch.Visible = false;
+                        StartMatch.Visible = true;
+                    });
                     break;
                 case StartMatchState.Enable:
                     // 设置匹配过程中的各种按钮是否可用
