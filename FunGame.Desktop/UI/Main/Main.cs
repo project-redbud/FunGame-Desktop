@@ -573,9 +573,13 @@ namespace Milimoe.FunGame.Desktop.UI
                                     // 达到60秒时
                                     if (await MainController.MatchRoomAsync(Config.FunGame_GameMode, true))
                                     {
-                                        // 取消匹配
-                                        UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, General.HallInstance);
-                                        UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
+                                        // 需要再次检查匹配状态
+                                        if (!Config.FunGame_isMatching)
+                                        {
+                                            // 取消匹配
+                                            UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, General.HallInstance);
+                                            UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
+                                        }
                                         break;
                                     }
                                 }
@@ -597,9 +601,9 @@ namespace Milimoe.FunGame.Desktop.UI
                         {
                             GetMessage("匹配成功 -> 房间号： " + room.Roomid);
                             if (MainController != null) await MainController.UpdateRoomAsync();
-                            Room target = GetRoom(room.Roomid);
-                            if (target.Roomid != "-1")
+                            if (Rooms.IsExist(room.Roomid))
                             {
+                                Room target = Rooms[room.Roomid];
                                 await InvokeController_IntoRoom(target);
                             }
                             else
