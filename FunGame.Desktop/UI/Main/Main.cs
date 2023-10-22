@@ -600,7 +600,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             Room target = GetRoom(room.Roomid);
                             if (target.Roomid != "-1")
                             {
-                                SetRoomid(target);
+                                await InvokeController_IntoRoom(target);
                             }
                             else
                             {
