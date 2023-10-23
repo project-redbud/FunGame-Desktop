@@ -557,9 +557,9 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         TaskUtility.NewTask(async () =>
                         {
+                            Config.FunGame_isMatching = true;
                             if (await MainController.MatchRoomAsync(Config.FunGame_GameMode))
                             {
-                                Config.FunGame_isMatching = true;
                                 // 开始匹配
                                 while (Config.FunGame_isMatching)
                                 {
@@ -571,19 +571,16 @@ namespace Milimoe.FunGame.Desktop.UI
                                         continue;
                                     }
                                     // 达到60秒时
-                                    if (await MainController.MatchRoomAsync(Config.FunGame_GameMode, true))
+                                    if (Config.FunGame_isMatching && await MainController.MatchRoomAsync(Config.FunGame_GameMode, true))
                                     {
-                                        // 需要再次检查匹配状态
-                                        if (!Config.FunGame_isMatching)
-                                        {
-                                            // 取消匹配
-                                            UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, General.HallInstance);
-                                            UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
-                                        }
+                                        // 取消匹配
+                                        UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, General.HallInstance);
+                                        UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
                                         break;
                                     }
                                 }
                             }
+                            else Config.FunGame_isMatching = false;
                         });
                     }
                     else
