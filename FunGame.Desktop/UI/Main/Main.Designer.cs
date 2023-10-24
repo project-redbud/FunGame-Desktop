@@ -555,6 +555,8 @@ namespace Milimoe.FunGame.Desktop.UI
             StopMatch.UseVisualStyleBackColor = true;
             StopMatch.Visible = false;
             StopMatch.Click += StopMatch_Click;
+            StopMatch.MouseHover += StopMatch_MouseHover;
+            StopMatch.MouseLeave += StopMatch_MouseLeave;
             // 
             // Main
             // 
