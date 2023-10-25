@@ -3,11 +3,14 @@ using Milimoe.FunGame.Core.Library.Constant;
 
 namespace Milimoe.FunGame.Desktop.Library.Component
 {
+    /// <summary>
+    /// ShowMessage提供三个按钮，三种按钮组合方式(单一，是否，是否+取消)，提供自动关闭弹窗的功能。
+    /// </summary>
     public partial class ShowMessage : GeneralForm
     {
         private MessageResult MessageResult = MessageResult.Cancel;
+        private readonly MessageResult AutoResult = MessageResult.OK;
         private string InputResult = "";
-        private readonly int AutoClose = 0;
 
         private const string TITLE_TIP = "提示";
         private const string TITLE_WARNING = "警告";
@@ -19,124 +22,230 @@ namespace Milimoe.FunGame.Desktop.Library.Component
         private const string BUTTON_RETRY = "重试";
 
         /// <summary>
+        /// 弹出单一按钮（确定）的弹窗
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="autoclose"></param>
+        /// <returns></returns>
+        public static MessageResult Message(string msg, string title, int autoclose = 0)
+        {
+            MessageResult result = new ShowMessage(title, msg, autoclose, MessageButtonType.OK, BUTTON_OK).MessageResult;
+            return result;
+        }
+
+        /// <summary>
+        /// 弹出单一按钮（确定）的弹窗，标题默认为“提示”
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="autoclose"></param>
+        /// <returns></returns>
+        public static MessageResult TipMessage(string msg, string title = "", int autoclose = 0)
+        {
+            MessageResult result = new ShowMessage(title == "" ? TITLE_TIP : title, msg, autoclose, MessageButtonType.OK, BUTTON_OK).MessageResult;
+            return result;
+        }
+
+        /// <summary>
+        /// 弹出单一按钮（确定）的弹窗，标题默认为“警告”
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="autoclose"></param>
+        /// <returns></returns>
+        public static MessageResult WarningMessage(string msg, string title = "", int autoclose = 0)
+        {
+            MessageResult result = new ShowMessage(title == "" ? TITLE_WARNING : title, msg, autoclose, MessageButtonType.OK, BUTTON_OK).MessageResult;
+            return result;
+        }
+
+        /// <summary>
+        /// 弹出单一按钮（确定）的弹窗，标题默认为“错误”
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="autoclose"></param>
+        /// <returns></returns>
+        public static MessageResult ErrorMessage(string msg, string title = "", int autoclose = 0)
+        {
+            MessageResult result = new ShowMessage(title == "" ? TITLE_ERROR : title, msg, autoclose, MessageButtonType.OK, BUTTON_OK).MessageResult;
+            return result;
+        }
+
+        /// <summary>
+        /// 弹出选择（是，否）的弹窗
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="autoclose"></param>
+        /// <returns></returns>
+        public static MessageResult YesNoMessage(string msg, string title, int autoclose = 0)
+        {
+            MessageResult result = new ShowMessage(title, msg, autoclose, MessageButtonType.YesNo, BUTTON_CANCEL, BUTTON_YES, BUTTON_NO).MessageResult;
+            return result;
+        }
+
+        /// <summary>
+        /// 弹出选择（确定，取消）的弹窗
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="autoclose"></param>
+        /// <returns></returns>
+        public static MessageResult OKCancelMessage(string msg, string title, int autoclose = 0)
+        {
+            MessageResult result = new ShowMessage(title, msg, autoclose, MessageButtonType.OKCancel, BUTTON_CANCEL, BUTTON_OK, BUTTON_CANCEL).MessageResult;
+            return result;
+        }
+
+        /// <summary>
+        /// 弹出选择（重试，取消）的弹窗
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="autoclose"></param>
+        /// <returns></returns>
+        public static MessageResult RetryCancelMessage(string msg, string title, int autoclose = 0)
+        {
+            MessageResult result = new ShowMessage(title, msg, autoclose, MessageButtonType.RetryCancel, BUTTON_CANCEL, BUTTON_RETRY, BUTTON_CANCEL).MessageResult;
+            return result;
+        }
+
+        /// <summary>
+        /// 弹出具有输入框的弹窗
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <returns>输入框内的文本</returns>
+        public static string InputMessage(string msg, string title)
+        {
+            string result = new ShowMessage(title, msg, 0, MessageButtonType.Input).InputResult;
+            return result;
+        }
+
+        /// <summary>
+        /// 弹出具有输入框的弹窗，多增加了（点击的按钮）返回值，可用于判断是否取消操作
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="title"></param>
+        /// <param name="cancel">点击的按钮</param>
+        /// <returns>输入框内的文本</returns>
+        public static string InputMessageCancel(string msg, string title, out MessageResult cancel)
+        {
+            ShowMessage window = new(title, msg, 0, MessageButtonType.Input);
+            string result = window.InputResult;
+            cancel = window.MessageResult;
+            return result;
+        }
+
+        /// <summary>
         /// 构造方法
         /// </summary>
-        /// /// <param name="objs">参数数组，按下面的注释传参，不要乱传</param>
-        private ShowMessage(params object[] objs)
+        /// <param name="title">标题</param>
+        /// <param name="msg">信息</param>
+        /// <param name="autoclose">自动关闭倒计时(秒)</param>
+        /// <param name="type">按钮类型(组合类型)</param>
+        /// <param name="mid">中间按钮的文本</param>
+        /// <param name="left">左边按钮的文本</param>
+        /// <param name="right">右边按钮的文本</param>
+        private ShowMessage(string title = "", string msg = "", int autoclose = 0, MessageButtonType type = MessageButtonType.OK, string mid = "", string left = "", string right = "")
         {
             InitializeComponent();
             Opacity = 0.85; // 透明度
-            if (objs != null)
+            // 标题
+            Title.Text = title;
+            Text = title;
+            // 信息
+            MsgText.Text = msg;
+            // 按钮类型(组合类型)
+            switch (type)
             {
-                /**
-                 * objs:
-                 * 0 = title
-                 * 1 = msg
-                 * 2 = autoclose(second)
-                 * 3 = button type
-                 * 4 = mid text
-                 * 5 = left text
-                 * 6 = right text
-                 */
-                int length = objs.Length;
-                if (length > 0 && objs[0] != null)
-                {
-                    Title.Text = (string)objs[0];
-                    Text = Title.Text;
-                }
-                if (length > 1 && objs[1] != null)
-                {
-                    MsgText.Text = (string)objs[1];
-                }
-                if (length > 2 && objs[2] != null)
-                {
-                    AutoClose = (int)objs[2];
-                }
-                if (length > 3 && objs[3] != null)
-                {
-                    MessageButtonType type = (MessageButtonType)objs[3];
-                    switch (type)
-                    {
-                        case MessageButtonType.OK:
-                            MidButton.Text = BUTTON_OK;
-                            InputText.Visible = false;
-                            InputButton.Visible = false;
-                            LeftButton.Visible = false;
-                            RightButton.Visible = false;
-                            MidButton.Visible = true;
-                            break;
-                        case MessageButtonType.OKCancel:
-                            LeftButton.Text = BUTTON_OK;
-                            RightButton.Text = BUTTON_CANCEL;
-                            InputText.Visible = false;
-                            InputButton.Visible = false;
-                            LeftButton.Visible = true;
-                            RightButton.Visible = true;
-                            MidButton.Visible = false;
-                            break;
-                        case MessageButtonType.YesNo:
-                            LeftButton.Text = BUTTON_YES;
-                            RightButton.Text = BUTTON_NO;
-                            InputText.Visible = false;
-                            InputButton.Visible = false;
-                            LeftButton.Visible = true;
-                            RightButton.Visible = true;
-                            MidButton.Visible = false;
-                            break;
-                        case MessageButtonType.RetryCancel:
-                            LeftButton.Text = BUTTON_RETRY;
-                            RightButton.Text = BUTTON_CANCEL;
-                            InputText.Visible = false;
-                            InputButton.Visible = false;
-                            LeftButton.Visible = true;
-                            RightButton.Visible = true;
-                            MidButton.Visible = false;
-                            break;
-                        case MessageButtonType.Input:
-                            InputButton.Text = BUTTON_OK;
-                            LeftButton.Visible = false;
-                            RightButton.Visible = false;
-                            MidButton.Visible = false;
-                            InputText.Visible = true;
-                            InputButton.Visible = true;
-                            break;
-                    }
-                    if (length > 4 && objs[4] != null) MidButton.Text = (string)objs[4];
-                    if (length > 5 && objs[5] != null) LeftButton.Text = (string)objs[5];
-                    if (length > 6 && objs[6] != null) RightButton.Text = (string)objs[6];
-                }
+                case MessageButtonType.OK:
+                    MidButton.Text = BUTTON_OK;
+                    InputText.Visible = false;
+                    InputButton.Visible = false;
+                    LeftButton.Visible = false;
+                    RightButton.Visible = false;
+                    MidButton.Visible = true;
+                    break;
+                case MessageButtonType.OKCancel:
+                    LeftButton.Text = BUTTON_OK;
+                    RightButton.Text = BUTTON_CANCEL;
+                    InputText.Visible = false;
+                    InputButton.Visible = false;
+                    LeftButton.Visible = true;
+                    RightButton.Visible = true;
+                    MidButton.Visible = false;
+                    AutoResult = MessageResult.Cancel;
+                    break;
+                case MessageButtonType.YesNo:
+                    LeftButton.Text = BUTTON_YES;
+                    RightButton.Text = BUTTON_NO;
+                    InputText.Visible = false;
+                    InputButton.Visible = false;
+                    LeftButton.Visible = true;
+                    RightButton.Visible = true;
+                    MidButton.Visible = false;
+                    AutoResult = MessageResult.No;
+                    break;
+                case MessageButtonType.RetryCancel:
+                    LeftButton.Text = BUTTON_RETRY;
+                    RightButton.Text = BUTTON_CANCEL;
+                    InputText.Visible = false;
+                    InputButton.Visible = false;
+                    LeftButton.Visible = true;
+                    RightButton.Visible = true;
+                    MidButton.Visible = false;
+                    AutoResult = MessageResult.Cancel;
+                    break;
+                case MessageButtonType.Input:
+                    InputButton.Text = BUTTON_OK;
+                    LeftButton.Visible = false;
+                    RightButton.Visible = false;
+                    MidButton.Visible = false;
+                    InputText.Visible = true;
+                    InputButton.Visible = true;
+                    AutoResult = MessageResult.Cancel;
+                    break;
             }
-            else
-            {
-                MessageResult = MessageResult.Cancel;
-                Dispose();
-            }
-            if (AutoClose > 0)
-            {
-                TaskUtility.NewTask(async () =>
-                {
-                    string msg = MsgText.Text;
-                    int s = AutoClose;
-                    await Task.Run(() =>
-                    {
-                        while (IsHandleCreated)
-                        {
-                            break;
-                        }
-                    });
-                    BeginInvoke(() => ChangeSecond(msg, s));
-                    while (!Disposing)
-                    {
-                        if (s > 0) await Task.Delay(1000);
-                        else break;
-                        s--;
-                        BeginInvoke(() => ChangeSecond(msg, s));
-                    }
-                    MessageResult = MessageResult.OK;
-                    Close();
-                });
-            }
+            // 按钮文本
+            MidButton.Text = mid;
+            LeftButton.Text = left;
+            RightButton.Text = right;
+            // 自动关闭倒计时
+            TaskUtility.NewTask(async () => await AutoClose(autoclose));
             ShowDialog();
+        }
+
+        /// <summary>
+        /// 自动关闭窗口的实现
+        /// </summary>
+        /// <param name="autoclose"></param>
+        /// <returns></returns>
+        private async Task AutoClose(int autoclose)
+        {
+            if (autoclose > 0)
+            {
+                string msg = MsgText.Text;
+                await Task.Run(() =>
+                {
+                    while (IsHandleCreated)
+                    {
+                        break;
+                    }
+                });
+                ChangeSecond(msg, autoclose);
+                while (!Disposing)
+                {
+                    if (autoclose > 0) await Task.Delay(1000);
+                    else break;
+                    autoclose--;
+                    ChangeSecond(msg, autoclose);
+                }
+                MessageResult = AutoResult;
+                Close();
+            }
         }
 
         /// <summary>
@@ -157,71 +266,11 @@ namespace Milimoe.FunGame.Desktop.Library.Component
             Dispose();
         }
 
-        public static MessageResult Message(string msg, string title, int autoclose = 0)
-        {
-            object[] objs = { title, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
-            MessageResult result = new ShowMessage(objs).MessageResult;
-            return result;
-        }
-
-        public static MessageResult TipMessage(string msg, string title = "", int autoclose = 0)
-        {
-            object[] objs = { title == "" ? TITLE_TIP : title, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
-            MessageResult result = new ShowMessage(objs).MessageResult;
-            return result;
-        }
-
-        public static MessageResult WarningMessage(string msg, string title = "", int autoclose = 0)
-        {
-            object[] objs = { title == "" ? TITLE_WARNING : title, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
-            MessageResult result = new ShowMessage(objs).MessageResult;
-            return result;
-        }
-
-        public static MessageResult ErrorMessage(string msg, string title = "", int autoclose = 0)
-        {
-            object[] objs = { title == "" ? TITLE_ERROR : title, msg, autoclose, MessageButtonType.OK, BUTTON_OK };
-            MessageResult result = new ShowMessage(objs).MessageResult;
-            return result;
-        }
-
-        public static MessageResult YesNoMessage(string msg, string title)
-        {
-            object[] objs = { title, msg, 0, MessageButtonType.YesNo, BUTTON_CANCEL, BUTTON_YES, BUTTON_NO };
-            MessageResult result = new ShowMessage(objs).MessageResult;
-            return result;
-        }
-
-        public static MessageResult OKCancelMessage(string msg, string title)
-        {
-            object[] objs = { title, msg, 0, MessageButtonType.OKCancel, BUTTON_CANCEL, BUTTON_OK, BUTTON_CANCEL };
-            MessageResult result = new ShowMessage(objs).MessageResult;
-            return result;
-        }
-
-        public static MessageResult RetryCancelMessage(string msg, string title)
-        {
-            object[] objs = { title, msg, 0, MessageButtonType.RetryCancel, BUTTON_CANCEL, BUTTON_RETRY, BUTTON_CANCEL };
-            MessageResult result = new ShowMessage(objs).MessageResult;
-            return result;
-        }
-
-        public static string InputMessage(string msg, string title)
-        {
-            object[] objs = { title, msg, 0, MessageButtonType.Input };
-            string result = new ShowMessage(objs).InputResult;
-            return result;
-        }
-
-        public static string InputMessageCancel(string msg, string title, out MessageResult cancel)
-        {
-            object[] objs = { title, msg, 0, MessageButtonType.Input };
-            ShowMessage window = new(objs);
-            string result = window.InputResult;
-            cancel = window.MessageResult;
-            return result;
-        }
-
+        /// <summary>
+        /// 修改倒计时显示
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="s"></param>
         private void ChangeSecond(string msg, int s)
         {
             MsgText.Text = msg + "\n[ " + s + " 秒后自动关闭 ]";
