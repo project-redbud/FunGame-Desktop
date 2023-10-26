@@ -32,25 +32,25 @@ namespace Milimoe.FunGame.Desktop.Library.Component
                 switch (type)
                 {
                     case ShowMessageType.General:
-                        result = Library.Component.ShowMessage.Message(msg, title, autoclose);
+                        result = Component.ShowMessage.Message(msg, title, autoclose);
                         break;
                     case ShowMessageType.Tip:
-                        result = Library.Component.ShowMessage.TipMessage(msg, "", autoclose);
+                        result = Component.ShowMessage.TipMessage(msg, "", autoclose);
                         break;
                     case ShowMessageType.Warning:
-                        result = Library.Component.ShowMessage.WarningMessage(msg, "", autoclose);
+                        result = Component.ShowMessage.WarningMessage(msg, "", autoclose);
                         break;
                     case ShowMessageType.Error:
-                        result = Library.Component.ShowMessage.ErrorMessage(msg, "", autoclose);
+                        result = Component.ShowMessage.ErrorMessage(msg, "", autoclose);
                         break;
                     case ShowMessageType.YesNo:
-                        result = Library.Component.ShowMessage.YesNoMessage(msg, title);
+                        result = Component.ShowMessage.YesNoMessage(msg, title, autoclose);
                         break;
                     case ShowMessageType.OKCancel:
-                        result = Library.Component.ShowMessage.OKCancelMessage(msg, title);
+                        result = Component.ShowMessage.OKCancelMessage(msg, title, autoclose);
                         break;
                     case ShowMessageType.RetryCancel:
-                        result = Library.Component.ShowMessage.RetryCancelMessage(msg, title);
+                        result = Component.ShowMessage.RetryCancelMessage(msg, title, autoclose);
                         break;
                     default:
                         break;
