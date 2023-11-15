@@ -158,6 +158,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                         if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList));
                     }
                 }
+                request.Dispose();
                 return result;
             }
             catch (Exception e)
@@ -189,6 +190,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                         if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList));
                     }
                 }
+                request.Dispose();
                 return result;
             }
             catch (Exception e)
