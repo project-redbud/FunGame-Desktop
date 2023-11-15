@@ -211,10 +211,19 @@ namespace Milimoe.FunGame.Desktop.UI
                             {
                                 RoomList.Items.Clear();
                                 Rooms.Clear();
-                                Rooms.AddRooms((List<Room>)objs[0]);
-                                foreach (string roomid in Rooms.ListRoomID)
+                                List<Room> list = (List<Room>)objs[0];
+                                Rooms.AddRooms(list);
+                                foreach (Room r in list)
                                 {
-                                    if (roomid != "-1") RoomList.Items.Add(roomid);
+                                    if (r.Roomid != "-1")
+                                    {
+                                        string item = r.Roomid;
+                                        if (r.Name.Trim() != "")
+                                        {
+                                            item += " [ " + r.Name + " ]";
+                                        }
+                                        RoomList.Items.Add(item);
+                                    }
                                 }
                             }
                             break;
