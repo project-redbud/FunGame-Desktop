@@ -153,9 +153,9 @@ namespace Milimoe.FunGame.Desktop.Controller
                     {
                         Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 准备完毕。");
                         List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
-                        if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList));
+                        if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
                         List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
-                        if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList));
+                        if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                     }
                 }
                 request.Dispose();
@@ -185,9 +185,9 @@ namespace Milimoe.FunGame.Desktop.Controller
                     {
                         Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
                         List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
-                        if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList));
+                        if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
                         List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
-                        if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList));
+                        if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                     }
                 }
                 request.Dispose();

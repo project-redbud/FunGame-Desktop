@@ -467,9 +467,6 @@ namespace Milimoe.FunGame.Desktop.UI
                     break;
             }
             this.PresetText.SelectedIndex = 0;
-            CheckMix.Enabled = isLogon;
-            CheckTeam.Enabled = isLogon;
-            CheckHasPass.Enabled = isLogon;
             StartMatch.Enabled = isLogon;
             AccountSetting.Enabled = isLogon;
             Stock.Enabled = isLogon;
@@ -480,6 +477,9 @@ namespace Milimoe.FunGame.Desktop.UI
                 RoomBox.Enabled = isLogon;
                 CreateRoom.Enabled = isLogon;
                 RefreshRoomList.Enabled = isLogon;
+                CheckMix.Enabled = isLogon;
+                CheckTeam.Enabled = isLogon;
+                CheckHasPass.Enabled = isLogon;
             }
         }
 
@@ -1344,8 +1344,6 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void SucceedCreateRoomEvent(object sender, RoomEventArgs e)
         {
-            SetRoomid(e.Room);
-            InRoom();
             WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + e.RoomTypeString + "房间");
             WritelnGameInfo(">> 创建" + e.RoomTypeString + "房间成功！房间号： " + e.RoomID);
             ShowMessage(ShowMessageType.General, "创建" + e.RoomTypeString + "房间成功！\n房间号是 -> [ " + e.RoomID + " ]", "创建成功");
@@ -1407,7 +1405,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         {
                             if (await MainController.SetReadyAsync(Usercfg.InRoom.Roomid))
                             {
-                                await MainController.ChatAsync("[ " + Usercfg.LoginUser.Username + " ] 已准备。");
+                                await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已准备。");
                             }
                         });
                     }
@@ -1422,7 +1420,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         {
                             if (await MainController.CancelReadyAsync(Usercfg.InRoom.Roomid))
                             {
-                                await MainController.ChatAsync("[ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
+                                await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
                             }
                         });
                     }
