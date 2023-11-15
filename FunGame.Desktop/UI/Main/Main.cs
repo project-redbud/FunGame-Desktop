@@ -1398,6 +1398,35 @@ namespace Milimoe.FunGame.Desktop.UI
                 case Constant.FunGame_CreateTeam:
                     TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Team));
                     break;
+                case Constant.FunGame_Ready:
+                case ".r":
+                case ".ready":
+                    if (MainController != null)
+                    {
+                        TaskUtility.NewTask(async () =>
+                        {
+                            if (await MainController.SetReadyAsync(Usercfg.InRoom.Roomid))
+                            {
+                                await MainController.ChatAsync("[ " + Usercfg.LoginUser.Username + " ] 已准备。");
+                            }
+                        });
+                    }
+                    break;
+                case Constant.FunGame_CancelReady:
+                case ".cr":
+                case ".ready -c":
+                case ".cancelready":
+                    if (MainController != null)
+                    {
+                        TaskUtility.NewTask(async () =>
+                        {
+                            if (await MainController.CancelReadyAsync(Usercfg.InRoom.Roomid))
+                            {
+                                await MainController.ChatAsync("[ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
+                            }
+                        });
+                    }
+                    break;
                 case Constant.FunGame_StartGame:
                     break;
                 case Constant.FunGame_AutoRetryOn:

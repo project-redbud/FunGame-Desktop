@@ -135,6 +135,68 @@ namespace Milimoe.FunGame.Desktop.Controller
                 return 0;
             }
         }
+        
+        public async Task<bool> SetReadyAsync(string roomid)
+        {
+            try
+            {
+                bool result = true;
+
+                DataRequest request = RunTime.NewDataRequest(DataRequestType.Main_Ready);
+                request.AddRequestData("roomid", roomid);
+                request.AddRequestData("user", Usercfg.LoginUser);
+                await request.SendRequestAsync();
+                if (request.Result == RequestResult.Success)
+                {
+                    result = request.GetResult<bool>("result");
+                    if (result)
+                    {
+                        Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 准备完毕。");
+                        List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
+                        if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList));
+                        List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
+                        if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList));
+                    }
+                }
+                return result;
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                return false;
+            }
+        }
+        
+        public async Task<bool> CancelReadyAsync(string roomid)
+        {
+            try
+            {
+                bool result = true;
+
+                DataRequest request = RunTime.NewDataRequest(DataRequestType.Main_CancelReady);
+                request.AddRequestData("roomid", roomid);
+                request.AddRequestData("user", Usercfg.LoginUser);
+                await request.SendRequestAsync();
+                if (request.Result == RequestResult.Success)
+                {
+                    result = request.GetResult<bool>("result");
+                    if (result)
+                    {
+                        Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
+                        List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
+                        if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList));
+                        List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
+                        if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList));
+                    }
+                }
+                return result;
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                return false;
+            }
+        }
 
         public async Task<bool> QuitRoomAsync(string roomid, bool isMaster)
         {
