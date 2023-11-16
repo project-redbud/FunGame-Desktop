@@ -101,23 +101,25 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         case MainInvokeType.SetGreen:
                             Config.FunGame_isRetrying = false;
-                            SetServerStatusLight((int)LightType.Green);
-                            SetButtonEnableIfLogon(true, ClientState.Online);
+                            SetServerStatusLight(LightType.Green);
+                            if (Usercfg.InRoom.Roomid != "-1") SetButtonEnableIfLogon(true, ClientState.InRoom);
+                            else SetButtonEnableIfLogon(true, ClientState.Online);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
 
                         case MainInvokeType.SetGreenAndPing:
                             Config.FunGame_isRetrying = false;
-                            SetServerStatusLight((int)LightType.Green, ping: NetworkUtility.GetServerPing(RunTime.Session.Server_IP));
-                            SetButtonEnableIfLogon(true, ClientState.Online);
+                            SetServerStatusLight(LightType.Green, ping: NetworkUtility.GetServerPing(RunTime.Session.Server_IP));
+                            if (Usercfg.InRoom.Roomid != "-1") SetButtonEnableIfLogon(true, ClientState.InRoom);
+                            else SetButtonEnableIfLogon(true, ClientState.Online);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
-
+                            
                         case MainInvokeType.SetYellow:
                             Config.FunGame_isRetrying = false;
-                            SetServerStatusLight((int)LightType.Yellow);
+                            SetServerStatusLight(LightType.Yellow);
                             SetButtonEnableIfLogon(false, ClientState.WaitConnect);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
@@ -125,7 +127,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
                         case MainInvokeType.WaitConnectAndSetYellow:
                             Config.FunGame_isRetrying = false;
-                            SetServerStatusLight((int)LightType.Yellow);
+                            SetServerStatusLight(LightType.Yellow);
                             SetButtonEnableIfLogon(false, ClientState.WaitConnect);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
@@ -138,14 +140,14 @@ namespace Milimoe.FunGame.Desktop.UI
 
                         case MainInvokeType.WaitLoginAndSetYellow:
                             Config.FunGame_isRetrying = false;
-                            SetServerStatusLight((int)LightType.Yellow, true);
+                            SetServerStatusLight(LightType.Yellow, true);
                             SetButtonEnableIfLogon(false, ClientState.WaitLogin);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
 
                         case MainInvokeType.SetRed:
-                            SetServerStatusLight((int)LightType.Red);
+                            SetServerStatusLight(LightType.Red);
                             SetButtonEnableIfLogon(false, ClientState.WaitConnect);
                             Config.FunGame_isConnected = false;
                             break;
@@ -155,7 +157,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             RoomList.Items.Clear();
                             Config.FunGame_isRetrying = false;
                             Config.FunGame_isConnected = false;
-                            SetServerStatusLight((int)LightType.Red);
+                            SetServerStatusLight(LightType.Red);
                             SetButtonEnableIfLogon(false, ClientState.WaitConnect);
                             LogoutAccount();
                             MainController?.MainController_Disposed();
@@ -170,7 +172,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             Config.FunGame_isAutoConnect = false;
                             Config.FunGame_isAutoLogin = false;
                             Config.FunGame_isConnected = false;
-                            SetServerStatusLight((int)LightType.Yellow);
+                            SetServerStatusLight(LightType.Yellow);
                             SetButtonEnableIfLogon(false, ClientState.WaitConnect);
                             LogoutAccount();
                             MainController?.MainController_Disposed();
@@ -182,7 +184,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.LogOut:
                             Config.FunGame_isRetrying = false;
                             Config.FunGame_isAutoLogin = false;
-                            SetServerStatusLight((int)LightType.Yellow, true);
+                            SetServerStatusLight(LightType.Yellow, true);
                             SetButtonEnableIfLogon(false, ClientState.WaitLogin);
                             LogoutAccount();
                             if (objs != null && objs.Length > 0)
@@ -453,10 +455,6 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             switch (status)
             {
-                case ClientState.Online:
-                    PresetText.Items.Clear();
-                    PresetText.Items.AddRange(Constant.PresetOnineItems);
-                    break;
                 case ClientState.WaitConnect:
                     PresetText.Items.Clear();
                     PresetText.Items.AddRange(Constant.PresetNoConnectItems);
@@ -464,6 +462,14 @@ namespace Milimoe.FunGame.Desktop.UI
                 case ClientState.WaitLogin:
                     PresetText.Items.Clear();
                     PresetText.Items.AddRange(Constant.PresetNoLoginItems);
+                    break;
+                case ClientState.Online:
+                    PresetText.Items.Clear();
+                    PresetText.Items.AddRange(Constant.PresetOnlineItems);
+                    break;
+                case ClientState.InRoom:
+                    PresetText.Items.Clear();
+                    PresetText.Items.AddRange(Constant.PresetInRoomItems);
                     break;
             }
             this.PresetText.SelectedIndex = 0;
@@ -819,19 +825,19 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="light"></param>
         /// <param name="ping"></param>
-        private void SetServerStatusLight(int light, bool waitlogin = false, int ping = 0)
+        private void SetServerStatusLight(LightType light, bool waitlogin = false, int ping = 0)
         {
             switch (light)
             {
-                case (int)LightType.Green:
+                case LightType.Green:
                     Connection.Text = "服务器连接成功";
                     this.Light.Image = Properties.Resources.green;
                     break;
-                case (int)LightType.Yellow:
+                case LightType.Yellow:
                     Connection.Text = waitlogin ? "等待登录账号" : "等待连接服务器";
                     this.Light.Image = Properties.Resources.yellow;
                     break;
-                case (int)LightType.Red:
+                case LightType.Red:
                 default:
                     Connection.Text = "服务器连接失败";
                     this.Light.Image = Properties.Resources.red;
@@ -1391,23 +1397,35 @@ namespace Milimoe.FunGame.Desktop.UI
                     GameInfo.Clear();
                     break;
                 case Constant.FunGame_CreateMix:
-                    TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Mix));
+                    if (Usercfg.InRoom.Roomid != "-1")
+                    {
+                        TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Mix));
+                    }
+                    else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
                     break;
                 case Constant.FunGame_CreateTeam:
-                    TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Team));
+                    if (Usercfg.InRoom.Roomid != "-1")
+                    {
+                        TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Team));
+                    }
+                    else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
                     break;
                 case Constant.FunGame_Ready:
                 case ".r":
                 case ".ready":
                     if (MainController != null)
                     {
-                        TaskUtility.NewTask(async () =>
+                        if (Usercfg.InRoom.Roomid != "-1")
                         {
-                            if (await MainController.SetReadyAsync(Usercfg.InRoom.Roomid))
+                            TaskUtility.NewTask(async () =>
                             {
-                                await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已准备。");
-                            }
-                        });
+                                if (await MainController.SetReadyAsync(Usercfg.InRoom.Roomid))
+                                {
+                                    await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已准备。");
+                                }
+                            });
+                        }
+                        else WritelnGameInfo(">> 不在房间中无法使用此命令。");
                     }
                     break;
                 case Constant.FunGame_CancelReady:
@@ -1416,13 +1434,17 @@ namespace Milimoe.FunGame.Desktop.UI
                 case ".cancelready":
                     if (MainController != null)
                     {
-                        TaskUtility.NewTask(async () =>
+                        if (Usercfg.InRoom.Roomid != "-1")
                         {
-                            if (await MainController.CancelReadyAsync(Usercfg.InRoom.Roomid))
+                            TaskUtility.NewTask(async () =>
                             {
-                                await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
-                            }
-                        });
+                                if (await MainController.CancelReadyAsync(Usercfg.InRoom.Roomid))
+                                {
+                                    await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
+                                }
+                            });
+                        }
+                        else WritelnGameInfo(">> 不在房间中无法使用此命令。");
                     }
                     break;
                 case Constant.FunGame_StartGame:
@@ -1474,38 +1496,41 @@ namespace Milimoe.FunGame.Desktop.UI
                     }
                     break;
                 case Constant.FunGame_ConnectTo:
-                    string msg = ShowInputMessage("请输入服务器IP地址和端口号，如: 127.0.0.1:22222。", "连接指定服务器");
-                    if (msg.Equals("")) return true;
-                    string[] addr = msg.Split(':');
-                    string ip;
-                    int port;
-                    if (addr.Length < 2)
+                    if (!Config.FunGame_isConnected)
                     {
-                        ip = addr[0];
-                        port = 22222;
+                        string msg = ShowInputMessage("请输入服务器IP地址和端口号，如: 127.0.0.1:22222。", "连接指定服务器");
+                        if (msg.Equals("")) return true;
+                        string[] addr = msg.Split(':');
+                        string ip;
+                        int port;
+                        if (addr.Length < 2)
+                        {
+                            ip = addr[0];
+                            port = 22222;
+                        }
+                        else if (addr.Length < 3)
+                        {
+                            ip = addr[0];
+                            port = Convert.ToInt32(addr[1]);
+                        }
+                        else
+                        {
+                            ShowMessage(ShowMessageType.Error, "格式错误！\n这不是一个服务器地址。");
+                            return true;
+                        }
+                        ErrorIPAddressType ErrorType = NetworkUtility.IsServerAddress(ip, port);
+                        if (ErrorType == ErrorIPAddressType.None)
+                        {
+                            RunTime.Session.Server_IP = ip;
+                            RunTime.Session.Server_Port = port;
+                            CurrentRetryTimes = -1;
+                            Config.FunGame_isAutoRetry = true;
+                            InvokeController_Connect();
+                        }
+                        else if (ErrorType == ErrorIPAddressType.IsNotIP) ShowMessage(ShowMessageType.Error, "这不是一个IP地址！");
+                        else if (ErrorType == ErrorIPAddressType.IsNotPort) ShowMessage(ShowMessageType.Error, "这不是一个端口号！\n正确范围：1~65535");
+                        else ShowMessage(ShowMessageType.Error, "格式错误！\n这不是一个服务器地址。");
                     }
-                    else if (addr.Length < 3)
-                    {
-                        ip = addr[0];
-                        port = Convert.ToInt32(addr[1]);
-                    }
-                    else
-                    {
-                        ShowMessage(ShowMessageType.Error, "格式错误！\n这不是一个服务器地址。");
-                        return true;
-                    }
-                    ErrorIPAddressType ErrorType = NetworkUtility.IsServerAddress(ip, port);
-                    if (ErrorType == ErrorIPAddressType.None)
-                    {
-                        RunTime.Session.Server_IP = ip;
-                        RunTime.Session.Server_Port = port;
-                        CurrentRetryTimes = -1;
-                        Config.FunGame_isAutoRetry = true;
-                        InvokeController_Connect();
-                    }
-                    else if (ErrorType == ErrorIPAddressType.IsNotIP) ShowMessage(ShowMessageType.Error, "这不是一个IP地址！");
-                    else if (ErrorType == ErrorIPAddressType.IsNotPort) ShowMessage(ShowMessageType.Error, "这不是一个端口号！\n正确范围：1~65535");
-                    else ShowMessage(ShowMessageType.Error, "格式错误！\n这不是一个服务器地址。");
                     break;
                 default:
                     break;
