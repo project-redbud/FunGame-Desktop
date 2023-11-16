@@ -151,6 +151,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                     result = request.GetResult<bool>("result");
                     if (result)
                     {
+                        Config.FunGame_isInRoom = true;
                         Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 准备完毕。");
                         List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
                         if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
@@ -183,6 +184,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                     result = request.GetResult<bool>("result");
                     if (result)
                     {
+                        Config.FunGame_isInRoom = false;
                         Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
                         List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
                         if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
