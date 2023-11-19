@@ -144,7 +144,6 @@ namespace Milimoe.FunGame.Desktop.Controller
 
                 DataRequest request = RunTime.NewDataRequest(DataRequestType.Main_Ready);
                 request.AddRequestData("roomid", roomid);
-                request.AddRequestData("user", Usercfg.LoginUser);
                 await request.SendRequestAsync();
                 if (request.Result == RequestResult.Success)
                 {
@@ -153,11 +152,11 @@ namespace Milimoe.FunGame.Desktop.Controller
                     {
                         Config.FunGame_isInRoom = true;
                         Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 准备完毕。");
-                        List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
-                        if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
-                        List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
-                        if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                     }
+                    List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
+                    if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
+                    List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
+                    if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                 }
                 request.Dispose();
                 return result;
@@ -168,7 +167,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 return false;
             }
         }
-        
+
         public async Task<bool> CancelReadyAsync(string roomid)
         {
             try
@@ -177,7 +176,6 @@ namespace Milimoe.FunGame.Desktop.Controller
 
                 DataRequest request = RunTime.NewDataRequest(DataRequestType.Main_CancelReady);
                 request.AddRequestData("roomid", roomid);
-                request.AddRequestData("user", Usercfg.LoginUser);
                 await request.SendRequestAsync();
                 if (request.Result == RequestResult.Success)
                 {
@@ -186,11 +184,11 @@ namespace Milimoe.FunGame.Desktop.Controller
                     {
                         Config.FunGame_isInRoom = false;
                         Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
-                        List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
-                        if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
-                        List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
-                        if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                     }
+                    List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
+                    if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
+                    List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
+                    if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                 }
                 request.Dispose();
                 return result;
