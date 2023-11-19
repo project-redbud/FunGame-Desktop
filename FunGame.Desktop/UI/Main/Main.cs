@@ -443,6 +443,8 @@ namespace Milimoe.FunGame.Desktop.UI
             RoomSetting.Visible = true;
             NowRoomID.Visible = true;
             CopyRoomID.Visible = true;
+            // 禁用和激活按钮，并切换预设快捷消息
+            SetButtonEnableIfLogon(true, ClientState.InRoom);
         }
 
         /// <summary>
@@ -1397,14 +1399,14 @@ namespace Milimoe.FunGame.Desktop.UI
                     GameInfo.Clear();
                     break;
                 case Constant.FunGame_CreateMix:
-                    if (Usercfg.InRoom.Roomid != "-1")
+                    if (Usercfg.InRoom.Roomid == "-1")
                     {
                         TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Mix));
                     }
                     else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
                     break;
                 case Constant.FunGame_CreateTeam:
-                    if (Usercfg.InRoom.Roomid != "-1")
+                    if (Usercfg.InRoom.Roomid == "-1")
                     {
                         TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Team));
                     }
@@ -1786,6 +1788,8 @@ namespace Milimoe.FunGame.Desktop.UI
                 {
                     OnSucceedQuitRoomEvent(this, EventArgs);
                     RunTime.PluginLoader?.OnSucceedQuitRoomEvent(this, EventArgs);
+                    // 禁用和激活按钮，并切换预设快捷消息
+                    SetButtonEnableIfLogon(true, ClientState.Online);
                 }
                 else
                 {
@@ -1802,6 +1806,8 @@ namespace Milimoe.FunGame.Desktop.UI
                 RunTime.PluginLoader?.OnFailedQuitRoomEvent(this, EventArgs);
                 OnAfterQuitRoomEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnAfterQuitRoomEvent(this, EventArgs);
+                // 禁用和激活按钮，并切换预设快捷消息
+                SetButtonEnableIfLogon(true, ClientState.Online);
             }
 
             return result;
