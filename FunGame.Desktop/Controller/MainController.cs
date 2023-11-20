@@ -20,6 +20,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         private readonly DataRequest UpdateRoomRequest;
         private readonly DataRequest IntoRoomRequest;
         private readonly DataRequest QuitRoomRequest;
+        private readonly DataRequest StartGameRequest;
 
         public MainController(Main main)
         {
@@ -31,6 +32,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             UpdateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_UpdateRoom);
             IntoRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_IntoRoom);
             QuitRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_QuitRoom);
+            StartGameRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_StartGame);
         }
 
         #region 公开方法
@@ -43,6 +45,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             UpdateRoomRequest.Dispose();
             IntoRoomRequest.Dispose();
             QuitRoomRequest.Dispose();
+            StartGameRequest.Dispose();
         }
 
         public async Task<bool> LogOutAsync()
@@ -290,6 +293,26 @@ namespace Milimoe.FunGame.Desktop.Controller
                 Main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return false;
             }
+        }
+        
+        public async Task<bool> StartGameAsync(string roomid, bool isMaster)
+        {
+            try
+            {
+                StartGameRequest.AddRequestData("roomid", roomid);
+                StartGameRequest.AddRequestData("isMaster", isMaster);
+                await StartGameRequest.SendRequestAsync();
+                if (StartGameRequest.Result == RequestResult.Success)
+                {
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+
+            return false;
         }
 
         #endregion

@@ -1450,6 +1450,14 @@ namespace Milimoe.FunGame.Desktop.UI
                     }
                     break;
                 case Constant.FunGame_StartGame:
+                    if (MainController != null)
+                    {
+                        if (Usercfg.InRoom.Roomid != "-1")
+                        {
+                            TaskUtility.NewTask(async () => await InvokeController_StartGame(Usercfg.InRoom.Roomid, Usercfg.InRoom.RoomMaster?.Id == Usercfg.LoginUser.Id));
+                        }
+                        else WritelnGameInfo(">> 不在房间中无法使用此命令。");
+                    }
                     break;
                 case Constant.FunGame_AutoRetryOn:
                     WritelnGameInfo(">> 自动重连开启");
@@ -1858,6 +1866,50 @@ namespace Milimoe.FunGame.Desktop.UI
                 RunTime.PluginLoader?.OnFailedLogoutEvent(this, EventArgs);
                 OnAfterLogoutEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnAfterLogoutEvent(this, EventArgs);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 开始游戏/提醒玩家准备/提醒房主开始游戏
+        /// </summary>
+        /// <param name="roomid"></param>
+        /// <param name="isMaster"></param>
+        /// <returns></returns>
+        public async Task<bool> InvokeController_StartGame(string roomid, bool isMaster)
+        {
+            GeneralEventArgs EventArgs = new();
+            bool result = false;
+
+            try
+            {
+                OnBeforeStartGameEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnBeforeStartGameEvent(this, EventArgs);
+                if (EventArgs.Cancel) return result;
+
+                result = MainController is not null && await MainController.StartGameAsync(roomid, isMaster);
+
+                if (result)
+                {
+                    OnSucceedStartGameEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnSucceedStartGameEvent(this, EventArgs);
+                }
+                else
+                {
+                    OnFailedStartGameEvent(this, EventArgs);
+                    RunTime.PluginLoader?.OnFailedStartGameEvent(this, EventArgs);
+                }
+                OnAfterStartGameEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterStartGameEvent(this, EventArgs);
+            }
+            catch (Exception e)
+            {
+                GetMessage(e.GetErrorInfo(), TimeType.None);
+                OnFailedStartGameEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnFailedStartGameEvent(this, EventArgs);
+                OnAfterStartGameEvent(this, EventArgs);
+                RunTime.PluginLoader?.OnAfterStartGameEvent(this, EventArgs);
             }
 
             return result;
