@@ -28,7 +28,9 @@ namespace Milimoe.FunGame.Desktop.Library
         public const string FunGame_Retry = "重新连接";
         public const string FunGame_AutoRetryOn = "开启自动重连";
         public const string FunGame_AutoRetryOff = "关闭自动重连";
-        public static readonly object[] PresetOnineItems =
+        public const string FunGame_Ready = "准备就绪";
+        public const string FunGame_CancelReady = "取消准备";
+        public static readonly object[] PresetOnlineItems =
         {
             FunGame_PresetMessage,
             FunGame_SignIn,
@@ -38,10 +40,22 @@ namespace Milimoe.FunGame.Desktop.Library
             FunGame_ClearGameInfo,
             FunGame_CreateMix,
             FunGame_CreateTeam,
-            FunGame_StartGame,
             FunGame_Disconnect,
             FunGame_AutoRetryOn,
             FunGame_AutoRetryOff
+        };
+        public static readonly object[] PresetInRoomItems =
+        {
+            FunGame_PresetMessage,
+            FunGame_SignIn,
+            FunGame_ShowCredits,
+            FunGame_ShowStock,
+            FunGame_ShowStore,
+            FunGame_ClearGameInfo,
+            FunGame_Ready,
+            FunGame_CancelReady,
+            FunGame_StartGame,
+            FunGame_Disconnect
         };
         public static readonly object[] PresetNoLoginItems =
         {
@@ -63,6 +77,7 @@ namespace Milimoe.FunGame.Desktop.Library
 
     public enum ShowMessageType
     {
+        None,
         General,
         Tip,
         Warning,

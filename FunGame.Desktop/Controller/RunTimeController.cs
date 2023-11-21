@@ -149,12 +149,15 @@ namespace Milimoe.FunGame.Desktop.Controller
 
         protected override void SocketHandler_System(SocketObject ServerMessage)
         {
-            // 收到系统消息，直接发送弹窗
+            // 收到系统消息，可输出消息或弹窗
             string msg = "";
-            ShowMessageType type = ShowMessageType.General;
+            ShowMessageType type = ShowMessageType.None;
+            int autoclose = 60;
             if (ServerMessage.Parameters.Length > 0) msg = ServerMessage.GetParam<string>(0) ?? "";
             if (ServerMessage.Parameters.Length > 1) type = ServerMessage.GetParam<ShowMessageType>(1);
-            Main.ShowMessage(type, msg, "系统消息", 60);
+            if (ServerMessage.Parameters.Length > 2) autoclose = ServerMessage.GetParam<int>(2);
+            if (type == ShowMessageType.None) Main.GetMessage(msg);
+            else Main.ShowMessage(type, msg, "系统消息", autoclose);
         }
 
         protected override void SocketHandler_HeartBeat(SocketObject ServerMessage)
