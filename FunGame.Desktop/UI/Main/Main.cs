@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
@@ -30,6 +31,7 @@ namespace Milimoe.FunGame.Desktop.UI
         private readonly Core.Model.RoomList Rooms = RunTime.RoomList;
         private readonly Core.Model.Session Usercfg = RunTime.Session;
         private int _MatchSeconds = 0; // 记录匹配房间的秒数
+        private bool _InGame = false;
 
         public Main()
         {
@@ -252,6 +254,15 @@ namespace Milimoe.FunGame.Desktop.UI
                             }
                             break;
 
+                        case MainInvokeType.StartGame:
+                            if (objs != null && objs.Length > 0)
+                            {
+                                Room room = (Room)objs[0];
+                                List<User> users = (List<User>)objs[1];
+                                StartGame(room, users);
+                            }
+                            break;
+
                         default:
                             break;
                     }
@@ -448,6 +459,30 @@ namespace Milimoe.FunGame.Desktop.UI
         }
 
         /// <summary>
+        /// 开始游戏
+        /// </summary>
+        private void StartGame(Room room, List<User> users)
+        {
+            _InGame = true;
+            TaskUtility.NewTask(async () =>
+            {
+                for (int i = 10; i > 0; i--)
+                {
+                    WritelnGameInfo("房间 [ " + room.Roomid + " ] 的游戏将在" + i + "秒后开始...");
+                    await Task.Delay(1000);
+                }
+                // test
+                WritelnGameInfo("===== TEST =====");
+                WritelnGameInfo("游戏正式开始！");
+                await Task.Delay(10000);
+                SetButtonEnableIfLogon(true, ClientState.InRoom);
+                _InGame = false;
+                WritelnGameInfo("游戏结束！" + " [ " + users[new Random().Next(users.Count)] + " ] " + "是赢家！");
+            });
+            SetButtonEnableIfLogon(false, ClientState.InRoom);
+        }
+
+        /// <summary>
         /// 未登录和离线时，停用按钮
         /// 登录的时候要激活按钮
         /// </summary>
@@ -455,6 +490,24 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="status">客户端状态</param>
         private void SetButtonEnableIfLogon(bool isLogon, ClientState status)
         {
+            if (_InGame)
+            {
+                AccountSetting.Enabled = isLogon;
+                Stock.Enabled = isLogon;
+                Store.Enabled = isLogon;
+                RoomBox.Enabled = isLogon;
+                RefreshRoomList.Enabled = isLogon;
+                CheckMix.Enabled = isLogon;
+                CheckTeam.Enabled = isLogon;
+                CheckHasPass.Enabled = isLogon;
+                QuitRoom.Enabled = isLogon;
+                RoomSetting.Enabled = isLogon;
+                PresetText.Enabled = isLogon;
+                TalkText.Enabled = isLogon;
+                SendTalkText.Enabled = isLogon;
+                Logout.Enabled = isLogon;
+                if (!isLogon) return;
+            }
             switch (status)
             {
                 case ClientState.WaitConnect:
@@ -904,25 +957,6 @@ namespace Milimoe.FunGame.Desktop.UI
             });
         }
 
-        /// <summary>
-        /// 鼠标离开停止匹配按钮时，恢复按钮文本为匹配时长
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        private void StopMatch_MouseLeave(object? sender, EventArgs e) => SetMatchSecondsText();
-
-        /// <summary>
-        /// 鼠标轻触停止匹配按钮时，将文本从匹配时长转为停止匹配
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        private void StopMatch_MouseHover(object? sender, EventArgs e)
-        {
-            StopMatch.Text = "停止匹配";
-        }
-
         #endregion
 
         #region 事件
@@ -1253,6 +1287,25 @@ namespace Milimoe.FunGame.Desktop.UI
                     await MainController.UpdateRoomAsync();
                 }
             });
+        }
+
+        /// <summary>
+        /// 鼠标离开停止匹配按钮时，恢复按钮文本为匹配时长
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        private void StopMatch_MouseLeave(object? sender, EventArgs e) => SetMatchSecondsText();
+
+        /// <summary>
+        /// 鼠标轻触停止匹配按钮时，将文本从匹配时长转为停止匹配
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        private void StopMatch_MouseHover(object? sender, EventArgs e)
+        {
+            StopMatch.Text = "停止匹配";
         }
 
         /// <summary>

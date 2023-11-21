@@ -304,7 +304,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 await StartGameRequest.SendRequestAsync();
                 if (StartGameRequest.Result == RequestResult.Success)
                 {
-                    return true;
+                    return StartGameRequest.GetResult<bool>("result");
                 }
             }
             catch (Exception e)

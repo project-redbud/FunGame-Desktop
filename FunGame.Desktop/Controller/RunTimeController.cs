@@ -220,5 +220,20 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             Main.UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
         }
+
+        protected override void SocketHandler_StartGame(SocketObject ServerMessage)
+        {
+            // 游戏即将开始
+            Room room = General.HallInstance;
+            List<User> users = new();
+            if (ServerMessage.Length > 0) room = ServerMessage.GetParam<Room>(0) ?? General.HallInstance;
+            if (ServerMessage.Length > 1) users = ServerMessage.GetParam<List<User>>(1) ?? users;
+            Main.UpdateUI(MainInvokeType.StartGame, room, users);
+        }
+
+        protected override void SocketHandler_Gaming(SocketObject ServerMessage)
+        {
+            
+        }
     }
 }
