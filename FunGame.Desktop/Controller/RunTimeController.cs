@@ -158,8 +158,8 @@ namespace Milimoe.FunGame.Desktop.Controller
             if (ServerMessage.Parameters.Length > 1) msg = ServerMessage.GetParam<string>(1) ?? "";
             if (ServerMessage.Parameters.Length > 2) title = ServerMessage.GetParam<string>(2) ?? title;
             if (ServerMessage.Parameters.Length > 3) autoclose = ServerMessage.GetParam<int>(3);
-            if (type == ShowMessageType.None) Main.GetMessage(msg);
-            else Main.ShowMessage(type, msg, title, autoclose);
+            Main.GetMessage(msg);
+            if (type != ShowMessageType.None) Main.ShowMessage(type, msg, title, autoclose);
         }
 
         protected override void SocketHandler_HeartBeat(SocketObject ServerMessage)
