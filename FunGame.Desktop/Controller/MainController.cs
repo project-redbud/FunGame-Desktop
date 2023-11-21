@@ -138,7 +138,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 return 0;
             }
         }
-        
+
         public async Task<bool> SetReadyAsync(string roomid)
         {
             try
@@ -252,7 +252,7 @@ namespace Milimoe.FunGame.Desktop.Controller
 
             return room;
         }
-        
+
         public async Task<bool> MatchRoomAsync(string RoomType, bool isCancel = false)
         {
             bool result = false;
@@ -294,7 +294,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 return false;
             }
         }
-        
+
         public async Task<bool> StartGameAsync(string roomid, bool isMaster)
         {
             try

@@ -57,7 +57,7 @@ namespace Milimoe.FunGame.Desktop.Library
             get => RunTime.Config.FunGame_isAutoRetry;
             set => RunTime.Config.FunGame_isAutoRetry = value;
         }
-        
+
         /// <summary>
         /// 是否在房间中
         /// </summary>

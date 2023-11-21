@@ -116,7 +116,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
-                            
+
                         case MainInvokeType.SetYellow:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Yellow);
@@ -1683,7 +1683,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
             return result;
         }
-        
+
         /// <summary>
         /// 进入房间
         /// </summary>
