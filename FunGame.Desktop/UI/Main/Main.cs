@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
@@ -262,6 +261,15 @@ namespace Milimoe.FunGame.Desktop.UI
                                 StartGame(room, users);
                             }
                             break;
+                            
+                        case MainInvokeType.EndGame:
+                            if (objs != null && objs.Length > 0)
+                            {
+                                Room room = (Room)objs[0];
+                                List<User> users = (List<User>)objs[1];
+                                EndGame(room, users);
+                            }
+                            break;
 
                         default:
                             break;
@@ -466,20 +474,27 @@ namespace Milimoe.FunGame.Desktop.UI
             _InGame = true;
             TaskUtility.NewTask(async () =>
             {
+                int PlayerCount = users.Count;
                 for (int i = 10; i > 0; i--)
                 {
-                    WritelnGameInfo("房间 [ " + room.Roomid + " ] 的游戏将在" + i + "秒后开始...");
+                    WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + GameMode.GetTypeString(room.RoomType) + ") ] 的游戏将在" + i + "秒后开始...");
                     await Task.Delay(1000);
                 }
-                // test
-                WritelnGameInfo("===== TEST =====");
-                WritelnGameInfo("游戏正式开始！");
-                await Task.Delay(10000);
-                SetButtonEnableIfLogon(true, ClientState.InRoom);
-                _InGame = false;
-                WritelnGameInfo("游戏结束！" + " [ " + users[new Random().Next(users.Count)] + " ] " + "是赢家！");
+                WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + GameMode.GetTypeString(room.RoomType) + ") ] 的游戏正式开始！");
             });
             SetButtonEnableIfLogon(false, ClientState.InRoom);
+        }
+
+        /// <summary>
+        /// 游戏结束，结算
+        /// </summary>
+        private void EndGame(Room room, List<User> users)
+        {
+            // test
+            WritelnGameInfo("===== TEST =====");
+            SetButtonEnableIfLogon(true, ClientState.InRoom);
+            _InGame = false;
+            WritelnGameInfo("游戏结束！" + " [ " + users[new Random().Next(users.Count)] + " ] " + "是赢家！");
         }
 
         /// <summary>
