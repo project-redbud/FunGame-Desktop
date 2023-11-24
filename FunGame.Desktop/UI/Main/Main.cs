@@ -1279,7 +1279,7 @@ namespace Milimoe.FunGame.Desktop.UI
         private void PresetText_SelectedIndexChanged(object sender, EventArgs e)
         {
             // 发送快捷消息并执行功能
-            if (PresetText.SelectedIndex != 0)
+            if (PresetText.SelectedIndex != 0 && PresetText.SelectedItem != null)
             {
                 string s = PresetText.SelectedItem.ToString() ?? "";
                 SendTalkText_Click(s);
