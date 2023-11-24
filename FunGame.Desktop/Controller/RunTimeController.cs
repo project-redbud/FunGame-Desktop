@@ -150,14 +150,16 @@ namespace Milimoe.FunGame.Desktop.Controller
         protected override void SocketHandler_System(SocketObject ServerMessage)
         {
             // 收到系统消息，可输出消息或弹窗
-            string msg = "";
             ShowMessageType type = ShowMessageType.None;
+            string msg = "";
+            string title = "系统消息";
             int autoclose = 60;
-            if (ServerMessage.Parameters.Length > 0) msg = ServerMessage.GetParam<string>(0) ?? "";
-            if (ServerMessage.Parameters.Length > 1) type = ServerMessage.GetParam<ShowMessageType>(1);
-            if (ServerMessage.Parameters.Length > 2) autoclose = ServerMessage.GetParam<int>(2);
-            if (type == ShowMessageType.None) Main.GetMessage(msg);
-            else Main.ShowMessage(type, msg, "系统消息", autoclose);
+            if (ServerMessage.Parameters.Length > 0) type = ServerMessage.GetParam<ShowMessageType>(0);
+            if (ServerMessage.Parameters.Length > 1) msg = ServerMessage.GetParam<string>(1) ?? "";
+            if (ServerMessage.Parameters.Length > 2) title = ServerMessage.GetParam<string>(2) ?? title;
+            if (ServerMessage.Parameters.Length > 3) autoclose = ServerMessage.GetParam<int>(3);
+            Main.GetMessage(msg);
+            if (type != ShowMessageType.None) Main.ShowMessage(type, msg, title, autoclose);
         }
 
         protected override void SocketHandler_HeartBeat(SocketObject ServerMessage)
@@ -217,6 +219,30 @@ namespace Milimoe.FunGame.Desktop.Controller
                 return;
             }
             Main.UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
+        }
+
+        protected override void SocketHandler_StartGame(SocketObject ServerMessage)
+        {
+            // 游戏即将开始
+            Room room = General.HallInstance;
+            List<User> users = new();
+            if (ServerMessage.Length > 0) room = ServerMessage.GetParam<Room>(0) ?? General.HallInstance;
+            if (ServerMessage.Length > 1) users = ServerMessage.GetParam<List<User>>(1) ?? users;
+            Main.UpdateUI(MainInvokeType.StartGame, room, users);
+        }
+        
+        protected override void SocketHandler_EndGame(SocketObject ServerMessage)
+        {
+            Room room = General.HallInstance;
+            List<User> users = new();
+            if (ServerMessage.Length > 0) room = ServerMessage.GetParam<Room>(0) ?? General.HallInstance;
+            if (ServerMessage.Length > 1) users = ServerMessage.GetParam<List<User>>(1) ?? users;
+            Main.UpdateUI(MainInvokeType.EndGame, room, users);
+        }
+
+        protected override void SocketHandler_Gaming(SocketObject ServerMessage)
+        {
+            
         }
     }
 }

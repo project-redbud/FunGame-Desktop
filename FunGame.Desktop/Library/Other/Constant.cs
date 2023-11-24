@@ -74,18 +74,4 @@ namespace Milimoe.FunGame.Desktop.Library
             FunGame_AutoRetryOff
         };
     }
-
-    public enum ShowMessageType
-    {
-        None,
-        General,
-        Tip,
-        Warning,
-        Error,
-        YesNo,
-        OKCancel,
-        RetryCancel,
-        Input,
-        InputCancel
-    }
 }
