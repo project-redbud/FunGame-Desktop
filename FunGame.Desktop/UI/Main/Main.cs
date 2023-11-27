@@ -60,6 +60,8 @@ namespace Milimoe.FunGame.Desktop.UI
                         break;
                     }
                 }
+                // 加载模组
+                RunTime.Controller.LoadGameModes();
                 // 加载插件
                 RunTime.Controller.LoadPlugins();
                 // 自动连接服务器
@@ -261,7 +263,7 @@ namespace Milimoe.FunGame.Desktop.UI
                                 StartGame(room, users);
                             }
                             break;
-                            
+
                         case MainInvokeType.EndGame:
                             if (objs != null && objs.Length > 0)
                             {
@@ -477,10 +479,10 @@ namespace Milimoe.FunGame.Desktop.UI
                 int PlayerCount = users.Count;
                 for (int i = 10; i > 0; i--)
                 {
-                    WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + GameMode.GetTypeString(room.RoomType) + ") ] 的游戏将在" + i + "秒后开始...");
+                    WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + RoomSet.GetTypeString(room.RoomType) + ") ] 的游戏将在" + i + "秒后开始...");
                     await Task.Delay(1000);
                 }
-                WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + GameMode.GetTypeString(room.RoomType) + ") ] 的游戏正式开始！");
+                WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + RoomSet.GetTypeString(room.RoomType) + ") ] 的游戏正式开始！");
             });
             SetButtonEnableIfLogon(false, ClientState.InRoom);
         }
@@ -643,7 +645,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         TaskUtility.NewTask(async () =>
                         {
                             Config.FunGame_isMatching = true;
-                            if (await MainController.MatchRoomAsync(Config.FunGame_GameMode))
+                            if (await MainController.MatchRoomAsync(Config.FunGame_RoomType))
                             {
                                 // 开始匹配
                                 while (Config.FunGame_isMatching)
@@ -656,7 +658,7 @@ namespace Milimoe.FunGame.Desktop.UI
                                         continue;
                                     }
                                     // 达到60秒时
-                                    if (Config.FunGame_isMatching && await MainController.MatchRoomAsync(Config.FunGame_GameMode, true))
+                                    if (Config.FunGame_isMatching && await MainController.MatchRoomAsync(Config.FunGame_RoomType, true))
                                     {
                                         // 取消匹配
                                         UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Success, General.HallInstance);
@@ -783,7 +785,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             TaskUtility.NewTask(async () =>
             {
-                if (MainController != null && await MainController.MatchRoomAsync(Config.FunGame_GameMode, true))
+                if (MainController != null && await MainController.MatchRoomAsync(Config.FunGame_RoomType, true))
                 {
                     UpdateUI(MainInvokeType.MatchRoom, StartMatchState.Cancel);
                 }
@@ -999,7 +1001,7 @@ namespace Milimoe.FunGame.Desktop.UI
             WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 开始匹配");
             WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 开始匹配");
             WriteGameInfo(">> 匹配参数：");
-            WritelnGameInfo(Config.FunGame_GameMode);
+            WritelnGameInfo(Config.FunGame_RoomType);
             // 显示停止匹配按钮
             StartMatch.Visible = false;
             StopMatch.Visible = true;
@@ -1031,12 +1033,12 @@ namespace Milimoe.FunGame.Desktop.UI
                     return;
                 }
             }
-            if (Config.FunGame_GameMode.Equals(""))
+            if (Config.FunGame_RoomType.Equals(""))
             {
                 ShowMessage(ShowMessageType.Warning, "请勾选你要创建的房间类型！");
                 return;
             }
-            TaskUtility.NewTask(() => CreateRoom_Handler(Config.FunGame_GameMode, password));
+            TaskUtility.NewTask(() => CreateRoom_Handler(Config.FunGame_RoomType, password));
         }
 
         /// <summary>
@@ -1169,13 +1171,13 @@ namespace Milimoe.FunGame.Desktop.UI
             bool IsMix = CheckMix.Checked;
             bool IsTeam = CheckTeam.Checked;
             bool IsHasPass = CheckHasPass.Checked;
-            if (IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.All;
-            else if (IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.AllHasPass;
-            else if (IsMix && !IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.Mix;
-            else if (IsMix && !IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.MixHasPass;
-            else if (!IsMix && IsTeam && !IsHasPass) Config.FunGame_GameMode = GameMode.Team;
-            else if (!IsMix && IsTeam && IsHasPass) Config.FunGame_GameMode = GameMode.TeamHasPass;
-            else Config.FunGame_GameMode = GameMode.All;
+            if (IsMix && IsTeam && !IsHasPass) Config.FunGame_RoomType = RoomSet.All;
+            else if (IsMix && IsTeam && IsHasPass) Config.FunGame_RoomType = RoomSet.All;
+            else if (IsMix && !IsTeam && !IsHasPass) Config.FunGame_RoomType = RoomSet.Mix;
+            else if (IsMix && !IsTeam && IsHasPass) Config.FunGame_RoomType = RoomSet.Mix;
+            else if (!IsMix && IsTeam && !IsHasPass) Config.FunGame_RoomType = RoomSet.Team;
+            else if (!IsMix && IsTeam && IsHasPass) Config.FunGame_RoomType = RoomSet.Team;
+            else Config.FunGame_RoomType = RoomSet.All;
         }
 
         /// <summary>
@@ -1342,16 +1344,19 @@ namespace Milimoe.FunGame.Desktop.UI
         public void FailedConnectEvent(object sender, GeneralEventArgs e)
         {
             // 自动重连
-            if (Config.FunGame_isConnected && Config.FunGame_isAutoRetry && CurrentRetryTimes <= MaxRetryTimes)
+            if (!Config.FunGame_isConnected)
             {
-                Task.Run(() =>
+                if (Config.FunGame_isAutoRetry && CurrentRetryTimes <= MaxRetryTimes)
                 {
-                    Thread.Sleep(5000);
-                    if (Config.FunGame_isConnected && Config.FunGame_isAutoRetry) InvokeController_Connect(); // 再次判断是否开启自动重连
-                });
-                GetMessage("连接服务器失败，5秒后自动尝试重连。");
+                    Task.Run(() =>
+                    {
+                        Thread.Sleep(5000);
+                        if (!Config.FunGame_isConnected && Config.FunGame_isAutoRetry) InvokeController_Connect(); // 再次判断是否开启自动重连
+                    });
+                    GetMessage("连接服务器失败，5秒后自动尝试重连。");
+                }
+                else GetMessage("无法连接至服务器，请稍后再试。");
             }
-            else GetMessage("无法连接至服务器，请检查你的网络连接。");
         }
 
         /// <summary>
@@ -1469,14 +1474,14 @@ namespace Milimoe.FunGame.Desktop.UI
                 case Constant.FunGame_CreateMix:
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
-                        TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Mix));
+                        TaskUtility.NewTask(() => CreateRoom_Handler(RoomSet.Mix));
                     }
                     else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
                     break;
                 case Constant.FunGame_CreateTeam:
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
-                        TaskUtility.NewTask(() => CreateRoom_Handler(GameMode.Team));
+                        TaskUtility.NewTask(() => CreateRoom_Handler(RoomSet.Team));
                     }
                     else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
                     break;

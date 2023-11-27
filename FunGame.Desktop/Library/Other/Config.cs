@@ -70,10 +70,10 @@ namespace Milimoe.FunGame.Desktop.Library
         /// <summary>
         /// 当前游戏模式
         /// </summary>
-        public static string FunGame_GameMode
+        public static string FunGame_RoomType
         {
-            get => RunTime.Config.FunGame_GameMode;
-            set => RunTime.Config.FunGame_GameMode = value;
+            get => RunTime.Config.FunGame_RoomType;
+            set => RunTime.Config.FunGame_RoomType = value;
         }
 
         /// <summary>

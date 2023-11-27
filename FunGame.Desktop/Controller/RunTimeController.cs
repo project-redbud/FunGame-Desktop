@@ -1,4 +1,5 @@
-﻿using Milimoe.FunGame.Core.Api.Transmittal;
+﻿using System.Collections;
+using Milimoe.FunGame.Core.Api.Transmittal;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
@@ -34,7 +35,27 @@ namespace Milimoe.FunGame.Desktop.Controller
                     RunTime.Session, RunTime.Config);
                 foreach (string name in RunTime.PluginLoader.Plugins.Keys)
                 {
-                    Main.GetMessage("[ PluginLoader ] Load: " + name);
+                    Main.GetMessage("[ Plugin ] Loaded: " + name);
+                }
+            }
+            catch (Exception e)
+            {
+                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+            }
+        }
+
+        public void LoadGameModes()
+        {
+            try
+            {
+                RunTime.GameModeLoader = GameModeLoader.LoadGameModes(
+                    new Action<string>(WritelnSystemInfo),
+                    new Func<DataRequestType, DataRequest>(NewDataRequest),
+                    new Func<DataRequestType, DataRequest>(NewLongRunningDataRequest),
+                    RunTime.Session, RunTime.Config);
+                foreach (string name in RunTime.GameModeLoader.Modes.Keys)
+                {
+                    Main.GetMessage("[ GameMode ] Loaded: " + name);
                 }
             }
             catch (Exception e)
@@ -57,13 +78,20 @@ namespace Milimoe.FunGame.Desktop.Controller
             Close();
         }
 
-        public override bool BeforeConnect(ref string ip, ref int port)
+        public override bool BeforeConnect(ref string ip, ref int port, ArrayList ConnectArgs)
         {
             if (Config.FunGame_isRetrying)
             {
                 Main.GetMessage("正在连接服务器，请耐心等待。");
                 return false;
             }
+            string[] gamemodes = [];
+            if (RunTime.GameModeLoader != null)
+            {
+                gamemodes = RunTime.GameModeLoader.Modes.Keys.ToArray();
+            }
+            ConnectArgs.Add(gamemodes); // 服务器检查是否拥有需要的模组
+            ConnectArgs.Add(FunGameInfo.FunGame_DebugMode); // 是否开启了debug模式
             if (!Config.FunGame_isConnected)
             {
                 Main.CurrentRetryTimes++;
@@ -91,19 +119,27 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public override void AfterConnect(object[] ConnectArgs)
+        public override void AfterConnect(ArrayList ConnectArgs)
         {
             Config.FunGame_isRetrying = false;
 
-            ConnectResult result = (ConnectResult)ConnectArgs[0];
-            string msg = (string)ConnectArgs[1];
-            string servername = (string)ConnectArgs[2];
-            string notice = (string)ConnectArgs[3];
+            ConnectResult result = (ConnectResult?)ConnectArgs[0] ?? ConnectResult.FindServerFailed;
+            string msg = (string?)ConnectArgs[1] ?? "";
+            string servername = (string?)ConnectArgs[2] ?? "";
+            string notice = (string?)ConnectArgs[3] ?? "";
 
             if (msg != "")
             {
                 Main.GetMessage(msg);
-                if (result != ConnectResult.Success) Main.ShowMessage(ShowMessageType.Error, msg);
+                if (result != ConnectResult.Success)
+                {
+                    // 有弹窗会关闭自动重连。
+                    Config.FunGame_isAutoRetry = false;
+                    if (Main.ShowMessage(ShowMessageType.RetryCancel, msg, "连接服务器失败") == MessageResult.Retry)
+                    {
+                        Config.FunGame_isAutoRetry = true;
+                    }
+                }
             }
 
             if (result == ConnectResult.Success)
@@ -230,7 +266,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             if (ServerMessage.Length > 1) users = ServerMessage.GetParam<List<User>>(1) ?? users;
             Main.UpdateUI(MainInvokeType.StartGame, room, users);
         }
-        
+
         protected override void SocketHandler_EndGame(SocketObject ServerMessage)
         {
             Room room = General.HallInstance;
@@ -242,7 +278,7 @@ namespace Milimoe.FunGame.Desktop.Controller
 
         protected override void SocketHandler_Gaming(SocketObject ServerMessage)
         {
-            
+
         }
     }
 }
