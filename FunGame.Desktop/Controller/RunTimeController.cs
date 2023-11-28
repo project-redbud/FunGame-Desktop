@@ -261,7 +261,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             // 游戏即将开始
             Room room = General.HallInstance;
-            List<User> users = new();
+            List<User> users = [];
             if (ServerMessage.Length > 0) room = ServerMessage.GetParam<Room>(0) ?? General.HallInstance;
             if (ServerMessage.Length > 1) users = ServerMessage.GetParam<List<User>>(1) ?? users;
             Main.UpdateUI(MainInvokeType.StartGame, room, users);

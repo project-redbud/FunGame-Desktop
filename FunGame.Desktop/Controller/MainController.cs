@@ -9,31 +9,17 @@ using Milimoe.FunGame.Desktop.UI;
 
 namespace Milimoe.FunGame.Desktop.Controller
 {
-    public class MainController
+    public class MainController(Main main)
     {
-        private readonly Main Main;
         private readonly Session Usercfg = RunTime.Session;
-        private readonly DataRequest ChatRequest;
-        private readonly DataRequest CreateRoomRequest;
-        private readonly DataRequest MatchRoomRequest;
-        private readonly DataRequest GetRoomPlayerCountRequest;
-        private readonly DataRequest UpdateRoomRequest;
-        private readonly DataRequest IntoRoomRequest;
-        private readonly DataRequest QuitRoomRequest;
-        private readonly DataRequest StartGameRequest;
-
-        public MainController(Main main)
-        {
-            Main = main;
-            ChatRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_Chat);
-            CreateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_CreateRoom);
-            MatchRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_MatchRoom);
-            GetRoomPlayerCountRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Room_GetRoomPlayerCount);
-            UpdateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_UpdateRoom);
-            IntoRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_IntoRoom);
-            QuitRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_QuitRoom);
-            StartGameRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_StartGame);
-        }
+        private readonly DataRequest ChatRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_Chat);
+        private readonly DataRequest CreateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_CreateRoom);
+        private readonly DataRequest MatchRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_MatchRoom);
+        private readonly DataRequest GetRoomPlayerCountRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Room_GetRoomPlayerCount);
+        private readonly DataRequest UpdateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_UpdateRoom);
+        private readonly DataRequest IntoRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_IntoRoom);
+        private readonly DataRequest QuitRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_QuitRoom);
+        private readonly DataRequest StartGameRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_StartGame);
 
         #region 公开方法
 
@@ -67,7 +53,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                         if (key == Usercfg.LoginKey)
                         {
                             Usercfg.LoginKey = Guid.Empty;
-                            Main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
+                            main.UpdateUI(MainInvokeType.LogOut, msg ?? "");
                             return true;
                         }
                     }
@@ -76,8 +62,8 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.ShowMessage(ShowMessageType.Error, "无法登出您的账号，请联系服务器管理员。", "登出失败", 5);
-                Main.GetMessage(e.GetErrorInfo());
+                main.ShowMessage(ShowMessageType.Error, "无法登出您的账号，请联系服务器管理员。", "登出失败", 5);
+                main.GetMessage(e.GetErrorInfo());
             }
             return false;
         }
@@ -96,7 +82,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return false;
             }
         }
@@ -112,13 +98,13 @@ namespace Milimoe.FunGame.Desktop.Controller
                 if (UpdateRoomRequest.Result == RequestResult.Success)
                 {
                     list = UpdateRoomRequest.GetResult<List<Room>>("rooms") ?? new();
-                    Main.UpdateUI(MainInvokeType.UpdateRoom, list);
+                    main.UpdateUI(MainInvokeType.UpdateRoom, list);
                 }
                 else throw new CanNotIntoRoomException();
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
 
             return result;
@@ -134,7 +120,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return 0;
             }
         }
@@ -154,19 +140,19 @@ namespace Milimoe.FunGame.Desktop.Controller
                     if (result)
                     {
                         Config.FunGame_isInRoom = true;
-                        Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 准备完毕。");
+                        main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 准备完毕。");
                     }
                     List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
-                    if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
+                    if (ReadyPlayerList.Count > 0) main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
                     List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
-                    if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
+                    if (NotReadyPlayerList.Count > 0) main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                 }
                 request.Dispose();
                 return result;
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return false;
             }
         }
@@ -186,19 +172,19 @@ namespace Milimoe.FunGame.Desktop.Controller
                     if (result)
                     {
                         Config.FunGame_isInRoom = false;
-                        Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
+                        main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
                     }
                     List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
-                    if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
+                    if (ReadyPlayerList.Count > 0) main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
                     List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
-                    if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
+                    if (NotReadyPlayerList.Count > 0) main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                 }
                 request.Dispose();
                 return result;
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return false;
             }
         }
@@ -225,18 +211,20 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return result;
             }
         }
 
-        public async Task<Room> CreateRoomAsync(string RoomType, string Password = "")
+        public async Task<Room> CreateRoomAsync(string RoomType, string GameMode, string GameMap, string Password = "")
         {
             Room room = General.HallInstance;
 
             try
             {
                 CreateRoomRequest.AddRequestData("roomtype", RoomType);
+                CreateRoomRequest.AddRequestData("gamemode", GameMode);
+                CreateRoomRequest.AddRequestData("gamemap", GameMap);
                 CreateRoomRequest.AddRequestData("master", Usercfg.LoginUser);
                 CreateRoomRequest.AddRequestData("password", Password);
                 await CreateRoomRequest.SendRequestAsync();
@@ -247,7 +235,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
 
             return room;
@@ -270,7 +258,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
 
             return result;
@@ -290,7 +278,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                main.GetMessage(e.GetErrorInfo(), TimeType.None);
                 return false;
             }
         }
@@ -309,7 +297,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
             catch (Exception e)
             {
-                Main.GetMessage(e.GetErrorInfo(), TimeType.None);
+                main.GetMessage(e.GetErrorInfo(), TimeType.None);
             }
 
             return false;
