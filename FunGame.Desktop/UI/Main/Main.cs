@@ -223,11 +223,11 @@ namespace Milimoe.FunGame.Desktop.UI
                                 {
                                     if (r.Roomid != "-1")
                                     {
-                                        string item = r.Roomid;
-                                        if (r.Name.Trim() != "")
-                                        {
-                                            item += " [ " + r.Name + " ]";
-                                        }
+                                        string item = r.Roomid + " [ ";
+                                        if (r.IsRank) item += "排位, ";
+                                        item += r.GameMode;
+                                        if (r.Name.Trim() != "") item += ", " + r.Name;
+                                        item += " ] ";
                                         RoomList.Items.Add(item);
                                     }
                                 }
@@ -486,8 +486,12 @@ namespace Milimoe.FunGame.Desktop.UI
                 WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + RoomSet.GetTypeString(room.RoomType) + ") ] 的游戏正式开始！");
                 if (RunTime.GameModeLoader?.Modes.ContainsKey(room.GameMode) ?? false)
                 {
-                    RunTime.GameModeLoader[room.GameMode].StartUI();
+                    Gaming.StartGame(RunTime.GameModeLoader[room.GameMode], room, users);
                     Visible = false; // 隐藏主界面
+                }
+                else
+                {
+                    WritelnGameInfo("缺少房间所需模组 [ " + room.GameMode + " ] 无法开始游戏，请检查模组是否正确安装。");
                 }
             });
             SetButtonEnableIfLogon(false, ClientState.InRoom);
@@ -847,7 +851,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="RoomType"></param>
         /// <param name="Password"></param>
         /// <returns></returns>
-        private async Task CreateRoom_Handler(string RoomType, string GameMode, string GameMap, string Password = "")
+        private async Task CreateRoom_Handler(string RoomType, string GameMode, string GameMap, bool IsRank, string Password = "")
         {
             if (Usercfg.InRoom.Roomid != "-1")
             {
@@ -860,7 +864,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 ShowMessage(ShowMessageType.Error, ">> 缺少" + Config.FunGame_RoomType + "所需的模组，无法创建房间。");
                 return;
             }
-            Room room = await InvokeController_CreateRoom(RoomType, GameMode, GameMap, Password);
+            Room room = await InvokeController_CreateRoom(RoomType, GameMode, GameMap, IsRank, Password);
             if (MainController is not null && room.Roomid != "-1")
             {
                 await MainController.UpdateRoomAsync();
@@ -946,6 +950,7 @@ namespace Milimoe.FunGame.Desktop.UI
         private void ShowFunGameInfo()
         {
             WritelnGameInfo(FunGameInfo.GetInfo((FunGameInfo.FunGame)Constant.FunGameType));
+            Title.Text = FunGameInfo.FunGame_Desktop + " " + FunGameInfo.FunGame_Version + " " + FunGameInfo.FunGame_VersionPatch;
         }
 
         /// <summary>
@@ -1057,7 +1062,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 ShowMessage(ShowMessageType.Error, ">> 缺少" + Config.FunGame_RoomType + "所需的模组，无法创建房间。");
                 return;
             }
-            TaskUtility.NewTask(() => CreateRoom_Handler(Config.FunGame_RoomType, mode.Name, mode.DefaultMap, password));
+            TaskUtility.NewTask(() => CreateRoom_Handler(Config.FunGame_RoomType, mode.Name, mode.DefaultMap, false, password));
         }
 
         /// <summary>
@@ -1494,7 +1499,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
                         GameMode? mode = RunTime.GameModeLoader?.Modes.Values.FirstOrDefault() ?? default;
-                        if (mode != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomSet.Mix, mode.Name, mode.DefaultMap));
+                        if (mode != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomSet.Mix, mode.Name, mode.DefaultMap, false));
                         else WritelnGameInfo(">> 缺少" + RoomSet.GetTypeString(RoomType.Mix) + "所需的模组，无法创建房间。");
                     }
                     else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
@@ -1503,7 +1508,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
                         GameMode? mode = RunTime.GameModeLoader?.Modes.Values.FirstOrDefault() ?? default;
-                        if (mode != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomSet.Team, mode.Name, mode.DefaultMap));
+                        if (mode != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomSet.Team, mode.Name, mode.DefaultMap, false));
                         else WritelnGameInfo(">> 缺少" + RoomSet.GetTypeString(RoomType.Team) + "所需的模组，无法创建房间。");
                     }
                     else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
@@ -1831,7 +1836,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
-        public async Task<Room> InvokeController_CreateRoom(string RoomType, string GameMode, string GameMap, string Password = "")
+        public async Task<Room> InvokeController_CreateRoom(string RoomType, string GameMode, string GameMap, bool IsRank, string Password = "")
         {
             RoomEventArgs EventArgs = new(RoomType, Password);
             Room room = General.HallInstance;
@@ -1842,7 +1847,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RunTime.PluginLoader?.OnBeforeCreateRoomEvent(this, EventArgs);
                 if (EventArgs.Cancel) return room;
 
-                room = MainController is null ? room : await MainController.CreateRoomAsync(RoomType, GameMode, GameMap, Password);
+                room = MainController is null ? room : await MainController.CreateRoomAsync(RoomType, GameMode, GameMap, IsRank, Password);
 
                 if (room.Roomid != "-1")
                 {

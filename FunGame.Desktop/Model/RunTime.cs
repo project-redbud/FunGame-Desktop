@@ -15,6 +15,7 @@ namespace Milimoe.FunGame.Desktop.Model
         public static Core.Api.Utility.GameModeLoader? GameModeLoader { get; set; } = null;
         public static Core.Library.Common.Network.Socket? Socket { get; set; } = null;
         public static Controller.RunTimeController? Controller { get; set; } = null;
+        public static Gaming? Gaming { get; set; } = null;
         public static UI.Main? Main { get; set; } = null;
         public static UI.Login? Login { get; set; } = null;
         public static UI.Register? Register { get; set; } = null;
