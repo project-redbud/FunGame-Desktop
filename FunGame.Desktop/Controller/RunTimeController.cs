@@ -84,7 +84,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             string[] gamemodes = [];
             if (RunTime.GameModeLoader != null)
             {
-                gamemodes = RunTime.GameModeLoader.Modes.Keys.ToArray();
+                gamemodes = [.. RunTime.GameModeLoader.Modes.Keys];
             }
             ConnectArgs.Add(gamemodes); // 服务器检查是否拥有需要的模组
             ConnectArgs.Add(FunGameInfo.FunGame_DebugMode); // 是否开启了debug模式

@@ -1674,6 +1674,11 @@ namespace Milimoe.FunGame.Desktop.UI
 
             TaskUtility.NewTask(() =>
             {
+                if (RunTime.Controller != null)
+                {
+                    (RunTime.Session.Server_IP, RunTime.Session.Server_Port) = RunTime.Controller.GetServerAddress();
+                }
+                (EventArgs.ServerIP, EventArgs.ServerPort) = (RunTime.Session.Server_IP, RunTime.Session.Server_Port);
                 OnBeforeConnectEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnBeforeConnectEvent(this, EventArgs);
                 if (EventArgs.Cancel) return;
