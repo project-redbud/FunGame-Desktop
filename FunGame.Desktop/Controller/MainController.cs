@@ -19,6 +19,8 @@ namespace Milimoe.FunGame.Desktop.Controller
         private readonly DataRequest UpdateRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_UpdateRoom);
         private readonly DataRequest IntoRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_IntoRoom);
         private readonly DataRequest QuitRoomRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_QuitRoom);
+        private readonly DataRequest SetReadyRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_Ready);
+        private readonly DataRequest CancelReadyRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_CancelReady);
         private readonly DataRequest StartGameRequest = RunTime.NewLongRunningDataRequest(DataRequestType.Main_StartGame);
 
         #region 公开方法
@@ -31,6 +33,8 @@ namespace Milimoe.FunGame.Desktop.Controller
             UpdateRoomRequest.Dispose();
             IntoRoomRequest.Dispose();
             QuitRoomRequest.Dispose();
+            SetReadyRequest.Dispose();
+            CancelReadyRequest.Dispose();
             StartGameRequest.Dispose();
         }
 
@@ -131,23 +135,21 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 bool result = true;
 
-                DataRequest request = RunTime.NewDataRequest(DataRequestType.Main_Ready);
-                request.AddRequestData("roomid", roomid);
-                await request.SendRequestAsync();
-                if (request.Result == RequestResult.Success)
+                SetReadyRequest.AddRequestData("roomid", roomid);
+                await SetReadyRequest.SendRequestAsync();
+                if (SetReadyRequest.Result == RequestResult.Success)
                 {
-                    result = request.GetResult<bool>("result");
+                    result = SetReadyRequest.GetResult<bool>("result");
                     if (result)
                     {
                         Config.FunGame_isInRoom = true;
                         Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 准备完毕。");
                     }
-                    List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
+                    List<User> ReadyPlayerList = SetReadyRequest.GetResult<List<User>>("ready") ?? new();
                     if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
-                    List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
+                    List<User> NotReadyPlayerList = SetReadyRequest.GetResult<List<User>>("notready") ?? new();
                     if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                 }
-                request.Dispose();
                 return result;
             }
             catch (Exception e)
@@ -163,23 +165,21 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 bool result = true;
 
-                DataRequest request = RunTime.NewDataRequest(DataRequestType.Main_CancelReady);
-                request.AddRequestData("roomid", roomid);
-                await request.SendRequestAsync();
-                if (request.Result == RequestResult.Success)
+                CancelReadyRequest.AddRequestData("roomid", roomid);
+                await CancelReadyRequest.SendRequestAsync();
+                if (CancelReadyRequest.Result == RequestResult.Success)
                 {
-                    result = request.GetResult<bool>("result");
+                    result = CancelReadyRequest.GetResult<bool>("result");
                     if (result)
                     {
                         Config.FunGame_isInRoom = false;
                         Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
                     }
-                    List<User> ReadyPlayerList = request.GetResult<List<User>>("ready") ?? new();
+                    List<User> ReadyPlayerList = CancelReadyRequest.GetResult<List<User>>("ready") ?? new();
                     if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
-                    List<User> NotReadyPlayerList = request.GetResult<List<User>>("notready") ?? new();
+                    List<User> NotReadyPlayerList = CancelReadyRequest.GetResult<List<User>>("notready") ?? new();
                     if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                 }
-                request.Dispose();
                 return result;
             }
             catch (Exception e)

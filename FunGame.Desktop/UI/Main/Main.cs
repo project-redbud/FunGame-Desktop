@@ -354,7 +354,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 }
                 else
                 {
-                    INIHelper.Init((FunGameInfo.FunGame)Constant.FunGameType);
+                    INIHelper.Init(Constant.FunGameType);
                     WritelnGameInfo(">> 首次启动，已自动为你创建配置文件。");
                     GetFunGameConfig();
                 }
@@ -486,7 +486,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + RoomSet.GetTypeString(room.RoomType) + ") ] 的游戏正式开始！");
                 if (RunTime.GameModeLoader?.Modes.ContainsKey(room.GameMode) ?? false)
                 {
-                    Gaming.StartGame(RunTime.GameModeLoader[room.GameMode], room, users);
+                    RunTime.Gaming = Core.Model.Gaming.StartGame(RunTime.GameModeLoader[room.GameMode], room, users);
                     Visible = false; // 隐藏主界面
                 }
                 else
@@ -508,6 +508,7 @@ namespace Milimoe.FunGame.Desktop.UI
             SetButtonEnableIfLogon(true, ClientState.InRoom);
             _InGame = false;
             WritelnGameInfo("游戏结束！" + " [ " + users[new Random().Next(users.Count)] + " ] " + "是赢家！");
+            RunTime.Controller?.EndGame();
         }
 
         /// <summary>
@@ -527,6 +528,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RefreshRoomList.Enabled = isLogon;
                 CheckMix.Enabled = isLogon;
                 CheckTeam.Enabled = isLogon;
+                CheckIsRank.Enabled = isLogon;
                 CheckHasPass.Enabled = isLogon;
                 QuitRoom.Enabled = isLogon;
                 RoomSetting.Enabled = isLogon;
@@ -568,6 +570,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RefreshRoomList.Enabled = isLogon;
                 CheckMix.Enabled = isLogon;
                 CheckTeam.Enabled = isLogon;
+                CheckIsRank.Enabled = isLogon;
                 CheckHasPass.Enabled = isLogon;
             }
         }
@@ -575,29 +578,35 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <summary>
         /// 加入房间
         /// </summary>
-        /// <param name="isDouble"></param>
         /// <param name="roomid"></param>
-        private async Task<bool> JoinRoom(bool isDouble, string roomid)
+        private async Task<bool> JoinRoom(string roomid)
         {
-            if (!isDouble)
-            {
-                if (!RoomText.Text.Equals("") && !RoomText.ForeColor.Equals(Color.DarkGray))
-                {
-                    return await JoinRoom_Handler(roomid);
-                }
-                else
-                {
-                    RoomText.Enabled = false;
-                    ShowMessage(ShowMessageType.Tip, "请输入房间号。");
-                    RoomText.Enabled = true;
-                    RoomText.Focus();
-                    return false;
-                }
-            }
-            else
+            if (!RoomText.Text.Equals("") && !RoomText.ForeColor.Equals(Color.DarkGray))
             {
                 return await JoinRoom_Handler(roomid);
             }
+            else
+            {
+                RoomText.Enabled = false;
+                ShowMessage(ShowMessageType.Tip, "请输入房间号。");
+                RoomText.Enabled = true;
+                RoomText.Focus();
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 通过双击房间列表的房间号加入房间
+        /// </summary>
+        /// <param name="selectedindex"></param>
+        private async Task<bool> JoinRoom(int selectedindex)
+        {
+            if (selectedindex != -1 && RunTime.RoomList.Count > selectedindex)
+            {
+                string roomid = RunTime.RoomList.ListRoom[selectedindex]?.Roomid ?? "";
+                return await JoinRoom_Handler(roomid);
+            }
+            return false;
         }
 
         /// <summary>
@@ -766,7 +775,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 }
                 Usercfg.LoginUserName = Usercfg.LoginUser.Username;
             }
-            NowAccount.Text = "[ID] " + Usercfg.LoginUserName;
+            NowAccount.Text = "[当前登录]" + "\r\n" + Usercfg.LoginUserName;
             Login.Visible = false;
             Logout.Visible = true;
             UpdateUI(MainInvokeType.SetGreenAndPing);
@@ -949,7 +958,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         private void ShowFunGameInfo()
         {
-            WritelnGameInfo(FunGameInfo.GetInfo((FunGameInfo.FunGame)Constant.FunGameType));
+            WritelnGameInfo(FunGameInfo.GetInfo(Constant.FunGameType));
             Title.Text = FunGameInfo.FunGame_Desktop + " " + FunGameInfo.FunGame_Version + " " + FunGameInfo.FunGame_VersionPatch;
         }
 
@@ -1119,7 +1128,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void QueryRoom_Click(object sender, EventArgs e)
         {
-            TaskUtility.NewTask(async () => await JoinRoom(false, RoomText.Text));
+            TaskUtility.NewTask(async () => await JoinRoom(RoomText.Text));
         }
 
         /// <summary>
@@ -1171,7 +1180,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (RoomList.SelectedItem != null)
             {
-                TaskUtility.NewTask(async () => await JoinRoom(true, RoomList.SelectedItem.ToString() ?? ""));
+                TaskUtility.NewTask(async () => await JoinRoom(RoomList.SelectedIndex));
             }
         }
 
@@ -1243,7 +1252,7 @@ namespace Milimoe.FunGame.Desktop.UI
             if (e.KeyCode.Equals(Keys.Enter))
             {
                 // 按下回车加入房间
-                TaskUtility.NewTask(async () => await JoinRoom(false, RoomText.Text));
+                TaskUtility.NewTask(async () => await JoinRoom(RoomText.Text));
             }
         }
 

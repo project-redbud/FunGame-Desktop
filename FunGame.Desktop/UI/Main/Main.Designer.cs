@@ -69,6 +69,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Store = new Button();
             Copyright = new LinkLabel();
             StopMatch = new Button();
+            CheckIsRank = new CheckBox();
             RoomBox.SuspendLayout();
             Notice.SuspendLayout();
             InfoBox.SuspendLayout();
@@ -186,7 +187,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // StartMatch
             // 
             StartMatch.Font = new Font("LanaPixel", 12F);
-            StartMatch.Location = new Point(665, 184);
+            StartMatch.Location = new Point(665, 214);
             StartMatch.Name = "StartMatch";
             StartMatch.Size = new Size(132, 35);
             StartMatch.TabIndex = 9;
@@ -223,7 +224,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // RoomSetting
             // 
             RoomSetting.Font = new Font("LanaPixel", 12F);
-            RoomSetting.Location = new Point(665, 225);
+            RoomSetting.Location = new Point(665, 254);
             RoomSetting.Name = "RoomSetting";
             RoomSetting.Size = new Size(132, 35);
             RoomSetting.TabIndex = 11;
@@ -247,9 +248,9 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             NowAccount.BackColor = Color.Transparent;
             NowAccount.Font = new Font("LanaPixel", 12F);
-            NowAccount.Location = new Point(659, 352);
+            NowAccount.Location = new Point(551, 9);
             NowAccount.Name = "NowAccount";
-            NowAccount.Size = new Size(141, 25);
+            NowAccount.Size = new Size(141, 41);
             NowAccount.TabIndex = 91;
             NowAccount.Text = "请登录账号";
             NowAccount.TextAlign = ContentAlignment.MiddleCenter;
@@ -257,7 +258,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // AccountSetting
             // 
             AccountSetting.Font = new Font("LanaPixel", 12F);
-            AccountSetting.Location = new Point(665, 317);
+            AccountSetting.Location = new Point(665, 342);
             AccountSetting.Name = "AccountSetting";
             AccountSetting.Size = new Size(65, 32);
             AccountSetting.TabIndex = 12;
@@ -267,7 +268,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // About
             // 
             About.Font = new Font("LanaPixel", 12F);
-            About.Location = new Point(732, 317);
+            About.Location = new Point(733, 341);
             About.Name = "About";
             About.Size = new Size(65, 32);
             About.TabIndex = 13;
@@ -278,7 +279,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             Room.BackColor = Color.Transparent;
             Room.Font = new Font("LanaPixel", 12F);
-            Room.Location = new Point(560, 5);
+            Room.Location = new Point(665, 293);
             Room.Name = "Room";
             Room.Size = new Size(132, 45);
             Room.TabIndex = 90;
@@ -460,7 +461,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // QuitRoom
             // 
             QuitRoom.Font = new Font("LanaPixel", 12F);
-            QuitRoom.Location = new Point(665, 184);
+            QuitRoom.Location = new Point(665, 212);
             QuitRoom.Name = "QuitRoom";
             QuitRoom.Size = new Size(132, 35);
             QuitRoom.TabIndex = 9;
@@ -472,7 +473,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // CreateRoom
             // 
             CreateRoom.Font = new Font("LanaPixel", 12F);
-            CreateRoom.Location = new Point(665, 225);
+            CreateRoom.Location = new Point(666, 253);
             CreateRoom.Name = "CreateRoom";
             CreateRoom.Size = new Size(132, 35);
             CreateRoom.TabIndex = 10;
@@ -496,12 +497,12 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             CheckHasPass.BackColor = Color.Transparent;
             CheckHasPass.Font = new Font("LanaPixel", 12F);
-            CheckHasPass.Location = new Point(675, 154);
+            CheckHasPass.Location = new Point(737, 184);
             CheckHasPass.Name = "CheckHasPass";
-            CheckHasPass.Size = new Size(123, 24);
+            CheckHasPass.Size = new Size(60, 24);
             CheckHasPass.TabIndex = 9;
-            CheckHasPass.Text = "带密码的房间";
-            CheckHasPass.TextAlign = ContentAlignment.BottomLeft;
+            CheckHasPass.Text = "密码";
+            CheckHasPass.TextAlign = ContentAlignment.MiddleCenter;
             CheckHasPass.UseVisualStyleBackColor = false;
             CheckHasPass.CheckedChanged += CheckGameMode_CheckedChanged;
             // 
@@ -547,7 +548,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // StopMatch
             // 
             StopMatch.Font = new Font("LanaPixel", 12F);
-            StopMatch.Location = new Point(665, 184);
+            StopMatch.Location = new Point(665, 213);
             StopMatch.Name = "StopMatch";
             StopMatch.Size = new Size(132, 35);
             StopMatch.TabIndex = 10;
@@ -558,12 +559,26 @@ namespace Milimoe.FunGame.Desktop.UI
             StopMatch.MouseLeave += StopMatch_MouseLeave;
             StopMatch.MouseHover += StopMatch_MouseHover;
             // 
+            // CheckIsRank
+            // 
+            CheckIsRank.BackColor = Color.Transparent;
+            CheckIsRank.Enabled = false;
+            CheckIsRank.Font = new Font("LanaPixel", 12F);
+            CheckIsRank.Location = new Point(671, 184);
+            CheckIsRank.Name = "CheckIsRank";
+            CheckIsRank.Size = new Size(60, 24);
+            CheckIsRank.TabIndex = 98;
+            CheckIsRank.Text = "排位";
+            CheckIsRank.TextAlign = ContentAlignment.MiddleCenter;
+            CheckIsRank.UseVisualStyleBackColor = false;
+            // 
             // Main
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             BackgroundImage = Properties.Resources.back;
             ClientSize = new Size(800, 450);
+            Controls.Add(CheckIsRank);
             Controls.Add(RefreshRoomList);
             Controls.Add(StopMatch);
             Controls.Add(Copyright);
@@ -625,6 +640,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Controls.SetChildIndex(Copyright, 0);
             Controls.SetChildIndex(StopMatch, 0);
             Controls.SetChildIndex(RefreshRoomList, 0);
+            Controls.SetChildIndex(CheckIsRank, 0);
             RoomBox.ResumeLayout(false);
             RoomBox.PerformLayout();
             Notice.ResumeLayout(false);
@@ -672,5 +688,6 @@ namespace Milimoe.FunGame.Desktop.UI
         private TextBox NowRoomID;
         private Button CopyRoomID;
         private Button RefreshRoomList;
+        private CheckBox CheckIsRank;
     }
 }

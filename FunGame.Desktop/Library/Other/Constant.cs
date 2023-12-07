@@ -7,7 +7,7 @@ namespace Milimoe.FunGame.Desktop.Library
         /**
          * Game Configs
          */
-        public static int FunGameType { get; } = (int)FunGameInfo.FunGame.FunGame_Desktop;
+        public static FunGameInfo.FunGame FunGameType => FunGameInfo.FunGame.FunGame_Desktop;
 
         /**
          * FunGame Configs

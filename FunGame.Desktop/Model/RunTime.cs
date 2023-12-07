@@ -11,11 +11,11 @@ namespace Milimoe.FunGame.Desktop.Model
         public static Core.Model.RoomList RoomList { get; } = new();
         public static Core.Model.Session Session { get; } = new();
         public static Core.Model.FunGameConfig Config { get; } = new();
+        public static Core.Model.Gaming? Gaming { get; set; } = null;
         public static Core.Api.Utility.PluginLoader? PluginLoader { get; set; } = null;
         public static Core.Api.Utility.GameModeLoader? GameModeLoader { get; set; } = null;
         public static Core.Library.Common.Network.Socket? Socket { get; set; } = null;
         public static Controller.RunTimeController? Controller { get; set; } = null;
-        public static Gaming? Gaming { get; set; } = null;
         public static UI.Main? Main { get; set; } = null;
         public static UI.Login? Login { get; set; } = null;
         public static UI.Register? Register { get; set; } = null;

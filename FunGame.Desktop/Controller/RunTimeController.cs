@@ -29,9 +29,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             try
             {
                 RunTime.PluginLoader = PluginLoader.LoadPlugins(
-                    new Action<string>(WritelnSystemInfo),
-                    new Func<DataRequestType, DataRequest>(NewDataRequest),
-                    new Func<DataRequestType, DataRequest>(NewLongRunningDataRequest),
+                    [new Action<string>(WritelnSystemInfo), new Func<DataRequestType, DataRequest>(NewDataRequest), new Func<DataRequestType, DataRequest>(NewLongRunningDataRequest)],
                     RunTime.Session, RunTime.Config);
                 foreach (string name in RunTime.PluginLoader.Plugins.Keys)
                 {
@@ -48,10 +46,8 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             try
             {
-                RunTime.GameModeLoader = GameModeLoader.LoadGameModes(
-                    new Action<string>(WritelnSystemInfo),
-                    new Func<DataRequestType, DataRequest>(NewDataRequest),
-                    new Func<DataRequestType, DataRequest>(NewLongRunningDataRequest),
+                RunTime.GameModeLoader = GameModeLoader.LoadGameModes(Constant.FunGameType,
+                    [new Action<string>(WritelnSystemInfo), new Func<DataRequestType, DataRequest>(NewDataRequest), new Func<DataRequestType, DataRequest>(NewLongRunningDataRequest)],
                     RunTime.Session, RunTime.Config);
                 foreach (string name in RunTime.GameModeLoader.Modes.Keys)
                 {
@@ -270,7 +266,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         protected override void SocketHandler_EndGame(SocketObject ServerMessage)
         {
             Room room = General.HallInstance;
-            List<User> users = new();
+            List<User> users = [];
             if (ServerMessage.Length > 0) room = ServerMessage.GetParam<Room>(0) ?? General.HallInstance;
             if (ServerMessage.Length > 1) users = ServerMessage.GetParam<List<User>>(1) ?? users;
             Main.UpdateUI(MainInvokeType.EndGame, room, users);
@@ -278,7 +274,11 @@ namespace Milimoe.FunGame.Desktop.Controller
 
         protected override void SocketHandler_Gaming(SocketObject ServerMessage)
         {
-
+            GamingType gamingtype = GamingType.None;
+            Hashtable data = [];
+            if (ServerMessage.Length > 0) gamingtype = ServerMessage.GetParam<GamingType>(0);
+            if (ServerMessage.Length > 1) data = ServerMessage.GetParam<Hashtable>(1) ?? data;
+            RunTime.Gaming?.GamingHandler(gamingtype, data);
         }
     }
 }
