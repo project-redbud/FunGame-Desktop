@@ -45,7 +45,7 @@ namespace Milimoe.FunGame.Desktop.UI
         public void Init()
         {
             RunTime.Main = this;
-            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+            SetButtonEnabled(false, ClientState.WaitConnect);
             SetRoomid(Usercfg.InRoom); // 房间号初始化
             ShowFunGameInfo(); // 显示FunGame信息
             GetFunGameConfig(); // 获取FunGame配置
@@ -106,8 +106,8 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.SetGreen:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Green);
-                            if (Usercfg.InRoom.Roomid != "-1") SetButtonEnableIfLogon(true, ClientState.InRoom);
-                            else SetButtonEnableIfLogon(true, ClientState.Online);
+                            if (Usercfg.InRoom.Roomid != "-1") SetButtonEnabled(true, ClientState.InRoom);
+                            else SetButtonEnabled(true, ClientState.Online);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
@@ -115,8 +115,8 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.SetGreenAndPing:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Green, ping: NetworkUtility.GetServerPing(RunTime.Session.Server_IP));
-                            if (Usercfg.InRoom.Roomid != "-1") SetButtonEnableIfLogon(true, ClientState.InRoom);
-                            else SetButtonEnableIfLogon(true, ClientState.Online);
+                            if (Usercfg.InRoom.Roomid != "-1") SetButtonEnabled(true, ClientState.InRoom);
+                            else SetButtonEnabled(true, ClientState.Online);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
@@ -124,7 +124,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.SetYellow:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Yellow);
-                            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+                            SetButtonEnabled(false, ClientState.WaitConnect);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
@@ -132,7 +132,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.WaitConnectAndSetYellow:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Yellow);
-                            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+                            SetButtonEnabled(false, ClientState.WaitConnect);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             if (MainController != null && Config.FunGame_isAutoConnect)
@@ -145,14 +145,14 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.WaitLoginAndSetYellow:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Yellow, true);
-                            SetButtonEnableIfLogon(false, ClientState.WaitLogin);
+                            SetButtonEnabled(false, ClientState.WaitLogin);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
 
                         case MainInvokeType.SetRed:
                             SetServerStatusLight(LightType.Red);
-                            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+                            SetButtonEnabled(false, ClientState.WaitConnect);
                             Config.FunGame_isConnected = false;
                             break;
 
@@ -162,7 +162,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             Config.FunGame_isRetrying = false;
                             Config.FunGame_isConnected = false;
                             SetServerStatusLight(LightType.Red);
-                            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+                            SetButtonEnabled(false, ClientState.WaitConnect);
                             LogoutAccount();
                             MainController?.MainController_Disposed();
                             CloseConnectedWindows();
@@ -177,7 +177,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             Config.FunGame_isAutoLogin = false;
                             Config.FunGame_isConnected = false;
                             SetServerStatusLight(LightType.Yellow);
-                            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+                            SetButtonEnabled(false, ClientState.WaitConnect);
                             LogoutAccount();
                             MainController?.MainController_Disposed();
                             break;
@@ -189,7 +189,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             Config.FunGame_isRetrying = false;
                             Config.FunGame_isAutoLogin = false;
                             SetServerStatusLight(LightType.Yellow, true);
-                            SetButtonEnableIfLogon(false, ClientState.WaitLogin);
+                            SetButtonEnabled(false, ClientState.WaitLogin);
                             LogoutAccount();
                             if (objs != null && objs.Length > 0)
                             {
@@ -466,7 +466,7 @@ namespace Milimoe.FunGame.Desktop.UI
             NowRoomID.Visible = true;
             CopyRoomID.Visible = true;
             // 禁用和激活按钮，并切换预设快捷消息
-            SetButtonEnableIfLogon(true, ClientState.InRoom);
+            SetButtonEnabled(true, ClientState.InRoom);
         }
 
         /// <summary>
@@ -494,7 +494,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     WritelnGameInfo("缺少房间所需模组 [ " + room.GameMode + " ] 无法开始游戏，请检查模组是否正确安装。");
                 }
             });
-            SetButtonEnableIfLogon(false, ClientState.InRoom);
+            SetButtonEnabled(false, ClientState.InRoom);
         }
 
         /// <summary>
@@ -505,7 +505,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Visible = true;
             // test
             WritelnGameInfo("===== TEST =====");
-            SetButtonEnableIfLogon(true, ClientState.InRoom);
+            SetButtonEnabled(true, ClientState.InRoom);
             _InGame = false;
             WritelnGameInfo("游戏结束！" + " [ " + users[new Random().Next(users.Count)] + " ] " + "是赢家！");
             RunTime.Controller?.EndGame();
@@ -514,29 +514,30 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <summary>
         /// 未登录和离线时，停用按钮
         /// 登录的时候要激活按钮
+        /// 在游戏时，锁定部分按钮
         /// </summary>
-        /// <param name="isLogon">是否登录</param>
+        /// <param name="isEnabled">是否登录</param>
         /// <param name="status">客户端状态</param>
-        private void SetButtonEnableIfLogon(bool isLogon, ClientState status)
+        private void SetButtonEnabled(bool isEnabled, ClientState status)
         {
             if (_InGame)
             {
-                AccountSetting.Enabled = isLogon;
-                Stock.Enabled = isLogon;
-                Store.Enabled = isLogon;
-                RoomBox.Enabled = isLogon;
-                RefreshRoomList.Enabled = isLogon;
-                CheckMix.Enabled = isLogon;
-                CheckTeam.Enabled = isLogon;
-                CheckIsRank.Enabled = isLogon;
-                CheckHasPass.Enabled = isLogon;
-                QuitRoom.Enabled = isLogon;
-                RoomSetting.Enabled = isLogon;
-                PresetText.Enabled = isLogon;
-                TalkText.Enabled = isLogon;
-                SendTalkText.Enabled = isLogon;
-                Logout.Enabled = isLogon;
-                if (!isLogon) return;
+                AccountSetting.Enabled = isEnabled;
+                Stock.Enabled = isEnabled;
+                Store.Enabled = isEnabled;
+                RoomBox.Enabled = isEnabled;
+                RefreshRoomList.Enabled = isEnabled;
+                CheckMix.Enabled = isEnabled;
+                CheckTeam.Enabled = isEnabled;
+                CheckIsRank.Enabled = isEnabled;
+                CheckHasPass.Enabled = isEnabled;
+                QuitRoom.Enabled = isEnabled;
+                RoomSetting.Enabled = isEnabled;
+                PresetText.Enabled = isEnabled;
+                TalkText.Enabled = isEnabled;
+                SendTalkText.Enabled = isEnabled;
+                Logout.Enabled = isEnabled;
+                if (!isEnabled) return;
             }
             switch (status)
             {
@@ -558,20 +559,20 @@ namespace Milimoe.FunGame.Desktop.UI
                     break;
             }
             this.PresetText.SelectedIndex = 0;
-            StartMatch.Enabled = isLogon;
-            AccountSetting.Enabled = isLogon;
-            Stock.Enabled = isLogon;
-            Store.Enabled = isLogon;
+            StartMatch.Enabled = isEnabled;
+            AccountSetting.Enabled = isEnabled;
+            Stock.Enabled = isEnabled;
+            Store.Enabled = isEnabled;
             if (!Config.FunGame_isMatching)
             {
                 // 匹配中时不修改部分按钮状态
-                RoomBox.Enabled = isLogon;
-                CreateRoom.Enabled = isLogon;
-                RefreshRoomList.Enabled = isLogon;
-                CheckMix.Enabled = isLogon;
-                CheckTeam.Enabled = isLogon;
-                CheckIsRank.Enabled = isLogon;
-                CheckHasPass.Enabled = isLogon;
+                RoomBox.Enabled = isEnabled;
+                CreateRoom.Enabled = isEnabled;
+                RefreshRoomList.Enabled = isEnabled;
+                CheckMix.Enabled = isEnabled;
+                CheckTeam.Enabled = isEnabled;
+                CheckIsRank.Enabled = isEnabled;
+                CheckHasPass.Enabled = isEnabled;
             }
         }
 
@@ -965,8 +966,9 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <summary>
         /// 关闭所有登录后才能访问的窗口
         /// </summary>
-        private static void CloseConnectedWindows()
+        private void CloseConnectedWindows()
         {
+            Visible = true;
             RunTime.Login?.Close();
             RunTime.Register?.Close();
             RunTime.Store?.Close();
@@ -1912,7 +1914,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     OnSucceedQuitRoomEvent(this, EventArgs);
                     RunTime.PluginLoader?.OnSucceedQuitRoomEvent(this, EventArgs);
                     // 禁用和激活按钮，并切换预设快捷消息
-                    SetButtonEnableIfLogon(true, ClientState.Online);
+                    SetButtonEnabled(true, ClientState.Online);
                 }
                 else
                 {
@@ -1930,7 +1932,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 OnAfterQuitRoomEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnAfterQuitRoomEvent(this, EventArgs);
                 // 禁用和激活按钮，并切换预设快捷消息
-                SetButtonEnableIfLogon(true, ClientState.Online);
+                SetButtonEnabled(true, ClientState.Online);
             }
 
             return result;
