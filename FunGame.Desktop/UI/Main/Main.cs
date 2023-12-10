@@ -45,7 +45,7 @@ namespace Milimoe.FunGame.Desktop.UI
         public void Init()
         {
             RunTime.Main = this;
-            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+            SetButtonEnabled(false, ClientState.WaitConnect);
             SetRoomid(Usercfg.InRoom); // 房间号初始化
             ShowFunGameInfo(); // 显示FunGame信息
             GetFunGameConfig(); // 获取FunGame配置
@@ -65,6 +65,19 @@ namespace Milimoe.FunGame.Desktop.UI
                 RunTime.Controller.LoadGameModes();
                 // 加载插件
                 RunTime.Controller.LoadPlugins();
+                // 设置预设
+                InvokeUpdateUI(() =>
+                {
+                    ComboRoomType.Items.Clear();
+                    ComboRoomType.Items.AddRange(Constant.SupportedRoomType());
+                    ComboRoomType.SelectedIndex = 0;
+                    ComboGameMode.Items.Clear();
+                    ComboGameMode.Items.AddRange(Constant.SupportedGameMode(RoomType.All));
+                    ComboGameMode.SelectedIndex = 0;
+                    ComboGameMap.Items.Clear();
+                    ComboGameMap.Items.AddRange(Constant.SupportedGameMap());
+                    ComboGameMap.SelectedIndex = 0;
+                });
                 // 自动连接服务器
                 if (Config.FunGame_isAutoConnect) InvokeController_Connect();
             });
@@ -106,8 +119,8 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.SetGreen:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Green);
-                            if (Usercfg.InRoom.Roomid != "-1") SetButtonEnableIfLogon(true, ClientState.InRoom);
-                            else SetButtonEnableIfLogon(true, ClientState.Online);
+                            if (Usercfg.InRoom.Roomid != "-1") SetButtonEnabled(true, ClientState.InRoom);
+                            else SetButtonEnabled(true, ClientState.Online);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
@@ -115,8 +128,8 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.SetGreenAndPing:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Green, ping: NetworkUtility.GetServerPing(RunTime.Session.Server_IP));
-                            if (Usercfg.InRoom.Roomid != "-1") SetButtonEnableIfLogon(true, ClientState.InRoom);
-                            else SetButtonEnableIfLogon(true, ClientState.Online);
+                            if (Usercfg.InRoom.Roomid != "-1") SetButtonEnabled(true, ClientState.InRoom);
+                            else SetButtonEnabled(true, ClientState.Online);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
@@ -124,7 +137,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.SetYellow:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Yellow);
-                            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+                            SetButtonEnabled(false, ClientState.WaitConnect);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
@@ -132,7 +145,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.WaitConnectAndSetYellow:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Yellow);
-                            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+                            SetButtonEnabled(false, ClientState.WaitConnect);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             if (MainController != null && Config.FunGame_isAutoConnect)
@@ -145,14 +158,14 @@ namespace Milimoe.FunGame.Desktop.UI
                         case MainInvokeType.WaitLoginAndSetYellow:
                             Config.FunGame_isRetrying = false;
                             SetServerStatusLight(LightType.Yellow, true);
-                            SetButtonEnableIfLogon(false, ClientState.WaitLogin);
+                            SetButtonEnabled(false, ClientState.WaitLogin);
                             Config.FunGame_isConnected = true;
                             CurrentRetryTimes = 0;
                             break;
 
                         case MainInvokeType.SetRed:
                             SetServerStatusLight(LightType.Red);
-                            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+                            SetButtonEnabled(false, ClientState.WaitConnect);
                             Config.FunGame_isConnected = false;
                             break;
 
@@ -162,7 +175,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             Config.FunGame_isRetrying = false;
                             Config.FunGame_isConnected = false;
                             SetServerStatusLight(LightType.Red);
-                            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+                            SetButtonEnabled(false, ClientState.WaitConnect);
                             LogoutAccount();
                             MainController?.MainController_Disposed();
                             CloseConnectedWindows();
@@ -177,7 +190,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             Config.FunGame_isAutoLogin = false;
                             Config.FunGame_isConnected = false;
                             SetServerStatusLight(LightType.Yellow);
-                            SetButtonEnableIfLogon(false, ClientState.WaitConnect);
+                            SetButtonEnabled(false, ClientState.WaitConnect);
                             LogoutAccount();
                             MainController?.MainController_Disposed();
                             break;
@@ -189,7 +202,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             Config.FunGame_isRetrying = false;
                             Config.FunGame_isAutoLogin = false;
                             SetServerStatusLight(LightType.Yellow, true);
-                            SetButtonEnableIfLogon(false, ClientState.WaitLogin);
+                            SetButtonEnabled(false, ClientState.WaitLogin);
                             LogoutAccount();
                             if (objs != null && objs.Length > 0)
                             {
@@ -223,11 +236,10 @@ namespace Milimoe.FunGame.Desktop.UI
                                 {
                                     if (r.Roomid != "-1")
                                     {
-                                        string item = r.Roomid;
-                                        if (r.Name.Trim() != "")
-                                        {
-                                            item += " [ " + r.Name + " ]";
-                                        }
+                                        string item = r.Roomid + " [ ";
+                                        if (r.IsRank) item += "排位, ";
+                                        if (r.HasPass) item += "密码, ";
+                                        item += RoomSet.GetTypeString(r.RoomType) + " ] ";
                                         RoomList.Items.Add(item);
                                     }
                                 }
@@ -354,7 +366,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 }
                 else
                 {
-                    INIHelper.Init((FunGameInfo.FunGame)Constant.FunGameType);
+                    INIHelper.Init(Constant.FunGameType);
                     WritelnGameInfo(">> 首次启动，已自动为你创建配置文件。");
                     GetFunGameConfig();
                 }
@@ -466,7 +478,7 @@ namespace Milimoe.FunGame.Desktop.UI
             NowRoomID.Visible = true;
             CopyRoomID.Visible = true;
             // 禁用和激活按钮，并切换预设快捷消息
-            SetButtonEnableIfLogon(true, ClientState.InRoom);
+            SetButtonEnabled(true, ClientState.InRoom);
         }
 
         /// <summary>
@@ -486,11 +498,15 @@ namespace Milimoe.FunGame.Desktop.UI
                 WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + RoomSet.GetTypeString(room.RoomType) + ") ] 的游戏正式开始！");
                 if (RunTime.GameModeLoader?.Modes.ContainsKey(room.GameMode) ?? false)
                 {
-                    RunTime.GameModeLoader[room.GameMode].StartUI();
+                    RunTime.Gaming = Core.Model.Gaming.StartGame(RunTime.GameModeLoader[room.GameMode], room, users);
                     Visible = false; // 隐藏主界面
                 }
+                else
+                {
+                    WritelnGameInfo("缺少房间所需模组 [ " + room.GameMode + " ] 无法开始游戏，请检查模组是否正确安装。");
+                }
             });
-            SetButtonEnableIfLogon(false, ClientState.InRoom);
+            SetButtonEnabled(false, ClientState.InRoom);
         }
 
         /// <summary>
@@ -501,36 +517,40 @@ namespace Milimoe.FunGame.Desktop.UI
             Visible = true;
             // test
             WritelnGameInfo("===== TEST =====");
-            SetButtonEnableIfLogon(true, ClientState.InRoom);
+            SetButtonEnabled(true, ClientState.InRoom);
             _InGame = false;
             WritelnGameInfo("游戏结束！" + " [ " + users[new Random().Next(users.Count)] + " ] " + "是赢家！");
+            RunTime.Controller?.EndGame();
         }
 
         /// <summary>
         /// 未登录和离线时，停用按钮
         /// 登录的时候要激活按钮
+        /// 在游戏时，锁定部分按钮
         /// </summary>
-        /// <param name="isLogon">是否登录</param>
+        /// <param name="isEnabled">是否登录</param>
         /// <param name="status">客户端状态</param>
-        private void SetButtonEnableIfLogon(bool isLogon, ClientState status)
+        private void SetButtonEnabled(bool isEnabled, ClientState status)
         {
             if (_InGame)
             {
-                AccountSetting.Enabled = isLogon;
-                Stock.Enabled = isLogon;
-                Store.Enabled = isLogon;
-                RoomBox.Enabled = isLogon;
-                RefreshRoomList.Enabled = isLogon;
-                CheckMix.Enabled = isLogon;
-                CheckTeam.Enabled = isLogon;
-                CheckHasPass.Enabled = isLogon;
-                QuitRoom.Enabled = isLogon;
-                RoomSetting.Enabled = isLogon;
-                PresetText.Enabled = isLogon;
-                TalkText.Enabled = isLogon;
-                SendTalkText.Enabled = isLogon;
-                Logout.Enabled = isLogon;
-                if (!isLogon) return;
+                AccountSetting.Enabled = isEnabled;
+                Stock.Enabled = isEnabled;
+                Store.Enabled = isEnabled;
+                RoomBox.Enabled = isEnabled;
+                RefreshRoomList.Enabled = isEnabled;
+                ComboRoomType.Enabled = isEnabled;
+                ComboGameMode.Enabled = isEnabled;
+                ComboGameMap.Enabled = isEnabled;
+                CheckIsRank.Enabled = isEnabled;
+                CheckHasPass.Enabled = isEnabled;
+                QuitRoom.Enabled = isEnabled;
+                RoomSetting.Enabled = isEnabled;
+                PresetText.Enabled = isEnabled;
+                TalkText.Enabled = isEnabled;
+                SendTalkText.Enabled = isEnabled;
+                Logout.Enabled = isEnabled;
+                if (!isEnabled) return;
             }
             switch (status)
             {
@@ -552,48 +572,56 @@ namespace Milimoe.FunGame.Desktop.UI
                     break;
             }
             this.PresetText.SelectedIndex = 0;
-            StartMatch.Enabled = isLogon;
-            AccountSetting.Enabled = isLogon;
-            Stock.Enabled = isLogon;
-            Store.Enabled = isLogon;
+            StartMatch.Enabled = isEnabled;
+            AccountSetting.Enabled = isEnabled;
+            Stock.Enabled = isEnabled;
+            Store.Enabled = isEnabled;
             if (!Config.FunGame_isMatching)
             {
                 // 匹配中时不修改部分按钮状态
-                RoomBox.Enabled = isLogon;
-                CreateRoom.Enabled = isLogon;
-                RefreshRoomList.Enabled = isLogon;
-                CheckMix.Enabled = isLogon;
-                CheckTeam.Enabled = isLogon;
-                CheckHasPass.Enabled = isLogon;
+                RoomBox.Enabled = isEnabled;
+                CreateRoom.Enabled = isEnabled;
+                RefreshRoomList.Enabled = isEnabled;
+                ComboRoomType.Enabled = isEnabled;
+                ComboGameMode.Enabled = isEnabled;
+                ComboGameMap.Enabled = isEnabled;
+                CheckIsRank.Enabled = isEnabled;
+                CheckHasPass.Enabled = isEnabled;
             }
         }
 
         /// <summary>
         /// 加入房间
         /// </summary>
-        /// <param name="isDouble"></param>
         /// <param name="roomid"></param>
-        private async Task<bool> JoinRoom(bool isDouble, string roomid)
+        private async Task<bool> JoinRoom(string roomid)
         {
-            if (!isDouble)
-            {
-                if (!RoomText.Text.Equals("") && !RoomText.ForeColor.Equals(Color.DarkGray))
-                {
-                    return await JoinRoom_Handler(roomid);
-                }
-                else
-                {
-                    RoomText.Enabled = false;
-                    ShowMessage(ShowMessageType.Tip, "请输入房间号。");
-                    RoomText.Enabled = true;
-                    RoomText.Focus();
-                    return false;
-                }
-            }
-            else
+            if (!RoomText.Text.Equals("") && !RoomText.ForeColor.Equals(Color.DarkGray))
             {
                 return await JoinRoom_Handler(roomid);
             }
+            else
+            {
+                RoomText.Enabled = false;
+                ShowMessage(ShowMessageType.Tip, "请输入房间号。");
+                RoomText.Enabled = true;
+                RoomText.Focus();
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 通过双击房间列表的房间号加入房间
+        /// </summary>
+        /// <param name="selectedindex"></param>
+        private async Task<bool> JoinRoom(int selectedindex)
+        {
+            if (selectedindex != -1 && RunTime.RoomList.Count > selectedindex)
+            {
+                string roomid = RunTime.RoomList.ListRoom[selectedindex]?.Roomid ?? "";
+                return await JoinRoom_Handler(roomid);
+            }
+            return false;
         }
 
         /// <summary>
@@ -714,15 +742,16 @@ namespace Milimoe.FunGame.Desktop.UI
                     break;
                 case StartMatchState.Enable:
                     // 设置匹配过程中的各种按钮是否可用
-                    bool isEnabel = false;
-                    if (objs != null) isEnabel = (bool)objs[0];
-                    CheckMix.Enabled = isEnabel;
-                    CheckTeam.Enabled = isEnabel;
-                    CheckHasPass.Enabled = isEnabel;
-                    CreateRoom.Enabled = isEnabel;
-                    RoomBox.Enabled = isEnabel;
-                    RefreshRoomList.Enabled = isEnabel;
-                    Logout.Enabled = isEnabel;
+                    bool isEnabled = false;
+                    if (objs != null) isEnabled = (bool)objs[0];
+                    ComboRoomType.Enabled = isEnabled;
+                    ComboGameMode.Enabled = isEnabled;
+                    ComboGameMap.Enabled = isEnabled;
+                    CheckHasPass.Enabled = isEnabled;
+                    CreateRoom.Enabled = isEnabled;
+                    RoomBox.Enabled = isEnabled;
+                    RefreshRoomList.Enabled = isEnabled;
+                    Logout.Enabled = isEnabled;
                     break;
                 case StartMatchState.Cancel:
                     Config.FunGame_isMatching = false;
@@ -762,7 +791,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 }
                 Usercfg.LoginUserName = Usercfg.LoginUser.Username;
             }
-            NowAccount.Text = "[ID] " + Usercfg.LoginUserName;
+            NowAccount.Text = "[当前登录]" + "\r\n" + Usercfg.LoginUserName;
             Login.Visible = false;
             Logout.Visible = true;
             UpdateUI(MainInvokeType.SetGreenAndPing);
@@ -847,7 +876,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="RoomType"></param>
         /// <param name="Password"></param>
         /// <returns></returns>
-        private async Task CreateRoom_Handler(string RoomType, string GameMode, string GameMap, string Password = "")
+        private async Task CreateRoom_Handler(RoomType RoomType, string GameMode, string GameMap, bool IsRank, string Password = "")
         {
             if (Usercfg.InRoom.Roomid != "-1")
             {
@@ -860,7 +889,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 ShowMessage(ShowMessageType.Error, ">> 缺少" + Config.FunGame_RoomType + "所需的模组，无法创建房间。");
                 return;
             }
-            Room room = await InvokeController_CreateRoom(RoomType, GameMode, GameMap, Password);
+            Room room = await InvokeController_CreateRoom(RoomType, GameMode, GameMap, IsRank, Password);
             if (MainController is not null && room.Roomid != "-1")
             {
                 await MainController.UpdateRoomAsync();
@@ -945,14 +974,16 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         private void ShowFunGameInfo()
         {
-            WritelnGameInfo(FunGameInfo.GetInfo((FunGameInfo.FunGame)Constant.FunGameType));
+            WritelnGameInfo(FunGameInfo.GetInfo(Constant.FunGameType));
+            Title.Text = FunGameInfo.FunGame_Desktop + " " + FunGameInfo.FunGame_Version + " " + FunGameInfo.FunGame_VersionPatch;
         }
 
         /// <summary>
         /// 关闭所有登录后才能访问的窗口
         /// </summary>
-        private static void CloseConnectedWindows()
+        private void CloseConnectedWindows()
         {
+            Visible = true;
             RunTime.Login?.Close();
             RunTime.Register?.Close();
             RunTime.Store?.Close();
@@ -1008,13 +1039,36 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void StartMatch_Click(object sender, EventArgs e)
         {
+            if (ComboRoomType.SelectedIndex < 0 || ComboGameMode.SelectedIndex < 0 || ComboGameMap.SelectedIndex < 0)
+            {
+                ShowMessage(ShowMessageType.Warning, "未正确选择房间类型/游戏模组/游戏地图，请检查！");
+                return;
+            }
+            if (!ComboRoomType.Items.Contains(RoomSet.GetTypeString(Config.FunGame_RoomType)))
+            {
+                ShowMessage(ShowMessageType.Error, "无效的房间类型！");
+                return;
+            }
+            string all = Constant.AllComboItem[0].ToString() ?? "全部";
+            string modname = ComboGameMode.SelectedItem?.ToString() ?? all;
+            string modmap = ComboGameMap.SelectedItem?.ToString() ?? all;
+            if (RunTime.GameModeLoader is null || (modname != all && !RunTime.GameModeLoader.Modes.ContainsKey(modname)))
+            {
+                ShowMessage(ShowMessageType.Error, ">> 模组未正确加载，无法创建房间。");
+                return;
+            }
+            if (RunTime.GameModeLoader is null || (modmap != all && !RunTime.GameModeLoader.Maps.ContainsKey(modmap)))
+            {
+                ShowMessage(ShowMessageType.Error, ">> 地图未正确加载，无法创建房间。");
+                return;
+            }
             // 开始匹配
             _MatchSeconds = 0;
             SetMatchSecondsText();
             WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 开始匹配");
             WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 开始匹配");
             WriteGameInfo(">> 匹配参数：");
-            WritelnGameInfo(Config.FunGame_RoomType);
+            WritelnGameInfo(Config.FunGame_RoomType + " > " + modname + " > " + modmap);
             // 显示停止匹配按钮
             StartMatch.Visible = false;
             StopMatch.Visible = true;
@@ -1032,9 +1086,32 @@ namespace Milimoe.FunGame.Desktop.UI
         private void CreateRoom_Click(object sender, EventArgs e)
         {
             string password = "";
-            if (CheckMix.Checked && CheckTeam.Checked)
+            if (Config.FunGame_RoomType == RoomType.All || ComboRoomType.SelectedIndex <= 0 || ComboGameMode.SelectedIndex <= 0 || ComboGameMap.SelectedIndex <= 0)
             {
-                ShowMessage(ShowMessageType.Warning, "创建房间不允许同时勾选混战和团队！");
+                ShowMessage(ShowMessageType.Warning, "创建房间时不允许将房间类型/游戏模组/游戏地图的选项设置为[ 全部 ]。");
+                return;
+            }
+            if (!ComboRoomType.Items.Contains(RoomSet.GetTypeString(Config.FunGame_RoomType)))
+            {
+                ShowMessage(ShowMessageType.Error, "无效的房间类型！");
+                return;
+            }
+            string all = Constant.AllComboItem[0].ToString() ?? "全部";
+            string modname = ComboGameMode.SelectedItem?.ToString() ?? all;
+            string modmap = ComboGameMap.SelectedItem?.ToString() ?? all;
+            if (modname == all || modmap == all)
+            {
+                ShowMessage(ShowMessageType.Warning, "创建房间时不允许将房间类型/游戏模组/游戏地图的选项设置为[ 全部 ]。");
+                return;
+            }
+            if (RunTime.GameModeLoader is null || (modname != all && !RunTime.GameModeLoader.Modes.ContainsKey(modname)))
+            {
+                ShowMessage(ShowMessageType.Error, ">> 模组未正确加载，无法创建房间。");
+                return;
+            }
+            if (RunTime.GameModeLoader is null || (modmap != all && !RunTime.GameModeLoader.Maps.ContainsKey(modmap)))
+            {
+                ShowMessage(ShowMessageType.Error, ">> 地图未正确加载，无法创建房间。");
                 return;
             }
             if (CheckHasPass.Checked)
@@ -1046,18 +1123,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     return;
                 }
             }
-            if (Config.FunGame_RoomType.Equals(""))
-            {
-                ShowMessage(ShowMessageType.Warning, "请勾选你要创建的房间类型！");
-                return;
-            }
-            GameMode? mode = RunTime.GameModeLoader?.Modes.Values.FirstOrDefault() ?? default;
-            if (mode is null)
-            {
-                ShowMessage(ShowMessageType.Error, ">> 缺少" + Config.FunGame_RoomType + "所需的模组，无法创建房间。");
-                return;
-            }
-            TaskUtility.NewTask(() => CreateRoom_Handler(Config.FunGame_RoomType, mode.Name, mode.DefaultMap, password));
+            TaskUtility.NewTask(() => CreateRoom_Handler(Config.FunGame_RoomType, modname, modmap, CheckIsRank.Checked, password));
         }
 
         /// <summary>
@@ -1114,7 +1180,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void QueryRoom_Click(object sender, EventArgs e)
         {
-            TaskUtility.NewTask(async () => await JoinRoom(false, RoomText.Text));
+            TaskUtility.NewTask(async () => await JoinRoom(RoomText.Text));
         }
 
         /// <summary>
@@ -1158,6 +1224,52 @@ namespace Milimoe.FunGame.Desktop.UI
         }
 
         /// <summary>
+        /// 切换RoomType时，设置所有相关选项
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ComboRoomType_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            if (ComboRoomType.SelectedIndex >= 0)
+            {
+                SetRoomTypeString();
+                ComboGameMode.Items.Clear();
+                ComboGameMode.Items.AddRange(Constant.SupportedGameMode(Config.FunGame_RoomType));
+                ComboGameMode.SelectedIndex = 0;
+                ComboGameMap.Items.Clear();
+                ComboGameMap.Items.Add("全部");
+                ComboGameMap.SelectedIndex = 0;
+            }
+        }
+
+        /// <summary>
+        /// 切换GameMode时，设置GameMap选项
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ComboGameMode_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            if (ComboGameMode.SelectedIndex > 0)
+            {
+                string modname = ComboGameMode.SelectedItem?.ToString() ?? "";
+                if (modname != "- 缺少模组 -" && RunTime.GameModeLoader != null && RunTime.GameModeLoader.Modes.ContainsKey(modname))
+                {
+                    GameMode mod = RunTime.GameModeLoader[modname];
+                    ComboRoomType.SelectedItem = RoomSet.GetTypeString(mod.RoomType);
+                    SetRoomTypeString();
+                    ComboGameMap.Items.Clear();
+                    ComboGameMap.Items.AddRange(Constant.SupportedGameMap(mod));
+                    ComboGameMap.SelectedIndex = 0;
+                }
+            }
+            else
+            {
+                ComboGameMap.Items.AddRange(Constant.SupportedGameMap());
+                ComboGameMap.SelectedIndex = 0;
+            }
+        }
+
+        /// <summary>
         /// 双击房间列表中的项可以加入房间
         /// </summary>
         /// <param name="sender"></param>
@@ -1166,7 +1278,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (RoomList.SelectedItem != null)
             {
-                TaskUtility.NewTask(async () => await JoinRoom(true, RoomList.SelectedItem.ToString() ?? ""));
+                TaskUtility.NewTask(async () => await JoinRoom(RoomList.SelectedIndex));
             }
         }
 
@@ -1178,25 +1290,6 @@ namespace Milimoe.FunGame.Desktop.UI
         private void SendTalkText_Click(object sender, EventArgs e)
         {
             SendTalkText_Click(true);
-        }
-
-        /// <summary>
-        /// 勾选任意模式选项
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void CheckGameMode_CheckedChanged(object sender, EventArgs e)
-        {
-            bool IsMix = CheckMix.Checked;
-            bool IsTeam = CheckTeam.Checked;
-            bool IsHasPass = CheckHasPass.Checked;
-            if (IsMix && IsTeam && !IsHasPass) Config.FunGame_RoomType = RoomSet.All;
-            else if (IsMix && IsTeam && IsHasPass) Config.FunGame_RoomType = RoomSet.All;
-            else if (IsMix && !IsTeam && !IsHasPass) Config.FunGame_RoomType = RoomSet.Mix;
-            else if (IsMix && !IsTeam && IsHasPass) Config.FunGame_RoomType = RoomSet.Mix;
-            else if (!IsMix && IsTeam && !IsHasPass) Config.FunGame_RoomType = RoomSet.Team;
-            else if (!IsMix && IsTeam && IsHasPass) Config.FunGame_RoomType = RoomSet.Team;
-            else Config.FunGame_RoomType = RoomSet.All;
         }
 
         /// <summary>
@@ -1238,7 +1331,7 @@ namespace Milimoe.FunGame.Desktop.UI
             if (e.KeyCode.Equals(Keys.Enter))
             {
                 // 按下回车加入房间
-                TaskUtility.NewTask(async () => await JoinRoom(false, RoomText.Text));
+                TaskUtility.NewTask(async () => await JoinRoom(RoomText.Text));
             }
         }
 
@@ -1494,8 +1587,8 @@ namespace Milimoe.FunGame.Desktop.UI
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
                         GameMode? mode = RunTime.GameModeLoader?.Modes.Values.FirstOrDefault() ?? default;
-                        if (mode != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomSet.Mix, mode.Name, mode.DefaultMap));
-                        else WritelnGameInfo(">> 缺少" + RoomSet.GetTypeString(RoomType.Mix) + "所需的模组，无法创建房间。");
+                        if (mode != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomType.Mix, mode.Name, mode.DefaultMap, false));
+                        else WritelnGameInfo(">> 缺少" + RoomSet.GetTypeString(RoomType.Mix) + "所需的模组，无法创建房间。此命令使用默认模组创建。");
                     }
                     else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
                     break;
@@ -1503,8 +1596,8 @@ namespace Milimoe.FunGame.Desktop.UI
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
                         GameMode? mode = RunTime.GameModeLoader?.Modes.Values.FirstOrDefault() ?? default;
-                        if (mode != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomSet.Team, mode.Name, mode.DefaultMap));
-                        else WritelnGameInfo(">> 缺少" + RoomSet.GetTypeString(RoomType.Team) + "所需的模组，无法创建房间。");
+                        if (mode != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomType.Team, mode.Name, mode.DefaultMap, false));
+                        else WritelnGameInfo(">> 缺少" + RoomSet.GetTypeString(RoomType.Team) + "所需的模组，无法创建房间。此命令使用默认模组创建。");
                     }
                     else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
                     break;
@@ -1644,6 +1737,22 @@ namespace Milimoe.FunGame.Desktop.UI
             return false;
         }
 
+        /// <summary>
+        /// 设置当前的房间类型
+        /// </summary>
+        private void SetRoomTypeString()
+        {
+            Config.FunGame_RoomType = ComboRoomType.SelectedIndex switch
+            {
+                1 => RoomType.Mix,
+                2 => RoomType.Team,
+                3 => RoomType.Solo,
+                4 => RoomType.FastAuto,
+                5 => RoomType.Custom,
+                _ => RoomType.All,
+            };
+        }
+
         #endregion
 
         #region 调用控制器
@@ -1660,6 +1769,11 @@ namespace Milimoe.FunGame.Desktop.UI
 
             TaskUtility.NewTask(() =>
             {
+                if (RunTime.Controller != null)
+                {
+                    (RunTime.Session.Server_IP, RunTime.Session.Server_Port) = RunTime.Controller.GetServerAddress();
+                }
+                (EventArgs.ServerIP, EventArgs.ServerPort) = (RunTime.Session.Server_IP, RunTime.Session.Server_Port);
                 OnBeforeConnectEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnBeforeConnectEvent(this, EventArgs);
                 if (EventArgs.Cancel) return;
@@ -1831,7 +1945,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
-        public async Task<Room> InvokeController_CreateRoom(string RoomType, string GameMode, string GameMap, string Password = "")
+        public async Task<Room> InvokeController_CreateRoom(RoomType RoomType, string GameMode, string GameMap, bool IsRank, string Password = "")
         {
             RoomEventArgs EventArgs = new(RoomType, Password);
             Room room = General.HallInstance;
@@ -1842,7 +1956,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RunTime.PluginLoader?.OnBeforeCreateRoomEvent(this, EventArgs);
                 if (EventArgs.Cancel) return room;
 
-                room = MainController is null ? room : await MainController.CreateRoomAsync(RoomType, GameMode, GameMap, Password);
+                room = MainController is null ? room : await MainController.CreateRoomAsync(RoomType, GameMode, GameMap, IsRank, Password);
 
                 if (room.Roomid != "-1")
                 {
@@ -1893,7 +2007,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     OnSucceedQuitRoomEvent(this, EventArgs);
                     RunTime.PluginLoader?.OnSucceedQuitRoomEvent(this, EventArgs);
                     // 禁用和激活按钮，并切换预设快捷消息
-                    SetButtonEnableIfLogon(true, ClientState.Online);
+                    SetButtonEnabled(true, ClientState.Online);
                 }
                 else
                 {
@@ -1911,7 +2025,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 OnAfterQuitRoomEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnAfterQuitRoomEvent(this, EventArgs);
                 // 禁用和激活按钮，并切换预设快捷消息
-                SetButtonEnableIfLogon(true, ClientState.Online);
+                SetButtonEnabled(true, ClientState.Online);
             }
 
             return result;

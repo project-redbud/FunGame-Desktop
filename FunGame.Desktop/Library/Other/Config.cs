@@ -1,4 +1,5 @@
-﻿using Milimoe.FunGame.Desktop.Model;
+﻿using Milimoe.FunGame.Core.Library.Constant;
+using Milimoe.FunGame.Desktop.Model;
 
 namespace Milimoe.FunGame.Desktop.Library
 {
@@ -70,7 +71,7 @@ namespace Milimoe.FunGame.Desktop.Library
         /// <summary>
         /// 当前游戏模式
         /// </summary>
-        public static string FunGame_RoomType
+        public static RoomType FunGame_RoomType
         {
             get => RunTime.Config.FunGame_RoomType;
             set => RunTime.Config.FunGame_RoomType = value;
