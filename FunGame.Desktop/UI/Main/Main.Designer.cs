@@ -40,8 +40,6 @@ namespace Milimoe.FunGame.Desktop.UI
             SendTalkText = new Button();
             TalkText = new TextBox();
             StartMatch = new Button();
-            CheckMix = new CheckBox();
-            CheckTeam = new CheckBox();
             RoomSetting = new Button();
             Login = new Button();
             NowAccount = new Label();
@@ -70,6 +68,9 @@ namespace Milimoe.FunGame.Desktop.UI
             Copyright = new LinkLabel();
             StopMatch = new Button();
             CheckIsRank = new CheckBox();
+            ComboRoomType = new ComboBox();
+            ComboGameMode = new ComboBox();
+            ComboGameMap = new ComboBox();
             RoomBox.SuspendLayout();
             Notice.SuspendLayout();
             InfoBox.SuspendLayout();
@@ -194,32 +195,6 @@ namespace Milimoe.FunGame.Desktop.UI
             StartMatch.Text = "开始匹配";
             StartMatch.UseVisualStyleBackColor = true;
             StartMatch.Click += StartMatch_Click;
-            // 
-            // CheckMix
-            // 
-            CheckMix.BackColor = Color.Transparent;
-            CheckMix.Font = new Font("LanaPixel", 12F);
-            CheckMix.Location = new Point(675, 94);
-            CheckMix.Name = "CheckMix";
-            CheckMix.Size = new Size(123, 24);
-            CheckMix.TabIndex = 7;
-            CheckMix.Text = "混战模式房间";
-            CheckMix.TextAlign = ContentAlignment.BottomLeft;
-            CheckMix.UseVisualStyleBackColor = false;
-            CheckMix.CheckedChanged += CheckGameMode_CheckedChanged;
-            // 
-            // CheckTeam
-            // 
-            CheckTeam.BackColor = Color.Transparent;
-            CheckTeam.Font = new Font("LanaPixel", 12F);
-            CheckTeam.Location = new Point(675, 124);
-            CheckTeam.Name = "CheckTeam";
-            CheckTeam.Size = new Size(123, 24);
-            CheckTeam.TabIndex = 8;
-            CheckTeam.Text = "团队模式房间";
-            CheckTeam.TextAlign = ContentAlignment.BottomLeft;
-            CheckTeam.UseVisualStyleBackColor = false;
-            CheckTeam.CheckedChanged += CheckGameMode_CheckedChanged;
             // 
             // RoomSetting
             // 
@@ -497,14 +472,13 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             CheckHasPass.BackColor = Color.Transparent;
             CheckHasPass.Font = new Font("LanaPixel", 12F);
-            CheckHasPass.Location = new Point(737, 184);
+            CheckHasPass.Location = new Point(737, 181);
             CheckHasPass.Name = "CheckHasPass";
             CheckHasPass.Size = new Size(60, 24);
             CheckHasPass.TabIndex = 9;
             CheckHasPass.Text = "密码";
             CheckHasPass.TextAlign = ContentAlignment.MiddleCenter;
             CheckHasPass.UseVisualStyleBackColor = false;
-            CheckHasPass.CheckedChanged += CheckGameMode_CheckedChanged;
             // 
             // Stock
             // 
@@ -564,7 +538,7 @@ namespace Milimoe.FunGame.Desktop.UI
             CheckIsRank.BackColor = Color.Transparent;
             CheckIsRank.Enabled = false;
             CheckIsRank.Font = new Font("LanaPixel", 12F);
-            CheckIsRank.Location = new Point(671, 184);
+            CheckIsRank.Location = new Point(671, 181);
             CheckIsRank.Name = "CheckIsRank";
             CheckIsRank.Size = new Size(60, 24);
             CheckIsRank.TabIndex = 98;
@@ -572,12 +546,53 @@ namespace Milimoe.FunGame.Desktop.UI
             CheckIsRank.TextAlign = ContentAlignment.MiddleCenter;
             CheckIsRank.UseVisualStyleBackColor = false;
             // 
+            // ComboRoomType
+            // 
+            ComboRoomType.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            ComboRoomType.DropDownStyle = ComboBoxStyle.DropDownList;
+            ComboRoomType.Font = new Font("LanaPixel", 11.25F);
+            ComboRoomType.FormattingEnabled = true;
+            ComboRoomType.Items.AddRange(new object[] { "- 房间类型 -" });
+            ComboRoomType.Location = new Point(665, 94);
+            ComboRoomType.Name = "ComboRoomType";
+            ComboRoomType.Size = new Size(130, 26);
+            ComboRoomType.TabIndex = 99;
+            ComboRoomType.SelectionChangeCommitted += ComboRoomType_SelectionChangeCommitted;
+            // 
+            // ComboGameMode
+            // 
+            ComboGameMode.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            ComboGameMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            ComboGameMode.Font = new Font("LanaPixel", 11.25F);
+            ComboGameMode.FormattingEnabled = true;
+            ComboGameMode.Items.AddRange(new object[] { "- 请选择类型 -" });
+            ComboGameMode.Location = new Point(665, 122);
+            ComboGameMode.Name = "ComboGameMode";
+            ComboGameMode.Size = new Size(130, 26);
+            ComboGameMode.TabIndex = 100;
+            ComboGameMode.SelectionChangeCommitted += ComboGameMode_SelectionChangeCommitted;
+            // 
+            // ComboGameMap
+            // 
+            ComboGameMap.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            ComboGameMap.DropDownStyle = ComboBoxStyle.DropDownList;
+            ComboGameMap.Font = new Font("LanaPixel", 11.25F);
+            ComboGameMap.FormattingEnabled = true;
+            ComboGameMap.Items.AddRange(new object[] { "- 请选择类型 -" });
+            ComboGameMap.Location = new Point(665, 150);
+            ComboGameMap.Name = "ComboGameMap";
+            ComboGameMap.Size = new Size(130, 26);
+            ComboGameMap.TabIndex = 101;
+            // 
             // Main
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             BackgroundImage = Properties.Resources.back;
             ClientSize = new Size(800, 450);
+            Controls.Add(ComboGameMap);
+            Controls.Add(ComboGameMode);
+            Controls.Add(ComboRoomType);
             Controls.Add(CheckIsRank);
             Controls.Add(RefreshRoomList);
             Controls.Add(StopMatch);
@@ -600,8 +615,6 @@ namespace Milimoe.FunGame.Desktop.UI
             Controls.Add(NowAccount);
             Controls.Add(Login);
             Controls.Add(CheckHasPass);
-            Controls.Add(CheckTeam);
-            Controls.Add(CheckMix);
             Controls.Add(StartMatch);
             Controls.Add(Light);
             Controls.Add(Connection);
@@ -617,8 +630,6 @@ namespace Milimoe.FunGame.Desktop.UI
             Controls.SetChildIndex(Connection, 0);
             Controls.SetChildIndex(Light, 0);
             Controls.SetChildIndex(StartMatch, 0);
-            Controls.SetChildIndex(CheckMix, 0);
-            Controls.SetChildIndex(CheckTeam, 0);
             Controls.SetChildIndex(CheckHasPass, 0);
             Controls.SetChildIndex(Login, 0);
             Controls.SetChildIndex(NowAccount, 0);
@@ -641,6 +652,9 @@ namespace Milimoe.FunGame.Desktop.UI
             Controls.SetChildIndex(StopMatch, 0);
             Controls.SetChildIndex(RefreshRoomList, 0);
             Controls.SetChildIndex(CheckIsRank, 0);
+            Controls.SetChildIndex(ComboRoomType, 0);
+            Controls.SetChildIndex(ComboGameMode, 0);
+            Controls.SetChildIndex(ComboGameMap, 0);
             RoomBox.ResumeLayout(false);
             RoomBox.PerformLayout();
             Notice.ResumeLayout(false);
@@ -657,8 +671,6 @@ namespace Milimoe.FunGame.Desktop.UI
         private Label Connection;
         private Label Light;
         private Button StartMatch;
-        private CheckBox CheckMix;
-        private CheckBox CheckTeam;
         private Button RoomSetting;
         private Button Login;
         private Label NowAccount;
@@ -689,5 +701,8 @@ namespace Milimoe.FunGame.Desktop.UI
         private Button CopyRoomID;
         private Button RefreshRoomList;
         private CheckBox CheckIsRank;
+        private ComboBox ComboGameMap;
+        private ComboBox ComboGameMode;
+        private ComboBox ComboRoomType;
     }
 }

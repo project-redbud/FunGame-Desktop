@@ -216,7 +216,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public async Task<Room> CreateRoomAsync(string RoomType, string GameMode, string GameMap, bool IsRank, string Password = "")
+        public async Task<Room> CreateRoomAsync(RoomType RoomType, string GameMode, string GameMap, bool IsRank, string Password = "")
         {
             Room room = General.HallInstance;
 
@@ -242,7 +242,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             return room;
         }
 
-        public async Task<bool> MatchRoomAsync(string RoomType, bool isCancel = false)
+        public async Task<bool> MatchRoomAsync(RoomType RoomType, bool isCancel = false)
         {
             bool result = false;
 

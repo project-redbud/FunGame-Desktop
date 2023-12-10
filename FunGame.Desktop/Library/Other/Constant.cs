@@ -1,4 +1,8 @@
-﻿using Milimoe.FunGame.Core.Library.Constant;
+﻿using System.Collections.Generic;
+using Milimoe.FunGame.Core.Api.Utility;
+using Milimoe.FunGame.Core.Library.Common.Addon;
+using Milimoe.FunGame.Core.Library.Constant;
+using Milimoe.FunGame.Desktop.Model;
 
 namespace Milimoe.FunGame.Desktop.Library
 {
@@ -73,5 +77,53 @@ namespace Milimoe.FunGame.Desktop.Library
             FunGame_AutoRetryOn,
             FunGame_AutoRetryOff
         };
+        public static readonly object[] AllComboItem = ["全部"];
+        public static object[] SupportedRoomType()
+        {
+            List<string> objs = [];
+            objs.Add(RoomSet.GetTypeString(RoomType.All));
+            objs.Add(RoomSet.GetTypeString(RoomType.Mix));
+            objs.Add(RoomSet.GetTypeString(RoomType.Team));
+            objs.Add(RoomSet.GetTypeString(RoomType.Solo));
+            objs.Add(RoomSet.GetTypeString(RoomType.FastAuto));
+            objs.Add(RoomSet.GetTypeString(RoomType.Custom));
+            return objs.ToArray();
+        }
+        public static object[] SupportedGameMode(RoomType type)
+        {
+            if (RunTime.GameModeLoader != null)
+            {
+                IEnumerable<object> list;
+                if (type == RoomType.All)
+                {
+                    list = RunTime.GameModeLoader.Modes.Values.Select(mod => mod.Name).Distinct();
+                }
+                else
+                {
+                    list = RunTime.GameModeLoader.Modes.Values.Where(mod => mod.RoomType == type).Select(mod => mod.Name).Distinct();
+                }
+                if (list.Any()) return AllComboItem.Union(list).ToArray();
+            }
+            return ["- 缺少模组 -"];
+        }
+        public static object[] SupportedGameMap()
+        {
+            List<string> list = [];
+            if (RunTime.GameModeLoader != null)
+            {
+                foreach (GameMode mod in RunTime.GameModeLoader.Modes.Values)
+                {
+                    list.AddRange(mod.Maps.Distinct());
+                }
+            }
+            if (list.Count != 0) return AllComboItem.Union(list).ToArray();
+            return ["- 缺少地图 -"];
+        }
+        public static object[] SupportedGameMap(GameMode mod)
+        {
+            IEnumerable<object> list = mod.Maps.Where(map => mod.Maps.Contains(map)).Distinct();
+            if (list.Any()) return AllComboItem.Union(list).ToArray();
+            return ["- 缺少地图 -"];
+        }
     }
 }
