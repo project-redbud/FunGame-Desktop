@@ -79,7 +79,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     ComboGameMap.SelectedIndex = 0;
                 });
                 // 自动连接服务器
-                if (Config.FunGame_isAutoConnect) InvokeController_Connect();
+                if (Config.FunGame_isAutoConnect) InvokeController_Connect(true);
             });
         }
 
@@ -1194,7 +1194,7 @@ namespace Milimoe.FunGame.Desktop.UI
             {
                 if (ShowMessage(ShowMessageType.OKCancel, "你确定要退出登录吗？", "退出登录") == MessageResult.OK)
                 {
-                    if (MainController == null || !await LogOut())
+                    if (MainController == null || !await InvokeController_LogOut())
                         ShowMessage(ShowMessageType.Warning, "请求无效：退出登录失败！");
                 }
             });
@@ -1671,7 +1671,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         CurrentRetryTimes = -1;
                         Config.FunGame_isAutoRetry = true;
-                        InvokeController_Connect();
+                        InvokeController_Connect(true);
                     }
                     break;
                 case Constant.FunGame_Disconnect:
@@ -1681,7 +1681,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         bool SuccessLogOut = false;
                         TaskUtility.NewTask(async () =>
                         {
-                            if (await LogOut()) SuccessLogOut = true;
+                            if (await InvokeController_LogOut()) SuccessLogOut = true;
                         }).OnCompleted(() =>
                         {
                             if (SuccessLogOut) InvokeController_Disconnect();
@@ -1704,12 +1704,12 @@ namespace Milimoe.FunGame.Desktop.UI
                         int port;
                         if (addr.Length < 2)
                         {
-                            ip = addr[0];
+                            ip = addr[0].Trim();
                             port = 22222;
                         }
                         else if (addr.Length < 3)
                         {
-                            ip = addr[0];
+                            ip = addr[0].Trim();
                             port = Convert.ToInt32(addr[1]);
                         }
                         else
@@ -1760,16 +1760,23 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <summary>
         /// 连接服务器，并处理事件
         /// </summary>
+        /// <param name="original">如果为false，则使用上一次连接的服务器的地址</param>
         /// <returns></returns>
-        private void InvokeController_Connect()
+        private void InvokeController_Connect(bool original = false)
         {
+            if (original)
+            {
+                // 使用Implement中的原始服务器地址，下面会重新获取
+                (RunTime.Session.Server_IP, RunTime.Session.Server_Port) = ("", 0);
+            }
             ConnectEventArgs EventArgs = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port);
 
             ConnectResult result = ConnectResult.CanNotConnect;
 
             TaskUtility.NewTask(() =>
             {
-                if (RunTime.Controller != null)
+                // 如果服务器地址为空需要获取一次地址
+                if (RunTime.Controller != null && RunTime.Session.Server_IP.Trim() == "" && RunTime.Session.Server_Port == 0)
                 {
                     (RunTime.Session.Server_IP, RunTime.Session.Server_Port) = RunTime.Controller.GetServerAddress();
                 }
@@ -1823,7 +1830,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
                 if (Usercfg.LoginUser.Id != 0)
                 {
-                    await LogOut();
+                    await InvokeController_LogOut();
                 }
 
                 result = RunTime.Controller?.Disconnect() ?? false;
@@ -2035,7 +2042,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// 退出登录
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> LogOut()
+        public async Task<bool> InvokeController_LogOut()
         {
             GeneralEventArgs EventArgs = new();
             bool result = false;

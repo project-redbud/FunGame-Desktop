@@ -107,13 +107,6 @@ namespace Milimoe.FunGame.Desktop.Controller
                     throw new CanNotConnectException();
                 }
                 Config.FunGame_isRetrying = true;
-                // 如果服务器地址为空需要获取一次地址
-                if (ip == "" || port <= 0)
-                {
-                    (ip, port) = GetServerAddress();
-                    RunTime.Session.Server_IP = ip;
-                    RunTime.Session.Server_Port = port;
-                }
                 return true;
             }
             else
