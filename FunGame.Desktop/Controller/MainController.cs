@@ -97,11 +97,11 @@ namespace Milimoe.FunGame.Desktop.Controller
 
             try
             {
-                List<Room> list = new();
+                List<Room> list = [];
                 await UpdateRoomRequest.SendRequestAsync();
                 if (UpdateRoomRequest.Result == RequestResult.Success)
                 {
-                    list = UpdateRoomRequest.GetResult<List<Room>>("rooms") ?? new();
+                    list = UpdateRoomRequest.GetResult<List<Room>>("rooms") ?? [];
                     Main.UpdateUI(MainInvokeType.UpdateRoom, list);
                 }
                 else throw new CanNotIntoRoomException();
@@ -145,9 +145,9 @@ namespace Milimoe.FunGame.Desktop.Controller
                         Config.FunGame_isInRoom = true;
                         Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 准备完毕。");
                     }
-                    List<User> ReadyPlayerList = SetReadyRequest.GetResult<List<User>>("ready") ?? new();
+                    List<User> ReadyPlayerList = SetReadyRequest.GetResult<List<User>>("ready") ?? [];
                     if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
-                    List<User> NotReadyPlayerList = SetReadyRequest.GetResult<List<User>>("notready") ?? new();
+                    List<User> NotReadyPlayerList = SetReadyRequest.GetResult<List<User>>("notready") ?? [];
                     if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                 }
                 return result;
@@ -175,9 +175,9 @@ namespace Milimoe.FunGame.Desktop.Controller
                         Config.FunGame_isInRoom = false;
                         Main.GetMessage("[ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
                     }
-                    List<User> ReadyPlayerList = CancelReadyRequest.GetResult<List<User>>("ready") ?? new();
+                    List<User> ReadyPlayerList = CancelReadyRequest.GetResult<List<User>>("ready") ?? [];
                     if (ReadyPlayerList.Count > 0) Main.GetMessage("已准备的玩家：" + string.Join(", ", ReadyPlayerList.Select(u => u.Username)));
-                    List<User> NotReadyPlayerList = CancelReadyRequest.GetResult<List<User>>("notready") ?? new();
+                    List<User> NotReadyPlayerList = CancelReadyRequest.GetResult<List<User>>("notready") ?? [];
                     if (NotReadyPlayerList.Count > 0) Main.GetMessage("仍未准备的玩家：" + string.Join(", ", NotReadyPlayerList.Select(u => u.Username)));
                 }
                 return result;

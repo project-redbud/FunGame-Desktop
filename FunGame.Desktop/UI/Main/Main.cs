@@ -256,7 +256,7 @@ namespace Milimoe.FunGame.Desktop.UI
                                 if (r.RoomMaster != null)
                                 {
                                     string msg = $"房间 [ {r.Roomid} ] 的房主已变更为" + (r.RoomMaster.Username != Usercfg.LoginUserName ? $" [ {r.RoomMaster.Username} ]" : "您") + "。";
-                                    GetMessage(msg, TimeType.TimeOnly);
+                                    GetMessage(msg, TimeType.LongTimeOnly);
                                 }
                             }
                             break;
@@ -304,7 +304,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="msg"></param>
         /// <param name="timetype"></param>
-        public void GetMessage(string msg, TimeType timetype = TimeType.TimeOnly)
+        public void GetMessage(string msg, TimeType timetype = TimeType.LongTimeOnly)
         {
             void action()
             {
@@ -442,7 +442,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="msg"></param>
         private void WritelnSystemInfo(string msg)
         {
-            msg = DateTimeUtility.GetDateTimeToString(TimeType.TimeOnly) + " >> " + msg;
+            msg = DateTimeUtility.GetDateTimeToString(TimeType.LongTimeOnly) + " >> " + msg;
             WritelnGameInfo(msg);
         }
 
