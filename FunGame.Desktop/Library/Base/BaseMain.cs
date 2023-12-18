@@ -5,7 +5,7 @@ using Milimoe.FunGame.Desktop.Library.Component;
 namespace Milimoe.FunGame.Desktop.Library.Base
 {
     public class BaseMain : GeneralForm, IConnectEventHandler, IDisconnectEventHandler, ILoginEventHandler, ILogoutEventHandler, IIntoRoomEventHandler, ISendTalkEventHandler,
-        ICreateRoomEventHandler, IQuitRoomEventHandler, IStartMatchEventHandler, IStartGameEventHandler, IOpenInventoryEventHandler, IOpenStoreEventHandler
+        ICreateRoomEventHandler, IQuitRoomEventHandler, IStartMatchEventHandler, IStartGameEventHandler, IEndGameEventHandler, IOpenInventoryEventHandler, IOpenStoreEventHandler
     {
         public event IConnectEventHandler.BeforeEventHandler? BeforeConnect;
         public event IConnectEventHandler.AfterEventHandler? AfterConnect;
@@ -305,6 +305,31 @@ namespace Milimoe.FunGame.Desktop.Library.Base
         public void OnFailedOpenStoreEvent(object sender, GeneralEventArgs e)
         {
             FailedOpenStore?.Invoke(sender, e);
+        }
+
+        public event IEventHandler.BeforeEventHandler? BeforeEndGame;
+        public event IEventHandler.AfterEventHandler? AfterEndGame;
+        public event IEventHandler.SucceedEventHandler? SucceedEndGame;
+        public event IEventHandler.FailedEventHandler? FailedEndGame;
+
+        public void OnBeforeEndGameEvent(object sender, GeneralEventArgs e)
+        {
+            BeforeEndGame?.Invoke(sender, e);
+        }
+
+        public void OnAfterEndGameEvent(object sender, GeneralEventArgs e)
+        {
+            AfterEndGame?.Invoke(sender, e);
+        }
+
+        public void OnSucceedEndGameEvent(object sender, GeneralEventArgs e)
+        {
+            SucceedEndGame?.Invoke(sender, e);
+        }
+
+        public void OnFailedEndGameEvent(object sender, GeneralEventArgs e)
+        {
+            FailedEndGame?.Invoke(sender, e);
         }
     }
 }

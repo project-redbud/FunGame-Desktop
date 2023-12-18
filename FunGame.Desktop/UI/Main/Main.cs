@@ -512,15 +512,32 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <summary>
         /// 游戏结束，结算
         /// </summary>
-        private void EndGame(Room room, List<User> users)
+        private void EndGame(params object[] args)
         {
-            Visible = true;
-            // test
-            WritelnGameInfo("===== TEST =====");
-            SetButtonEnabled(true, ClientState.InRoom);
-            _InGame = false;
-            WritelnGameInfo("游戏结束！" + " [ " + users[new Random().Next(users.Count)] + " ] " + "是赢家！");
-            RunTime.Controller?.EndGame();
+            // 触发事件 如果before事件返回false 则不能认定为游戏结束
+            GeneralEventArgs e = new(args);
+            OnBeforeEndGameEvent(this, e);
+            RunTime.PluginLoader?.OnBeforeEndGameEvent(this, e);
+            if (e.Cancel)
+            {
+                return;
+            }
+            if (RunTime.Controller?.EndGame() ?? false)
+            {
+                // 恢复界面
+                Visible = true;
+                _InGame = false;
+                SetButtonEnabled(true, ClientState.InRoom);
+                OnSucceedEndGameEvent(this, e);
+                RunTime.PluginLoader?.OnSucceedEndGameEvent(this, e);
+            }
+            else
+            {
+                OnFailedEndGameEvent(this, e);
+                RunTime.PluginLoader?.OnFailedEndGameEvent(this, e);
+            }
+            OnAfterEndGameEvent(this, e);
+            RunTime.PluginLoader?.OnAfterEndGameEvent(this, e);
         }
 
         /// <summary>
