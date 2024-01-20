@@ -127,7 +127,7 @@ namespace Milimoe.FunGame.Desktop.UI
 
                         case MainInvokeType.SetGreenAndPing:
                             Config.FunGame_isRetrying = false;
-                            SetServerStatusLight(LightType.Green, ping: NetworkUtility.GetServerPing(RunTime.Session.Server_IP));
+                            SetServerStatusLight(LightType.Green, ping: NetworkUtility.GetServerPing(RunTime.Session.Server_Address));
                             if (Usercfg.InRoom.Roomid != "-1") SetButtonEnabled(true, ClientState.InRoom);
                             else SetButtonEnabled(true, ClientState.Online);
                             Config.FunGame_isConnected = true;
@@ -1714,38 +1714,36 @@ namespace Milimoe.FunGame.Desktop.UI
                 case Constant.FunGame_ConnectTo:
                     if (!Config.FunGame_isConnected)
                     {
-                        string msg = ShowInputMessage("请输入服务器IP地址和端口号，如: 127.0.0.1:22222。", "连接指定服务器");
-                        if (msg.Equals("")) return true;
-                        string[] addr = msg.Split(':');
-                        string ip;
-                        int port;
-                        if (addr.Length < 2)
+                        MessageResult InputResult = MessageResult.OK;
+                        while (InputResult != MessageResult.Cancel)
                         {
-                            ip = addr[0].Trim();
-                            port = 22222;
+                            string msg = ShowInputMessageCancel("请输入服务器域名或IP地址和端口号，如: 127.0.0.1:22222。", "连接指定服务器", out InputResult);
+                            if (InputResult != MessageResult.Cancel)
+                            {
+                                ErrorIPAddressType error = NetworkUtility.IsServerAddress(msg, out string addr, out int port);
+                                switch (error)
+                                {
+                                    case ErrorIPAddressType.None:
+                                        InputResult = MessageResult.Cancel;
+                                        RunTime.Session.Server_Address = addr;
+                                        RunTime.Session.Server_Port = port;
+                                        CurrentRetryTimes = -1;
+                                        Config.FunGame_isAutoRetry = true;
+                                        InvokeController_Connect();
+                                        break;
+                                    case ErrorIPAddressType.IsNotAddress:
+                                        ShowMessage(ShowMessageType.Error, "无法解析这个域名或IP地址不正确。");
+                                        break;
+                                    case ErrorIPAddressType.IsNotPort:
+                                        ShowMessage(ShowMessageType.Error, "这不是一个端口号。\n正确范围：1~65535");
+                                        break;
+                                    case ErrorIPAddressType.WrongFormat:
+                                    default:
+                                        ShowMessage(ShowMessageType.Error, "格式错误！\n这不是一个服务器地址。");
+                                        break;
+                                }
+                            }
                         }
-                        else if (addr.Length < 3)
-                        {
-                            ip = addr[0].Trim();
-                            port = Convert.ToInt32(addr[1]);
-                        }
-                        else
-                        {
-                            ShowMessage(ShowMessageType.Error, "格式错误！\n这不是一个服务器地址。");
-                            return true;
-                        }
-                        ErrorIPAddressType ErrorType = NetworkUtility.IsServerAddress(ip, port);
-                        if (ErrorType == ErrorIPAddressType.None)
-                        {
-                            RunTime.Session.Server_IP = ip;
-                            RunTime.Session.Server_Port = port;
-                            CurrentRetryTimes = -1;
-                            Config.FunGame_isAutoRetry = true;
-                            InvokeController_Connect();
-                        }
-                        else if (ErrorType == ErrorIPAddressType.IsNotIP) ShowMessage(ShowMessageType.Error, "这不是一个IP地址！");
-                        else if (ErrorType == ErrorIPAddressType.IsNotPort) ShowMessage(ShowMessageType.Error, "这不是一个端口号！\n正确范围：1~65535");
-                        else ShowMessage(ShowMessageType.Error, "格式错误！\n这不是一个服务器地址。");
                     }
                     break;
                 default:
@@ -1784,24 +1782,24 @@ namespace Milimoe.FunGame.Desktop.UI
             if (original)
             {
                 // 使用Implement中的原始服务器地址，下面会重新获取
-                (RunTime.Session.Server_IP, RunTime.Session.Server_Port) = ("", 0);
+                (RunTime.Session.Server_Address, RunTime.Session.Server_Port) = ("", 0);
             }
-            ConnectEventArgs EventArgs = new(RunTime.Session.Server_IP, RunTime.Session.Server_Port);
+            ConnectEventArgs EventArgs = new(RunTime.Session.Server_Address, RunTime.Session.Server_Port);
 
             ConnectResult result = ConnectResult.CanNotConnect;
 
             TaskUtility.NewTask(() =>
             {
                 // 如果服务器地址为空需要获取一次地址
-                if (RunTime.Controller != null && RunTime.Session.Server_IP.Trim() == "" && RunTime.Session.Server_Port == 0)
+                if (RunTime.Controller != null && RunTime.Session.Server_Address.Trim() == "" && RunTime.Session.Server_Port == 0)
                 {
-                    (RunTime.Session.Server_IP, RunTime.Session.Server_Port) = RunTime.Controller.GetServerAddress();
+                    (RunTime.Session.Server_Address, RunTime.Session.Server_Port) = RunTime.Controller.GetServerAddress();
                 }
-                (EventArgs.ServerIP, EventArgs.ServerPort) = (RunTime.Session.Server_IP, RunTime.Session.Server_Port);
+                (EventArgs.ServerIP, EventArgs.ServerPort) = (RunTime.Session.Server_Address, RunTime.Session.Server_Port);
                 OnBeforeConnectEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnBeforeConnectEvent(this, EventArgs);
                 if (EventArgs.Cancel) return;
-                result = RunTime.Controller?.Connect(RunTime.Session.Server_IP, RunTime.Session.Server_Port) ?? result;
+                result = RunTime.Controller?.Connect(RunTime.Session.Server_Address, RunTime.Session.Server_Port) ?? result;
                 EventArgs.ConnectResult = result;
             }).OnCompleted(() =>
             {
