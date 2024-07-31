@@ -62,7 +62,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     }
                 }
                 // 加载模组
-                RunTime.Controller.LoadGameModes();
+                RunTime.Controller.LoadGameModules();
                 // 加载插件
                 RunTime.Controller.LoadPlugins();
                 // 设置预设
@@ -71,9 +71,9 @@ namespace Milimoe.FunGame.Desktop.UI
                     ComboRoomType.Items.Clear();
                     ComboRoomType.Items.AddRange(Constant.SupportedRoomType());
                     ComboRoomType.SelectedIndex = 0;
-                    ComboGameMode.Items.Clear();
-                    ComboGameMode.Items.AddRange(Constant.SupportedGameMode(RoomType.All));
-                    ComboGameMode.SelectedIndex = 0;
+                    ComboGameModule.Items.Clear();
+                    ComboGameModule.Items.AddRange(Constant.SupportedGameModule(RoomType.All));
+                    ComboGameModule.SelectedIndex = 0;
                     ComboGameMap.Items.Clear();
                     ComboGameMap.Items.AddRange(Constant.SupportedGameMap());
                     ComboGameMap.SelectedIndex = 0;
@@ -496,14 +496,14 @@ namespace Milimoe.FunGame.Desktop.UI
                     await Task.Delay(1000);
                 }
                 WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + RoomSet.GetTypeString(room.RoomType) + ") ] 的游戏正式开始！");
-                if (RunTime.GameModeLoader?.Modes.ContainsKey(room.GameMode) ?? false)
+                if (RunTime.GameModuleLoader?.Modes.ContainsKey(room.GameModule) ?? false)
                 {
-                    RunTime.Gaming = Core.Model.Gaming.StartGame(RunTime.GameModeLoader[room.GameMode], room, users);
+                    RunTime.Gaming = Core.Model.Gaming.StartGame(RunTime.GameModuleLoader[room.GameModule], room, users);
                     Visible = false; // 隐藏主界面
                 }
                 else
                 {
-                    WritelnGameInfo("缺少房间所需模组 [ " + room.GameMode + " ] 无法开始游戏，请检查模组是否正确安装。");
+                    WritelnGameInfo("缺少房间所需模组 [ " + room.GameModule + " ] 无法开始游戏，请检查模组是否正确安装。");
                 }
             });
             SetButtonEnabled(false, ClientState.InRoom);
@@ -557,7 +557,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RoomBox.Enabled = isEnabled;
                 RefreshRoomList.Enabled = isEnabled;
                 ComboRoomType.Enabled = isEnabled;
-                ComboGameMode.Enabled = isEnabled;
+                ComboGameModule.Enabled = isEnabled;
                 ComboGameMap.Enabled = isEnabled;
                 CheckIsRank.Enabled = isEnabled;
                 CheckHasPass.Enabled = isEnabled;
@@ -600,7 +600,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 CreateRoom.Enabled = isEnabled;
                 RefreshRoomList.Enabled = isEnabled;
                 ComboRoomType.Enabled = isEnabled;
-                ComboGameMode.Enabled = isEnabled;
+                ComboGameModule.Enabled = isEnabled;
                 ComboGameMap.Enabled = isEnabled;
                 CheckIsRank.Enabled = isEnabled;
                 CheckHasPass.Enabled = isEnabled;
@@ -762,7 +762,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     bool isEnabled = false;
                     if (objs != null) isEnabled = (bool)objs[0];
                     ComboRoomType.Enabled = isEnabled;
-                    ComboGameMode.Enabled = isEnabled;
+                    ComboGameModule.Enabled = isEnabled;
                     ComboGameMap.Enabled = isEnabled;
                     CheckHasPass.Enabled = isEnabled;
                     CreateRoom.Enabled = isEnabled;
@@ -893,20 +893,20 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="RoomType"></param>
         /// <param name="Password"></param>
         /// <returns></returns>
-        private async Task CreateRoom_Handler(RoomType RoomType, string GameMode, string GameMap, bool IsRank, string Password = "")
+        private async Task CreateRoom_Handler(RoomType RoomType, string GameModule, string GameMap, bool IsRank, string Password = "")
         {
             if (Usercfg.InRoom.Roomid != "-1")
             {
                 ShowMessage(ShowMessageType.Warning, "已在房间中，无法创建房间。");
                 return;
             }
-            GameMode? mode = RunTime.GameModeLoader?.Modes.Values.FirstOrDefault() ?? default;
+            GameModule? mode = RunTime.GameModuleLoader?.Modes.Values.FirstOrDefault() ?? default;
             if (mode is null)
             {
                 ShowMessage(ShowMessageType.Error, ">> 缺少" + Config.FunGame_RoomType + "所需的模组，无法创建房间。");
                 return;
             }
-            Room room = await InvokeController_CreateRoom(RoomType, GameMode, GameMap, IsRank, Password);
+            Room room = await InvokeController_CreateRoom(RoomType, GameModule, GameMap, IsRank, Password);
             if (MainController is not null && room.Roomid != "-1")
             {
                 await MainController.UpdateRoomAsync();
@@ -1056,7 +1056,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void StartMatch_Click(object sender, EventArgs e)
         {
-            if (ComboRoomType.SelectedIndex < 0 || ComboGameMode.SelectedIndex < 0 || ComboGameMap.SelectedIndex < 0)
+            if (ComboRoomType.SelectedIndex < 0 || ComboGameModule.SelectedIndex < 0 || ComboGameMap.SelectedIndex < 0)
             {
                 ShowMessage(ShowMessageType.Warning, "未正确选择房间类型/游戏模组/游戏地图，请检查！");
                 return;
@@ -1067,14 +1067,14 @@ namespace Milimoe.FunGame.Desktop.UI
                 return;
             }
             string all = Constant.AllComboItem[0].ToString() ?? "全部";
-            string modname = ComboGameMode.SelectedItem?.ToString() ?? all;
+            string modname = ComboGameModule.SelectedItem?.ToString() ?? all;
             string modmap = ComboGameMap.SelectedItem?.ToString() ?? all;
-            if (RunTime.GameModeLoader is null || (modname != all && !RunTime.GameModeLoader.Modes.ContainsKey(modname)))
+            if (RunTime.GameModuleLoader is null || (modname != all && !RunTime.GameModuleLoader.Modes.ContainsKey(modname)))
             {
                 ShowMessage(ShowMessageType.Error, ">> 模组未正确加载，无法创建房间。");
                 return;
             }
-            if (RunTime.GameModeLoader is null || (modmap != all && !RunTime.GameModeLoader.Maps.ContainsKey(modmap)))
+            if (RunTime.GameModuleLoader is null || (modmap != all && !RunTime.GameModuleLoader.Maps.ContainsKey(modmap)))
             {
                 ShowMessage(ShowMessageType.Error, ">> 地图未正确加载，无法创建房间。");
                 return;
@@ -1103,7 +1103,7 @@ namespace Milimoe.FunGame.Desktop.UI
         private void CreateRoom_Click(object sender, EventArgs e)
         {
             string password = "";
-            if (Config.FunGame_RoomType == RoomType.All || ComboRoomType.SelectedIndex <= 0 || ComboGameMode.SelectedIndex <= 0 || ComboGameMap.SelectedIndex <= 0)
+            if (Config.FunGame_RoomType == RoomType.All || ComboRoomType.SelectedIndex <= 0 || ComboGameModule.SelectedIndex <= 0 || ComboGameMap.SelectedIndex <= 0)
             {
                 ShowMessage(ShowMessageType.Warning, "创建房间时不允许将房间类型/游戏模组/游戏地图的选项设置为[ 全部 ]。");
                 return;
@@ -1114,19 +1114,19 @@ namespace Milimoe.FunGame.Desktop.UI
                 return;
             }
             string all = Constant.AllComboItem[0].ToString() ?? "全部";
-            string modname = ComboGameMode.SelectedItem?.ToString() ?? all;
+            string modname = ComboGameModule.SelectedItem?.ToString() ?? all;
             string modmap = ComboGameMap.SelectedItem?.ToString() ?? all;
             if (modname == all || modmap == all)
             {
                 ShowMessage(ShowMessageType.Warning, "创建房间时不允许将房间类型/游戏模组/游戏地图的选项设置为[ 全部 ]。");
                 return;
             }
-            if (RunTime.GameModeLoader is null || (modname != all && !RunTime.GameModeLoader.Modes.ContainsKey(modname)))
+            if (RunTime.GameModuleLoader is null || (modname != all && !RunTime.GameModuleLoader.Modes.ContainsKey(modname)))
             {
                 ShowMessage(ShowMessageType.Error, ">> 模组未正确加载，无法创建房间。");
                 return;
             }
-            if (RunTime.GameModeLoader is null || (modmap != all && !RunTime.GameModeLoader.Maps.ContainsKey(modmap)))
+            if (RunTime.GameModuleLoader is null || (modmap != all && !RunTime.GameModuleLoader.Maps.ContainsKey(modmap)))
             {
                 ShowMessage(ShowMessageType.Error, ">> 地图未正确加载，无法创建房间。");
                 return;
@@ -1250,9 +1250,9 @@ namespace Milimoe.FunGame.Desktop.UI
             if (ComboRoomType.SelectedIndex >= 0)
             {
                 SetRoomTypeString();
-                ComboGameMode.Items.Clear();
-                ComboGameMode.Items.AddRange(Constant.SupportedGameMode(Config.FunGame_RoomType));
-                ComboGameMode.SelectedIndex = 0;
+                ComboGameModule.Items.Clear();
+                ComboGameModule.Items.AddRange(Constant.SupportedGameModule(Config.FunGame_RoomType));
+                ComboGameModule.SelectedIndex = 0;
                 ComboGameMap.Items.Clear();
                 ComboGameMap.Items.Add("全部");
                 ComboGameMap.SelectedIndex = 0;
@@ -1260,18 +1260,18 @@ namespace Milimoe.FunGame.Desktop.UI
         }
 
         /// <summary>
-        /// 切换GameMode时，设置GameMap选项
+        /// 切换GameModule时，设置GameMap选项
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void ComboGameMode_SelectionChangeCommitted(object sender, EventArgs e)
+        private void ComboGameModule_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            if (ComboGameMode.SelectedIndex > 0)
+            if (ComboGameModule.SelectedIndex > 0)
             {
-                string modname = ComboGameMode.SelectedItem?.ToString() ?? "";
-                if (modname != "- 缺少模组 -" && RunTime.GameModeLoader != null && RunTime.GameModeLoader.Modes.ContainsKey(modname))
+                string modname = ComboGameModule.SelectedItem?.ToString() ?? "";
+                if (modname != "- 缺少模组 -" && RunTime.GameModuleLoader != null && RunTime.GameModuleLoader.Modes.ContainsKey(modname))
                 {
-                    GameMode mod = RunTime.GameModeLoader[modname];
+                    GameModule mod = RunTime.GameModuleLoader[modname];
                     ComboRoomType.SelectedItem = RoomSet.GetTypeString(mod.RoomType);
                     SetRoomTypeString();
                     ComboGameMap.Items.Clear();
@@ -1603,8 +1603,8 @@ namespace Milimoe.FunGame.Desktop.UI
                 case Constant.FunGame_CreateMix:
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
-                        GameMode? mode = RunTime.GameModeLoader?.Modes.Values.FirstOrDefault() ?? default;
-                        if (mode != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomType.Mix, mode.Name, mode.DefaultMap, false));
+                        GameModule? module = RunTime.GameModuleLoader?.Modes.Values.FirstOrDefault() ?? default;
+                        if (module != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomType.Mix, module.Name, module.DefaultMap, false));
                         else WritelnGameInfo(">> 缺少" + RoomSet.GetTypeString(RoomType.Mix) + "所需的模组，无法创建房间。此命令使用默认模组创建。");
                     }
                     else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
@@ -1612,8 +1612,8 @@ namespace Milimoe.FunGame.Desktop.UI
                 case Constant.FunGame_CreateTeam:
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
-                        GameMode? mode = RunTime.GameModeLoader?.Modes.Values.FirstOrDefault() ?? default;
-                        if (mode != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomType.Team, mode.Name, mode.DefaultMap, false));
+                        GameModule? module = RunTime.GameModuleLoader?.Modes.Values.FirstOrDefault() ?? default;
+                        if (module != null) TaskUtility.NewTask(() => CreateRoom_Handler(RoomType.Team, module.Name, module.DefaultMap, false));
                         else WritelnGameInfo(">> 缺少" + RoomSet.GetTypeString(RoomType.Team) + "所需的模组，无法创建房间。此命令使用默认模组创建。");
                     }
                     else WritelnGameInfo(">> 先退出当前房间才可以创建房间。");
@@ -1967,7 +1967,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
-        public async Task<Room> InvokeController_CreateRoom(RoomType RoomType, string GameMode, string GameMap, bool IsRank, string Password = "")
+        public async Task<Room> InvokeController_CreateRoom(RoomType RoomType, string GameModule, string GameMap, bool IsRank, string Password = "")
         {
             RoomEventArgs EventArgs = new(RoomType, Password);
             Room room = General.HallInstance;
@@ -1978,7 +1978,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RunTime.PluginLoader?.OnBeforeCreateRoomEvent(this, EventArgs);
                 if (EventArgs.Cancel) return room;
 
-                room = MainController is null ? room : await MainController.CreateRoomAsync(RoomType, GameMode, GameMap, IsRank, Password);
+                room = MainController is null ? room : await MainController.CreateRoomAsync(RoomType, GameModule, GameMap, IsRank, Password);
 
                 if (room.Roomid != "-1")
                 {
