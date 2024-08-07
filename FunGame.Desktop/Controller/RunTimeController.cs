@@ -32,8 +32,8 @@ namespace Milimoe.FunGame.Desktop.Controller
                 Hashtable delegates = [];
                 delegates.Add("WriteLine", new Action<string>(WritelnSystemInfo));
                 delegates.Add("Error", new Action<Exception>(Error));
-                delegates.Add("NewDataRequest", new Func<DataRequestType, DataRequest>(NewDataRequest));
-                delegates.Add("NewLongRunningDataRequest", new Func<DataRequestType, DataRequest>(NewLongRunningDataRequest));
+                delegates.Add("NewDataRequest", new Func<DataRequestType, DataRequest>(NewDataRequestForAddon));
+                delegates.Add("NewLongRunningDataRequest", new Func<DataRequestType, DataRequest>(NewLongRunningDataRequestForAddon));
                 RunTime.PluginLoader = PluginLoader.LoadPlugins( delegates, RunTime.Session, RunTime.Config);
                 foreach (string name in RunTime.PluginLoader.Plugins.Keys)
                 {
@@ -54,10 +54,10 @@ namespace Milimoe.FunGame.Desktop.Controller
                 Hashtable delegates = [];
                 delegates.Add("WriteLine", new Action<string>(WritelnSystemInfo));
                 delegates.Add("Error", new Action<Exception>(Error));
-                delegates.Add("NewDataRequest", new Func<DataRequestType, DataRequest>(NewDataRequest));
-                delegates.Add("NewLongRunningDataRequest", new Func<DataRequestType, DataRequest>(NewLongRunningDataRequest));
+                delegates.Add("NewDataRequest", new Func<GamingType, DataRequest>(NewDataRequestForAddon));
+                delegates.Add("NewLongRunningDataRequest", new Func<GamingType, DataRequest>(NewLongRunningDataRequestForAddon));
                 RunTime.GameModuleLoader = GameModuleLoader.LoadGameModules(Constant.FunGameType, delegates, RunTime.Session, RunTime.Config);
-                foreach (string name in RunTime.GameModuleLoader.Modes.Keys)
+                foreach (string name in RunTime.GameModuleLoader.Modules.Keys)
                 {
                     Main.GetMessage("[ GameModule ] Loaded: " + name);
                 }
@@ -92,7 +92,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             string[] gamemodules = [];
             if (RunTime.GameModuleLoader != null)
             {
-                gamemodules = [.. RunTime.GameModuleLoader.Modes.Keys];
+                gamemodules = [.. RunTime.GameModuleLoader.Modules.Keys];
             }
             ConnectArgs.Add(gamemodules); // 服务器检查是否拥有需要的模组
             ConnectArgs.Add(FunGameInfo.FunGame_DebugMode); // 是否开启了debug模式

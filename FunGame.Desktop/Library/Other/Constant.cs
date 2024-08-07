@@ -97,11 +97,11 @@ namespace Milimoe.FunGame.Desktop.Library
                 IEnumerable<object> list;
                 if (type == RoomType.All)
                 {
-                    list = RunTime.GameModuleLoader.Modes.Values.Select(mod => mod.Name).Distinct();
+                    list = RunTime.GameModuleLoader.Modules.Values.Select(mod => mod.Name).Distinct();
                 }
                 else
                 {
-                    list = RunTime.GameModuleLoader.Modes.Values.Where(mod => mod.RoomType == type).Select(mod => mod.Name).Distinct();
+                    list = RunTime.GameModuleLoader.Modules.Values.Where(mod => mod.RoomType == type).Select(mod => mod.Name).Distinct();
                 }
                 if (list.Any()) return AllComboItem.Union(list).ToArray();
             }
@@ -112,9 +112,9 @@ namespace Milimoe.FunGame.Desktop.Library
             List<string> list = [];
             if (RunTime.GameModuleLoader != null)
             {
-                foreach (GameModule module in RunTime.GameModuleLoader.Modes.Values)
+                foreach (GameModule module in RunTime.GameModuleLoader.Modules.Values)
                 {
-                    list.AddRange(module.GameModuleDepend.Maps.Distinct());
+                    list.AddRange(module.GameModuleDepend.Maps.Select(m => m.Name).Distinct());
                 }
             }
             if (list.Count != 0) return AllComboItem.Union(list).ToArray();
