@@ -514,7 +514,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Copyright.Size = new Size(186, 23);
             Copyright.TabIndex = 97;
             Copyright.TabStop = true;
-            Copyright.Text = "©2023 Milimoe. 米粒的糖果屋";
+            Copyright.Text = "©2024 Milimoe. 米粒的糖果屋";
             Copyright.TextAlign = ContentAlignment.MiddleLeft;
             Copyright.UseCompatibleTextRendering = true;
             Copyright.LinkClicked += Copyright_LinkClicked;
