@@ -54,8 +54,8 @@ namespace Milimoe.FunGame.Desktop.Controller
                 Hashtable delegates = [];
                 delegates.Add("WriteLine", new Action<string>(WritelnSystemInfo));
                 delegates.Add("Error", new Action<Exception>(Error));
-                delegates.Add("NewDataRequest", new Func<GamingType, DataRequest>(NewDataRequestForAddon));
-                delegates.Add("NewLongRunningDataRequest", new Func<GamingType, DataRequest>(NewLongRunningDataRequestForAddon));
+                delegates.Add("NewGamingRequest", new Func<GamingType, DataRequest>(NewDataRequestForAddon));
+                delegates.Add("NewLongRunningGamingRequest", new Func<GamingType, DataRequest>(NewLongRunningDataRequestForAddon));
                 RunTime.GameModuleLoader = GameModuleLoader.LoadGameModules(Constant.FunGameType, delegates, RunTime.Session, RunTime.Config);
                 foreach (string name in RunTime.GameModuleLoader.Modules.Keys)
                 {
