@@ -69,7 +69,7 @@ namespace Milimoe.FunGame.Desktop.UI
             StopMatch = new Button();
             CheckIsRank = new CheckBox();
             ComboRoomType = new ComboBox();
-            ComboGameMode = new ComboBox();
+            ComboGameModule = new ComboBox();
             ComboGameMap = new ComboBox();
             RoomBox.SuspendLayout();
             Notice.SuspendLayout();
@@ -514,7 +514,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Copyright.Size = new Size(186, 23);
             Copyright.TabIndex = 97;
             Copyright.TabStop = true;
-            Copyright.Text = "©2023 Milimoe. 米粒的糖果屋";
+            Copyright.Text = "©2024 Milimoe. 米粒的糖果屋";
             Copyright.TextAlign = ContentAlignment.MiddleLeft;
             Copyright.UseCompatibleTextRendering = true;
             Copyright.LinkClicked += Copyright_LinkClicked;
@@ -559,18 +559,18 @@ namespace Milimoe.FunGame.Desktop.UI
             ComboRoomType.TabIndex = 99;
             ComboRoomType.SelectionChangeCommitted += ComboRoomType_SelectionChangeCommitted;
             // 
-            // ComboGameMode
+            // ComboGameModule
             // 
-            ComboGameMode.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            ComboGameMode.DropDownStyle = ComboBoxStyle.DropDownList;
-            ComboGameMode.Font = new Font("LanaPixel", 11.25F);
-            ComboGameMode.FormattingEnabled = true;
-            ComboGameMode.Items.AddRange(new object[] { "- 请选择类型 -" });
-            ComboGameMode.Location = new Point(665, 122);
-            ComboGameMode.Name = "ComboGameMode";
-            ComboGameMode.Size = new Size(130, 26);
-            ComboGameMode.TabIndex = 100;
-            ComboGameMode.SelectionChangeCommitted += ComboGameMode_SelectionChangeCommitted;
+            ComboGameModule.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            ComboGameModule.DropDownStyle = ComboBoxStyle.DropDownList;
+            ComboGameModule.Font = new Font("LanaPixel", 11.25F);
+            ComboGameModule.FormattingEnabled = true;
+            ComboGameModule.Items.AddRange(new object[] { "- 请选择类型 -" });
+            ComboGameModule.Location = new Point(665, 122);
+            ComboGameModule.Name = "ComboGameModule";
+            ComboGameModule.Size = new Size(130, 26);
+            ComboGameModule.TabIndex = 100;
+            ComboGameModule.SelectionChangeCommitted += ComboGameModule_SelectionChangeCommitted;
             // 
             // ComboGameMap
             // 
@@ -591,7 +591,7 @@ namespace Milimoe.FunGame.Desktop.UI
             BackgroundImage = Properties.Resources.back;
             ClientSize = new Size(800, 450);
             Controls.Add(ComboGameMap);
-            Controls.Add(ComboGameMode);
+            Controls.Add(ComboGameModule);
             Controls.Add(ComboRoomType);
             Controls.Add(CheckIsRank);
             Controls.Add(RefreshRoomList);
@@ -653,7 +653,7 @@ namespace Milimoe.FunGame.Desktop.UI
             Controls.SetChildIndex(RefreshRoomList, 0);
             Controls.SetChildIndex(CheckIsRank, 0);
             Controls.SetChildIndex(ComboRoomType, 0);
-            Controls.SetChildIndex(ComboGameMode, 0);
+            Controls.SetChildIndex(ComboGameModule, 0);
             Controls.SetChildIndex(ComboGameMap, 0);
             RoomBox.ResumeLayout(false);
             RoomBox.PerformLayout();
@@ -702,7 +702,7 @@ namespace Milimoe.FunGame.Desktop.UI
         private Button RefreshRoomList;
         private CheckBox CheckIsRank;
         private ComboBox ComboGameMap;
-        private ComboBox ComboGameMode;
+        private ComboBox ComboGameModule;
         private ComboBox ComboRoomType;
     }
 }

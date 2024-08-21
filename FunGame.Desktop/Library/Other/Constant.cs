@@ -80,27 +80,28 @@ namespace Milimoe.FunGame.Desktop.Library
         public static readonly object[] AllComboItem = ["全部"];
         public static object[] SupportedRoomType()
         {
-            List<string> objs = [];
-            objs.Add(RoomSet.GetTypeString(RoomType.All));
-            objs.Add(RoomSet.GetTypeString(RoomType.Mix));
-            objs.Add(RoomSet.GetTypeString(RoomType.Team));
-            objs.Add(RoomSet.GetTypeString(RoomType.Solo));
-            objs.Add(RoomSet.GetTypeString(RoomType.FastAuto));
-            objs.Add(RoomSet.GetTypeString(RoomType.Custom));
-            return objs.ToArray();
+            List<string> objs = [
+                RoomSet.GetTypeString(RoomType.All),
+                RoomSet.GetTypeString(RoomType.Mix),
+                RoomSet.GetTypeString(RoomType.Team),
+                RoomSet.GetTypeString(RoomType.Solo),
+                RoomSet.GetTypeString(RoomType.FastAuto),
+                RoomSet.GetTypeString(RoomType.Custom)
+            ];
+            return [.. objs];
         }
-        public static object[] SupportedGameMode(RoomType type)
+        public static object[] SupportedGameModule(RoomType type)
         {
-            if (RunTime.GameModeLoader != null)
+            if (RunTime.GameModuleLoader != null)
             {
                 IEnumerable<object> list;
                 if (type == RoomType.All)
                 {
-                    list = RunTime.GameModeLoader.Modes.Values.Select(mod => mod.Name).Distinct();
+                    list = RunTime.GameModuleLoader.Modules.Values.Select(mod => mod.Name).Distinct();
                 }
                 else
                 {
-                    list = RunTime.GameModeLoader.Modes.Values.Where(mod => mod.RoomType == type).Select(mod => mod.Name).Distinct();
+                    list = RunTime.GameModuleLoader.Modules.Values.Where(mod => mod.RoomType == type).Select(mod => mod.Name).Distinct();
                 }
                 if (list.Any()) return AllComboItem.Union(list).ToArray();
             }
@@ -109,19 +110,19 @@ namespace Milimoe.FunGame.Desktop.Library
         public static object[] SupportedGameMap()
         {
             List<string> list = [];
-            if (RunTime.GameModeLoader != null)
+            if (RunTime.GameModuleLoader != null)
             {
-                foreach (GameMode mod in RunTime.GameModeLoader.Modes.Values)
+                foreach (GameModule module in RunTime.GameModuleLoader.Modules.Values)
                 {
-                    list.AddRange(mod.Maps.Distinct());
+                    list.AddRange(module.GameModuleDepend.Maps.Select(m => m.Name).Distinct());
                 }
             }
             if (list.Count != 0) return AllComboItem.Union(list).ToArray();
             return ["- 缺少地图 -"];
         }
-        public static object[] SupportedGameMap(GameMode mod)
+        public static object[] SupportedGameMap(GameModule module)
         {
-            IEnumerable<object> list = mod.Maps.Where(map => mod.Maps.Contains(map)).Distinct();
+            IEnumerable<object> list = module.GameModuleDepend.Maps.Where(map => module.GameModuleDepend.Maps.Contains(map)).Distinct();
             if (list.Any()) return AllComboItem.Union(list).ToArray();
             return ["- 缺少地图 -"];
         }

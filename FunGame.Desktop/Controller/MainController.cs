@@ -216,14 +216,14 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public async Task<Room> CreateRoomAsync(RoomType RoomType, string GameMode, string GameMap, bool IsRank, string Password = "")
+        public async Task<Room> CreateRoomAsync(RoomType RoomType, string GameModule, string GameMap, bool IsRank, string Password = "")
         {
             Room room = General.HallInstance;
 
             try
             {
                 CreateRoomRequest.AddRequestData("roomtype", RoomType);
-                CreateRoomRequest.AddRequestData("gamemode", GameMode);
+                CreateRoomRequest.AddRequestData("gamemodule", GameModule);
                 CreateRoomRequest.AddRequestData("gamemap", GameMap);
                 CreateRoomRequest.AddRequestData("master", Usercfg.LoginUser);
                 CreateRoomRequest.AddRequestData("password", Password);
