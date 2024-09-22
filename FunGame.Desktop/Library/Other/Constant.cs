@@ -122,7 +122,7 @@ namespace Milimoe.FunGame.Desktop.Library
         }
         public static object[] SupportedGameMap(GameModule module)
         {
-            IEnumerable<object> list = module.GameModuleDepend.Maps.Where(map => module.GameModuleDepend.Maps.Contains(map)).Distinct();
+            IEnumerable<object> list = module.GameModuleDepend.Maps.Where(module.GameModuleDepend.Maps.Contains).Select(m => m.Name).Distinct();
             if (list.Any()) return AllComboItem.Union(list).ToArray();
             return ["- 缺少地图 -"];
         }

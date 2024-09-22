@@ -216,18 +216,18 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public async Task<Room> CreateRoomAsync(RoomType RoomType, string GameModule, string GameMap, bool IsRank, string Password = "")
+        public async Task<Room> CreateRoomAsync(RoomType roomType, string gameModuleServer, string gameMap, bool isRank, string password = "")
         {
             Room room = General.HallInstance;
 
             try
             {
-                CreateRoomRequest.AddRequestData("roomtype", RoomType);
-                CreateRoomRequest.AddRequestData("gamemodule", GameModule);
-                CreateRoomRequest.AddRequestData("gamemap", GameMap);
+                CreateRoomRequest.AddRequestData("roomtype", roomType);
+                CreateRoomRequest.AddRequestData("gamemoduleserver", gameModuleServer);
+                CreateRoomRequest.AddRequestData("gamemap", gameMap);
                 CreateRoomRequest.AddRequestData("master", Usercfg.LoginUser);
-                CreateRoomRequest.AddRequestData("password", Password);
-                CreateRoomRequest.AddRequestData("isrank", IsRank);
+                CreateRoomRequest.AddRequestData("password", password);
+                CreateRoomRequest.AddRequestData("isrank", isRank);
                 await CreateRoomRequest.SendRequestAsync();
                 if (CreateRoomRequest.Result == RequestResult.Success)
                 {
@@ -242,13 +242,13 @@ namespace Milimoe.FunGame.Desktop.Controller
             return room;
         }
 
-        public async Task<bool> MatchRoomAsync(RoomType RoomType, bool isCancel = false)
+        public async Task<bool> MatchRoomAsync(RoomType roomType, bool isCancel = false)
         {
             bool result = false;
 
             try
             {
-                MatchRoomRequest.AddRequestData("roomtype", RoomType);
+                MatchRoomRequest.AddRequestData("roomtype", roomType);
                 MatchRoomRequest.AddRequestData("matcher", Usercfg.LoginUser);
                 MatchRoomRequest.AddRequestData("iscancel", isCancel);
                 await MatchRoomRequest.SendRequestAsync();

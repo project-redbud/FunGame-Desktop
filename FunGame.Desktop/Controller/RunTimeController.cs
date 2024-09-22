@@ -276,9 +276,9 @@ namespace Milimoe.FunGame.Desktop.Controller
         protected override void SocketHandler_Gaming(SocketObject ServerMessage)
         {
             GamingType gamingtype = GamingType.None;
-            Hashtable data = [];
+            Dictionary<string, object> data = [];
             if (ServerMessage.Length > 0) gamingtype = ServerMessage.GetParam<GamingType>(0);
-            if (ServerMessage.Length > 1) data = ServerMessage.GetParam<Hashtable>(1) ?? data;
+            if (ServerMessage.Length > 1) data = ServerMessage.GetParam<Dictionary<string, object>>(1) ?? data;
             RunTime.Gaming?.GamingHandler(gamingtype, data);
         }
     }
