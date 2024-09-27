@@ -22,12 +22,17 @@ namespace Milimoe.FunGame.Desktop.UI
             {
                 if (RunTime.Socket != null)
                 {
-                    string username = UsernameText.Text.Trim();
-                    string email = EmailText.Text.Trim();
+                    string username = "";
+                    string email = "";
+                    InvokeUpdateUI(() =>
+                    {
+                        username = UsernameText.Text.Trim();
+                        email = EmailText.Text.Trim();
+                    });
                     if (username == "" || email == "")
                     {
                         ShowMessage(ShowMessageType.Error, "账号或邮箱不能为空！");
-                        UsernameText.Focus();
+                        InvokeUpdateUI(() => UsernameText.Focus());
                         return;
                     }
 
@@ -111,7 +116,7 @@ namespace Milimoe.FunGame.Desktop.UI
                             }
                             if (success)
                             {
-                                Dispose();
+                                InvokeUpdateUI(Dispose);
                             }
                         }
                     }

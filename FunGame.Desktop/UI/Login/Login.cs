@@ -73,7 +73,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 result = await Login_Handler();
             }).OnCompleted(() =>
             {
-                if (result) Dispose();
+                if (result) InvokeUpdateUI(Dispose);
                 else GoToLogin.Enabled = true;
             });
         }

@@ -106,6 +106,16 @@ namespace Milimoe.FunGame.Desktop.Library.Component
         }
 
         /// <summary>
+        /// 委托更新UI
+        /// </summary>
+        /// <param name="action"></param>
+        public virtual void InvokeUpdateUI(Action action)
+        {
+            if (InvokeRequired) Invoke(action);
+            else action();
+        }
+
+        /// <summary>
         /// 绑定事件，子类需要重写
         /// </summary>
         protected virtual void BindEvent()
@@ -197,16 +207,5 @@ namespace Milimoe.FunGame.Desktop.Library.Component
         {
             BindEvent();
         }
-
-        /// <summary>
-        /// 委托更新UI
-        /// </summary>
-        /// <param name="action"></param>
-        protected virtual void InvokeUpdateUI(Action action)
-        {
-            if (InvokeRequired) Invoke(action);
-            else action();
-        }
-
     }
 }

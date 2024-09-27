@@ -216,7 +216,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public async Task<Room> CreateRoomAsync(RoomType roomType, string gameModuleServer, string gameMap, bool isRank, string password = "")
+        public async Task<Room> CreateRoomAsync(RoomType roomType, string gameModuleServer, string gameMap, bool isRank, int maxUsers, string password = "")
         {
             Room room = General.HallInstance;
 
@@ -228,6 +228,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 CreateRoomRequest.AddRequestData("master", Usercfg.LoginUser);
                 CreateRoomRequest.AddRequestData("password", password);
                 CreateRoomRequest.AddRequestData("isrank", isRank);
+                CreateRoomRequest.AddRequestData("maxusers", maxUsers);
                 await CreateRoomRequest.SendRequestAsync();
                 if (CreateRoomRequest.Result == RequestResult.Success)
                 {

@@ -244,7 +244,7 @@ namespace Milimoe.FunGame.Desktop.Library.Component
                     ChangeSecond(msg, autoclose);
                 }
                 MessageResult = AutoResult;
-                Close();
+                InvokeUpdateUI(Dispose);
             }
         }
 
@@ -273,7 +273,7 @@ namespace Milimoe.FunGame.Desktop.Library.Component
         /// <param name="s"></param>
         private void ChangeSecond(string msg, int s)
         {
-            MsgText.Text = msg + "\n[ " + s + " 秒后自动关闭 ]";
+            InvokeUpdateUI(() => MsgText.Text = msg + "\n[ " + s + " 秒后自动关闭 ]");
         }
 
         private void LeftButton_Click(object sender, EventArgs e)
