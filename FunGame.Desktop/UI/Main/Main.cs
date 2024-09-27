@@ -1626,13 +1626,20 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         if (Usercfg.InRoom.Roomid != "-1")
                         {
-                            TaskUtility.NewTask(async () =>
+                            if (Usercfg.LoginUser.Id == Usercfg.InRoom.RoomMaster.Id)
                             {
-                                if (await MainController.SetReadyAsync(Usercfg.InRoom.Roomid))
+                                WritelnGameInfo(">> 房主无法使用此命令。");
+                            }
+                            else
+                            {
+                                TaskUtility.NewTask(async () =>
                                 {
-                                    await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已准备。");
-                                }
-                            });
+                                    if (await MainController.SetReadyAsync(Usercfg.InRoom.Roomid))
+                                    {
+                                        await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已准备。");
+                                    }
+                                });
+                            }
                         }
                         else WritelnGameInfo(">> 不在房间中无法使用此命令。");
                     }
@@ -1645,13 +1652,20 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         if (Usercfg.InRoom.Roomid != "-1")
                         {
-                            TaskUtility.NewTask(async () =>
+                            if (Usercfg.LoginUser.Id == Usercfg.InRoom.RoomMaster.Id)
                             {
-                                if (await MainController.CancelReadyAsync(Usercfg.InRoom.Roomid))
+                                WritelnGameInfo(">> 房主无法使用此命令。");
+                            }
+                            else
+                            {
+                                TaskUtility.NewTask(async () =>
                                 {
-                                    await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
-                                }
-                            });
+                                    if (await MainController.CancelReadyAsync(Usercfg.InRoom.Roomid))
+                                    {
+                                        await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
+                                    }
+                                });
+                            }
                         }
                         else WritelnGameInfo(">> 不在房间中无法使用此命令。");
                     }
