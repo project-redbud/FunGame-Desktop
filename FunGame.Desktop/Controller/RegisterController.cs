@@ -30,7 +30,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 RunTime.PluginLoader?.OnBeforeRegEvent(Register, RegEventArgs);
                 if (RegEventArgs.Cancel) return false;
 
-                DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.Reg_GetRegVerifyCode);
+                DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.Reg_Reg);
                 request.AddRequestData("username", username);
                 request.AddRequestData("password", password);
                 request.AddRequestData("email", email);
