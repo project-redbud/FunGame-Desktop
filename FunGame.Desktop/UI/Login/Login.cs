@@ -1,5 +1,4 @@
-﻿using Milimoe.FunGame.Core.Api.Utility;
-using Milimoe.FunGame.Core.Library.Common.Event;
+﻿using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
 using Milimoe.FunGame.Desktop.Controller;
@@ -28,18 +27,10 @@ namespace Milimoe.FunGame.Desktop.UI
             SucceedLogin += SucceedLoginEvent;
         }
 
-        private async Task<bool> Login_Handler()
+        private async Task<bool> Login_HandlerAsync(string username, string password)
         {
             try
             {
-                string username = UsernameText.Text.Trim();
-                string password = PasswordText.Text.Trim();
-                if (username == "" || password == "")
-                {
-                    ShowMessage(ShowMessageType.Error, "账号或密码不能为空！");
-                    UsernameText.Focus();
-                    return false;
-                }
                 return await LoginController.LoginAccountAsync(username, password);
             }
             catch (Exception e)
@@ -49,11 +40,6 @@ namespace Milimoe.FunGame.Desktop.UI
             }
         }
 
-        /// <summary>
-        /// 打开注册界面
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void RegButton_Click(object sender, EventArgs e)
         {
             OpenForm.SingleForm(FormType.Register, OpenFormType.Dialog);
@@ -64,19 +50,29 @@ namespace Milimoe.FunGame.Desktop.UI
             ShowMessage(ShowMessageType.Tip, "与No.16对话即可获得快速登录秘钥，快去试试吧！");
         }
 
-        private void GoToLogin_Click(object sender, EventArgs e)
+        private async void GoToLogin_Click(object sender, EventArgs e)
         {
             GoToLogin.Enabled = false;
-            bool result = false;
-            TaskUtility.NewTask(async () =>
+            string username = UsernameText.Text.Trim();
+            string password = PasswordText.Text.Trim();
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                result = await Login_Handler();
-            }).OnCompleted(() =>
+                ShowMessage(ShowMessageType.Error, "账号或密码不能为空！");
+                UsernameText.Focus();
+                GoToLogin.Enabled = true;
+                return;
+            }
+            bool result = await Login_HandlerAsync(username, password);
+            if (result)
             {
-                if (result) InvokeUpdateUI(Dispose);
-                else GoToLogin.Enabled = true;
-            });
+                Dispose();
+            }
+            else
+            {
+                GoToLogin.Enabled = true;
+            }
         }
+
 
         private void ForgetPassword_Click(object sender, EventArgs e)
         {
@@ -84,11 +80,19 @@ namespace Milimoe.FunGame.Desktop.UI
             UsernameText.Focus();
         }
 
-        public void FailedLoginEvent(object sender, LoginEventArgs e)
+        private void FailedLoginEvent(object sender, LoginEventArgs e)
         {
-            GoToLogin.Enabled = true;
+            UpdateFailedLoginUI();
             RunTime.Main?.OnFailedLoginEvent(sender, e);
             RunTime.PluginLoader?.OnFailedLoginEvent(sender, e);
+        }
+
+        private void UpdateFailedLoginUI()
+        {
+            InvokeUpdateUI(() =>
+            {
+                GoToLogin.Enabled = true;
+            });
         }
 
         private void SucceedLoginEvent(object sender, LoginEventArgs e)
