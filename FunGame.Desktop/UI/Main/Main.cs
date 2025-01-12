@@ -663,7 +663,21 @@ namespace Milimoe.FunGame.Desktop.UI
                             if (ShowMessage(ShowMessageType.YesNo, "已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
                             {
                                 Room r = GetRoom(roomid);
-                                return await InvokeController_IntoRoom(r);
+                                bool result = true;
+                                if (r.Password.Trim() != "")
+                                {
+                                    // 验证密码
+                                    string inputPassword = ShowInputMessageCancel("请输入房间密码", "房间需要密码", out MessageResult messageResult);
+                                    if (messageResult == MessageResult.Cancel || inputPassword != r.Password)
+                                    {
+                                        ShowMessage(ShowMessageType.Error, "密码验证失败，拒绝加入！");
+                                        result = false;
+                                    }
+                                }
+                                if (result)
+                                {
+                                    return await InvokeController_IntoRoom(r);
+                                }
                             }
                             return false;
                         }
@@ -1194,9 +1208,9 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void QueryRoom_Click(object sender, EventArgs e)
+        private async void QueryRoom_Click(object sender, EventArgs e)
         {
-            TaskUtility.NewTask(async () => await JoinRoom(RoomText.Text));
+            await JoinRoom(RoomText.Text);
         }
 
         /// <summary>
@@ -1341,13 +1355,13 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void RoomText_KeyUp(object sender, KeyEventArgs e)
+        private async void RoomText_KeyUp(object sender, KeyEventArgs e)
         {
             RoomText.ForeColor = Color.Black;
             if (e.KeyCode.Equals(Keys.Enter))
             {
                 // 按下回车加入房间
-                TaskUtility.NewTask(async () => await JoinRoom(RoomText.Text));
+                await JoinRoom(RoomText.Text);
             }
         }
 
