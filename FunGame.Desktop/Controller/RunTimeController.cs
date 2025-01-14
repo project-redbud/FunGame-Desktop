@@ -30,7 +30,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 // 构建AddonController
                 Dictionary<string, object> delegates = [];
-                delegates.Add("WriteLine", new Action<string>(WritelnSystemInfo));
+                delegates.Add("WriteLine", new Action<string, LogLevel, bool>(WritelnSystemInfo));
                 delegates.Add("Error", new Action<Exception>(Error));
                 delegates.Add("NewDataRequest", new Func<DataRequestType, DataRequest>(NewDataRequestForAddon));
                 delegates.Add("NewLongRunningDataRequest", new Func<DataRequestType, DataRequest>(NewLongRunningDataRequestForAddon));
@@ -52,7 +52,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             {
                 // 构建AddonController
                 Dictionary<string, object> delegates = [];
-                delegates.Add("WriteLine", new Action<string>(WritelnSystemInfo));
+                delegates.Add("WriteLine", new Action<string, string, LogLevel, bool>(WritelnSystemInfo));
                 delegates.Add("Error", new Action<Exception>(Error));
                 delegates.Add("NewGamingRequest", new Func<GamingType, DataRequest>(NewDataRequestForAddon));
                 delegates.Add("NewLongRunningGamingRequest", new Func<GamingType, DataRequest>(NewLongRunningDataRequestForAddon));
@@ -68,7 +68,12 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public override void WritelnSystemInfo(string msg)
+        public override void WritelnSystemInfo(string msg, LogLevel level = LogLevel.Info, bool useLevel = true)
+        {
+            Main.GetMessage(msg);
+        }
+        
+        public void WritelnSystemInfo(string name, string msg, LogLevel level = LogLevel.Info, bool useLevel = true)
         {
             Main.GetMessage(msg);
         }
