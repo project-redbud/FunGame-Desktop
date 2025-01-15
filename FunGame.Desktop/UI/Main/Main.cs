@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Entity;
@@ -22,6 +23,7 @@ namespace Milimoe.FunGame.Desktop.UI
          * 属性
          */
         public int MaxRetryTimes { get; } = SocketSet.MaxRetryTimes; // 最大重试连接次数
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public int CurrentRetryTimes { get; set; } = -1; // 当前重试连接次数
 
         /**
@@ -44,6 +46,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         public void Init()
         {
+            Copyright.Text = FunGameInfo.FunGame_CopyRight;
             RunTime.Main = this;
             SetButtonEnabled(false, ClientState.WaitConnect);
             SetRoomid(Usercfg.InRoom); // 房间号初始化
@@ -403,7 +406,9 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         private void WritelnGameInfo()
         {
-            WritelnGameInfo("\r\n");
+            GameInfo.AppendText("\n");
+            GameInfo.SelectionStart = GameInfo.Text.Length - 1;
+            GameInfo.ScrollToCaret();
         }
 
         /// <summary>
@@ -414,7 +419,9 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (msg.Trim() != "")
             {
-                WriteGameInfo(msg + "\r\n");
+                GameInfo.AppendText(msg + "\n");
+                GameInfo.SelectionStart = GameInfo.Text.Length - 1;
+                GameInfo.ScrollToCaret();
             }
         }
 
@@ -426,12 +433,9 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (msg.Trim() != "")
             {
-                InvokeUpdateUI(() =>
-                {
-                    GameInfo.AppendText(msg);
-                    GameInfo.SelectionStart = GameInfo.Text.Length - 1;
-                    GameInfo.ScrollToCaret();
-                });
+                GameInfo.AppendText(msg);
+                GameInfo.SelectionStart = GameInfo.Text.Length - 1;
+                GameInfo.ScrollToCaret();
             }
         }
 
@@ -489,16 +493,16 @@ namespace Milimoe.FunGame.Desktop.UI
             TaskUtility.NewTask(async () =>
             {
                 int PlayerCount = users.Count;
-                for (int i = 5; i > 0; i--)
+                for (int i = 10; i > 0; i--)
                 {
                     WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + RoomSet.GetTypeString(room.RoomType) + ") ] 的游戏将在" + i + "秒后开始...");
                     await Task.Delay(1000);
                 }
                 WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + RoomSet.GetTypeString(room.RoomType) + ") ] 的游戏正式开始！");
-                if (RunTime.GameModuleLoader?.Modules.TryGetValue(room.GameModule, out GameModule? module) ?? false && module != null)
+                if (RunTime.GameModuleLoader?.Modules.ContainsKey(room.GameModule) ?? false)
                 {
-                    RunTime.Gaming = Core.Model.Gaming.StartGame(module, room, RunTime.Session.LoginUser, users, RunTime.GameModuleLoader);
-                    Visible = !module.HideMain; // 隐藏主界面
+                    RunTime.Gaming = Core.Model.Gaming.StartGame(RunTime.GameModuleLoader[room.GameModule], room, RunTime.Session.LoginUser, users, RunTime.GameModuleLoader);
+                    Visible = false; // 隐藏主界面
                 }
                 else
                 {
@@ -525,8 +529,8 @@ namespace Milimoe.FunGame.Desktop.UI
             {
                 // 恢复界面
                 Visible = true;
-                SetButtonEnabled(true, ClientState.InRoom);
                 _InGame = false;
+                SetButtonEnabled(true, ClientState.InRoom);
                 OnSucceedEndGameEvent(this, e);
                 RunTime.PluginLoader?.OnSucceedEndGameEvent(this, e);
             }
@@ -629,12 +633,12 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <summary>
         /// 通过双击房间列表的房间号加入房间
         /// </summary>
-        /// <param name="selectedIndex"></param>
-        private async Task<bool> JoinRoom(int selectedIndex)
+        /// <param name="selectedindex"></param>
+        private async Task<bool> JoinRoom(int selectedindex)
         {
-            if (selectedIndex != -1 && RunTime.RoomList.Count > selectedIndex)
+            if (selectedindex != -1 && RunTime.RoomList.Count > selectedindex)
             {
-                string roomid = RunTime.RoomList.ListRoom[selectedIndex]?.Roomid ?? "";
+                string roomid = RunTime.RoomList.ListRoom[selectedindex]?.Roomid ?? "";
                 return await JoinRoom_Handler(roomid);
             }
             return false;
@@ -654,13 +658,26 @@ namespace Milimoe.FunGame.Desktop.UI
                 {
                     if (Usercfg.InRoom.Roomid == "-1")
                     {
-                        GameModule? gameModule = RunTime.GameModuleLoader?[RunTime.RoomList[roomid].GameModule];
-                        if (await MainController.GetRoomPlayerCountAsync(roomid) < gameModule?.MaxUsers)
+                        if (await MainController.GetRoomPlayerCountAsync(roomid) < 8)
                         {
                             if (ShowMessage(ShowMessageType.YesNo, "已找到房间 -> [ " + roomid + " ]\n是否加入？", "已找到房间") == MessageResult.Yes)
                             {
                                 Room r = GetRoom(roomid);
-                                return await InvokeController_IntoRoom(r);
+                                bool result = true;
+                                if (r.Password.Trim() != "")
+                                {
+                                    // 验证密码
+                                    string inputPassword = ShowInputMessageCancel("请输入房间密码", "房间需要密码", out MessageResult messageResult);
+                                    if (messageResult == MessageResult.Cancel || inputPassword != r.Password)
+                                    {
+                                        ShowMessage(ShowMessageType.Error, "密码验证失败，拒绝加入！");
+                                        result = false;
+                                    }
+                                }
+                                if (result)
+                                {
+                                    return await InvokeController_IntoRoom(r);
+                                }
                             }
                             return false;
                         }
@@ -890,27 +907,23 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <summary>
         /// 创建房间的处理方法
         /// </summary>
-        /// <param name="roomType"></param>
-        /// <param name="gameModule"></param>
-        /// <param name="gameMap"></param>
-        /// <param name="isRank"></param>
-        /// <param name="password"></param>
+        /// <param name="RoomType"></param>
+        /// <param name="Password"></param>
         /// <returns></returns>
-        private async Task CreateRoom_Handler(RoomType roomType, string gameModule, string gameMap, bool isRank, string password = "")
+        private async Task CreateRoom_Handler(RoomType RoomType, string GameModule, string GameMap, bool IsRank, string Password = "")
         {
             if (Usercfg.InRoom.Roomid != "-1")
             {
                 ShowMessage(ShowMessageType.Warning, "已在房间中，无法创建房间。");
                 return;
             }
-            GameModule? module = RunTime.GameModuleLoader?[gameModule];
-            if (module is null)
+            GameModule? mode = RunTime.GameModuleLoader?.Modules.Values.FirstOrDefault() ?? default;
+            if (mode is null)
             {
                 ShowMessage(ShowMessageType.Error, ">> 缺少" + Config.FunGame_RoomType + "所需的模组，无法创建房间。");
                 return;
             }
-            string gameModuleServer = module.AssociatedServerModuleName;
-            Room room = await InvokeController_CreateRoom(roomType, gameModuleServer, gameMap, isRank, module.MaxUsers, password);
+            Room room = await InvokeController_CreateRoom(RoomType, GameModule, GameMap, IsRank, Password);
             if (MainController is not null && room.Roomid != "-1")
             {
                 await MainController.UpdateRoomAsync();
@@ -1075,12 +1088,12 @@ namespace Milimoe.FunGame.Desktop.UI
             string modmap = ComboGameMap.SelectedItem?.ToString() ?? all;
             if (RunTime.GameModuleLoader is null || (modname != all && !RunTime.GameModuleLoader.Modules.ContainsKey(modname)))
             {
-                ShowMessage(ShowMessageType.Error, "模组未正确加载，无法创建房间。");
+                ShowMessage(ShowMessageType.Error, ">> 模组未正确加载，无法创建房间。");
                 return;
             }
             if (RunTime.GameModuleLoader is null || (modmap != all && !RunTime.GameModuleLoader.Maps.ContainsKey(modmap)))
             {
-                ShowMessage(ShowMessageType.Error, "地图未正确加载，无法创建房间。");
+                ShowMessage(ShowMessageType.Error, ">> 地图未正确加载，无法创建房间。");
                 return;
             }
             // 开始匹配
@@ -1127,12 +1140,12 @@ namespace Milimoe.FunGame.Desktop.UI
             }
             if (RunTime.GameModuleLoader is null || (modname != all && !RunTime.GameModuleLoader.Modules.ContainsKey(modname)))
             {
-                ShowMessage(ShowMessageType.Error, "模组未正确加载，无法创建房间。");
+                ShowMessage(ShowMessageType.Error, ">> 模组未正确加载，无法创建房间。");
                 return;
             }
             if (RunTime.GameModuleLoader is null || (modmap != all && !RunTime.GameModuleLoader.Maps.ContainsKey(modmap)))
             {
-                ShowMessage(ShowMessageType.Error, "地图未正确加载，无法创建房间。");
+                ShowMessage(ShowMessageType.Error, ">> 地图未正确加载，无法创建房间。");
                 return;
             }
             if (CheckHasPass.Checked)
@@ -1152,25 +1165,21 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void QuitRoom_Click(object sender, EventArgs e)
+        private async void QuitRoom_Click(object sender, EventArgs e)
         {
             string roomid = Usercfg.InRoom.Roomid;
             bool isMaster = Usercfg.InRoom.RoomMaster?.Id == Usercfg.LoginUser.Id;
-            bool result = false;
-            TaskUtility.NewTask(async () =>
+            if (await InvokeController_QuitRoom(Usercfg.InRoom, isMaster))
             {
-                if (await InvokeController_QuitRoom(Usercfg.InRoom, isMaster))
-                {
-                    WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 离开房间");
-                    WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已离开房间 -> [ " + roomid + " ]");
-                    InvokeUpdateUI(InMain);
-                    _ = MainController?.UpdateRoomAsync();
-                    result = true;
-                }
-            }).OnCompleted(() =>
+                WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 离开房间");
+                WritelnGameInfo("[ " + Usercfg.LoginUserName + " ] 已离开房间 -> [ " + roomid + " ]");
+                InMain();
+                _ = MainController?.UpdateRoomAsync();
+            }
+            else
             {
-                if (!result) ShowMessage(ShowMessageType.Error, "无法退出房间！", "退出房间");
-            });
+                ShowMessage(ShowMessageType.Error, "无法退出房间！", "退出房间");
+            }
         }
 
         /// <summary>
@@ -1199,9 +1208,9 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void QueryRoom_Click(object sender, EventArgs e)
+        private async void QueryRoom_Click(object sender, EventArgs e)
         {
-            TaskUtility.NewTask(async () => await JoinRoom(RoomText.Text));
+            await JoinRoom(RoomText.Text);
         }
 
         /// <summary>
@@ -1280,7 +1289,7 @@ namespace Milimoe.FunGame.Desktop.UI
                     SetRoomTypeString();
                     ComboGameMap.Items.Clear();
                     ComboGameMap.Items.AddRange(Constant.SupportedGameMap(mod));
-                    ComboGameMap.SelectedItem = mod.DefaultMap;
+                    ComboGameMap.SelectedIndex = 0;
                 }
             }
             else
@@ -1299,8 +1308,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             if (RoomList.SelectedItem != null)
             {
-                int selected = RoomList.SelectedIndex;
-                TaskUtility.NewTask(async () => await JoinRoom(selected));
+                TaskUtility.NewTask(async () => await JoinRoom(RoomList.SelectedIndex));
             }
         }
 
@@ -1347,13 +1355,13 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void RoomText_KeyUp(object sender, KeyEventArgs e)
+        private async void RoomText_KeyUp(object sender, KeyEventArgs e)
         {
             RoomText.ForeColor = Color.Black;
             if (e.KeyCode.Equals(Keys.Enter))
             {
                 // 按下回车加入房间
-                TaskUtility.NewTask(async () => await JoinRoom(RoomText.Text));
+                await JoinRoom(RoomText.Text);
             }
         }
 
@@ -1403,7 +1411,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void Copyright_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            // Copyright 2023 milimoe
+            // Copyright 2022-Present milimoe
             Process.Start(new ProcessStartInfo("https://github.com/milimoe") { UseShellExecute = true });
         }
 
@@ -1562,9 +1570,12 @@ namespace Milimoe.FunGame.Desktop.UI
         /// <param name="e"></param>
         private void SucceedCreateRoomEvent(object sender, RoomEventArgs e)
         {
-            WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + e.RoomTypeString + "房间");
-            WritelnGameInfo(">> 创建" + e.RoomTypeString + "房间成功！房间号： " + e.RoomID);
-            ShowMessage(ShowMessageType.General, "创建" + e.RoomTypeString + "房间成功！\n房间号是 -> [ " + e.RoomID + " ]", "创建成功");
+            InvokeUpdateUI(() =>
+            {
+                WritelnGameInfo(DateTimeUtility.GetNowShortTime() + " 创建" + e.RoomTypeString + "房间");
+                WritelnGameInfo(">> 创建" + e.RoomTypeString + "房间成功！房间号： " + e.RoomID);
+                ShowMessage(ShowMessageType.General, "创建" + e.RoomTypeString + "房间成功！\n房间号是 -> [ " + e.RoomID + " ]", "创建成功");
+            });
         }
 
         #endregion
@@ -1633,20 +1644,13 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         if (Usercfg.InRoom.Roomid != "-1")
                         {
-                            if (Usercfg.LoginUser.Id == Usercfg.InRoom.RoomMaster.Id)
+                            TaskUtility.NewTask(async () =>
                             {
-                                WritelnGameInfo(">> 房主无法使用此命令。");
-                            }
-                            else
-                            {
-                                TaskUtility.NewTask(async () =>
+                                if (await MainController.SetReadyAsync(Usercfg.InRoom.Roomid))
                                 {
-                                    if (await MainController.SetReadyAsync(Usercfg.InRoom.Roomid))
-                                    {
-                                        await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已准备。");
-                                    }
-                                });
-                            }
+                                    await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已准备。");
+                                }
+                            });
                         }
                         else WritelnGameInfo(">> 不在房间中无法使用此命令。");
                     }
@@ -1659,20 +1663,13 @@ namespace Milimoe.FunGame.Desktop.UI
                     {
                         if (Usercfg.InRoom.Roomid != "-1")
                         {
-                            if (Usercfg.LoginUser.Id == Usercfg.InRoom.RoomMaster.Id)
+                            TaskUtility.NewTask(async () =>
                             {
-                                WritelnGameInfo(">> 房主无法使用此命令。");
-                            }
-                            else
-                            {
-                                TaskUtility.NewTask(async () =>
+                                if (await MainController.CancelReadyAsync(Usercfg.InRoom.Roomid))
                                 {
-                                    if (await MainController.CancelReadyAsync(Usercfg.InRoom.Roomid))
-                                    {
-                                        await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
-                                    }
-                                });
-                            }
+                                    await InvokeController_SendTalk(" [ " + Usercfg.LoginUser.Username + " ] 已取消准备。");
+                                }
+                            });
                         }
                         else WritelnGameInfo(">> 不在房间中无法使用此命令。");
                     }
@@ -1821,7 +1818,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 OnBeforeConnectEvent(this, EventArgs);
                 RunTime.PluginLoader?.OnBeforeConnectEvent(this, EventArgs);
                 if (EventArgs.Cancel) return;
-                result = RunTime.Controller?.Connect(RunTime.Session.Server_Address, RunTime.Session.Server_Port) ?? result;
+                result = RunTime.Controller?.Connect(TransmittalType.Socket, RunTime.Session.Server_Address, RunTime.Session.Server_Port) ?? result;
                 EventArgs.ConnectResult = result;
             }).OnCompleted(() =>
             {
@@ -1989,9 +1986,9 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
-        public async Task<Room> InvokeController_CreateRoom(RoomType roomType, string gameModuleServer, string gameMap, bool isRank, int maxUsers,string password = "")
+        public async Task<Room> InvokeController_CreateRoom(RoomType RoomType, string GameModule, string GameMap, bool IsRank, string Password = "")
         {
-            RoomEventArgs EventArgs = new(roomType, password);
+            RoomEventArgs EventArgs = new(RoomType, Password);
             Room room = General.HallInstance;
 
             try
@@ -2000,7 +1997,7 @@ namespace Milimoe.FunGame.Desktop.UI
                 RunTime.PluginLoader?.OnBeforeCreateRoomEvent(this, EventArgs);
                 if (EventArgs.Cancel) return room;
 
-                room = MainController is null ? room : await MainController.CreateRoomAsync(roomType, gameModuleServer, gameMap, isRank, maxUsers, password);
+                room = MainController is null ? room : await MainController.CreateRoomAsync(RoomType, GameModule, GameMap, IsRank, 8, Password);
 
                 if (room.Roomid != "-1")
                 {

@@ -29,12 +29,12 @@ namespace Milimoe.FunGame.Desktop.Controller
             try
             {
                 // 构建AddonController
-                Hashtable delegates = [];
-                delegates.Add("WriteLine", new Action<string>(WritelnSystemInfo));
+                Dictionary<string, object> delegates = [];
+                delegates.Add("WriteLine", new Action<string, LogLevel, bool>(WritelnSystemInfo));
                 delegates.Add("Error", new Action<Exception>(Error));
                 delegates.Add("NewDataRequest", new Func<DataRequestType, DataRequest>(NewDataRequestForAddon));
                 delegates.Add("NewLongRunningDataRequest", new Func<DataRequestType, DataRequest>(NewLongRunningDataRequestForAddon));
-                RunTime.PluginLoader = PluginLoader.LoadPlugins( delegates, RunTime.Session, RunTime.Config);
+                RunTime.PluginLoader = PluginLoader.LoadPlugins(delegates, RunTime.Session, RunTime.Config);
                 foreach (string name in RunTime.PluginLoader.Plugins.Keys)
                 {
                     Main.GetMessage("[ Plugin ] Loaded: " + name);
@@ -51,8 +51,8 @@ namespace Milimoe.FunGame.Desktop.Controller
             try
             {
                 // 构建AddonController
-                Hashtable delegates = [];
-                delegates.Add("WriteLine", new Action<string>(WritelnSystemInfo));
+                Dictionary<string, object> delegates = [];
+                delegates.Add("WriteLine", new Action<string, string, LogLevel, bool>(WritelnSystemInfo));
                 delegates.Add("Error", new Action<Exception>(Error));
                 delegates.Add("NewGamingRequest", new Func<GamingType, DataRequest>(NewDataRequestForAddon));
                 delegates.Add("NewLongRunningGamingRequest", new Func<GamingType, DataRequest>(NewLongRunningDataRequestForAddon));
@@ -68,7 +68,12 @@ namespace Milimoe.FunGame.Desktop.Controller
             }
         }
 
-        public override void WritelnSystemInfo(string msg)
+        public override void WritelnSystemInfo(string msg, LogLevel level = LogLevel.Info, bool useLevel = true)
+        {
+            Main.GetMessage(msg);
+        }
+        
+        public void WritelnSystemInfo(string name, string msg, LogLevel level = LogLevel.Info, bool useLevel = true)
         {
             Main.GetMessage(msg);
         }
@@ -79,7 +84,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             Main.UpdateUI(MainInvokeType.Disconnected);
             ConnectEventArgs args = new(RunTime.Session.Server_Address, RunTime.Session.Server_Port, ConnectResult.ConnectFailed);
             Main.OnFailedConnectEvent(Main, args);
-            Close();
+            Close_Socket();
         }
 
         public override bool BeforeConnect(ref string ip, ref int port, ArrayList ConnectArgs)
@@ -162,7 +167,7 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             try
             {
-                Core.Api.Utility.TaskUtility.NewTask(async () => await LoginController.LoginAccountAsync(Username, Password, AutoKey));
+                TaskUtility.NewTask(async () => await LoginController.LoginAccountAsync(Username, Password, AutoKey));
             }
             catch (Exception e)
             {
@@ -177,7 +182,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             if (ServerMessage.Parameters.Length > 0) msg = ServerMessage.GetParam<string>(0) ?? "";
             Main.GetMessage(msg);
             Main.UpdateUI(MainInvokeType.Disconnect);
-            Close();
+            Close_Socket();
         }
 
         protected override void SocketHandler_System(SocketObject ServerMessage)

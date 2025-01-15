@@ -1,4 +1,5 @@
 using System.Drawing.Drawing2D;
+using System.ComponentModel;
 
 namespace Milimoe.FunGame.Desktop.Library.Component
 {
@@ -24,31 +25,37 @@ namespace Milimoe.FunGame.Desktop.Library.Component
             SetStyle(ControlStyles.Opaque, false);
             UpdateStyles();
         }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public new Color BackColor
         {
             get { return _backColor; }
             set { _backColor = value; Invalidate(); }
         }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public ShapeBorderStyles ShapeBorderStyle
         {
             get { return _borderStyle; }
             set { _borderStyle = value; this.Invalidate(); }
         }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public Color BorderColor
         {
             get { return _borderColor; }
             set { _borderColor = value; Invalidate(); }
         }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public int Opacity
         {
             get { return _opacity; }
             set { _opacity = value; this.Invalidate(); }
         }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public int Radius
         {
             get { return _radius; }
             set { _radius = value; this.Invalidate(); }
         }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public override Color ForeColor
         {
             get { return base.ForeColor; }

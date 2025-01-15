@@ -8,7 +8,7 @@ namespace Milimoe.FunGame.Desktop.Utility
 {
     public class OpenForm
     {
-        public static List<Form> Forms { get; } = new();
+        public static List<Form> Forms { get; } = [];
 
         /// <summary>
         /// 
@@ -86,8 +86,9 @@ namespace Milimoe.FunGame.Desktop.Utility
         {
             try
             {
-                if (Singleton.Add(form))
+                if (!Singleton.IsExist(form))
                 {
+                    Singleton.AddOrUpdate(form);
                     if (opentype == OpenFormType.Dialog) form.ShowDialog();
                     else form.Show();
                 }

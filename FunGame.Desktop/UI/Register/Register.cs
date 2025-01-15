@@ -1,4 +1,5 @@
-﻿using Milimoe.FunGame.Core.Api.Utility;
+﻿using System.ComponentModel;
+using Milimoe.FunGame.Core.Api.Utility;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
@@ -10,6 +11,7 @@ namespace Milimoe.FunGame.Desktop.UI
 {
     public partial class Register : BaseReg
     {
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public bool CheckReg { get; set; } = false;
 
         private readonly RegisterController RegController;
@@ -28,77 +30,10 @@ namespace Milimoe.FunGame.Desktop.UI
             SucceedReg += SucceedRegEvent;
         }
 
-        private async Task<bool> Reg_Handler()
+        private async Task<bool> Reg_HandlerAsync(string username, string password, string email)
         {
             try
             {
-                string username = "";
-                string password = "";
-                string checkpassword = "";
-                string email = "";
-                InvokeUpdateUI(() =>
-                {
-                    username = UsernameText.Text.Trim();
-                    password = PasswordText.Text.Trim();
-                    checkpassword = CheckPasswordText.Text.Trim();
-                    email = EmailText.Text.Trim();
-                });
-                if (username != "")
-                {
-                    if (NetworkUtility.IsUserName(username))
-                    {
-                        int length = NetworkUtility.GetUserNameLength(username);
-                        if (length >= 3 && length <= 12) // 字节范围 3~12
-                        {
-                            if (password != checkpassword)
-                            {
-                                ShowMessage(ShowMessageType.Error, "两个密码不相同，请重新输入！");
-                                InvokeUpdateUI(() => CheckPasswordText.Focus());
-                                return false;
-                            }
-                        }
-                        else
-                        {
-                            ShowMessage(ShowMessageType.Error, "账号名长度不符合要求：3~12个字符数（一个中文2个字符）");
-                            InvokeUpdateUI(() => UsernameText.Focus());
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        ShowMessage(ShowMessageType.Error, "账号名不符合要求：不能包含特殊字符");
-                        InvokeUpdateUI(() => UsernameText.Focus());
-                        return false;
-                    }
-                }
-                if (password != "")
-                {
-                    int length = password.Length;
-                    if (length < 6 || length > 15) // 字节范围 6~15
-                    {
-                        ShowMessage(ShowMessageType.Error, "密码长度不符合要求：6~15个字符数");
-                        InvokeUpdateUI(() => PasswordText.Focus());
-                        return false;
-                    }
-                }
-                if (username == "" || password == "" || checkpassword == "")
-                {
-                    ShowMessage(ShowMessageType.Error, "请将账号和密码填写完整！");
-                    InvokeUpdateUI(() => UsernameText.Focus());
-                    return false;
-                }
-                if (email == "")
-                {
-                    ShowMessage(ShowMessageType.Error, "邮箱不能为空！");
-                    InvokeUpdateUI(() => EmailText.Focus());
-                    return false;
-                }
-                if (!NetworkUtility.IsEmail(email))
-                {
-                    ShowMessage(ShowMessageType.Error, "这不是一个邮箱地址！");
-                    InvokeUpdateUI(() => EmailText.Focus());
-                    return false;
-                }
                 return await RegController.RegAsync(username, password, email);
             }
             catch (Exception e)
@@ -108,35 +43,98 @@ namespace Milimoe.FunGame.Desktop.UI
             }
         }
 
-        /// <summary>
-        /// 关闭窗口
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void ExitButton_Click(object sender, EventArgs e)
         {
             Dispose();
         }
 
-        private void SucceedRegEvent(object sender, GeneralEventArgs e)
+        private async void SucceedRegEvent(object sender, GeneralEventArgs e)
         {
             string username = ((RegisterEventArgs)e).Username;
             string password = ((RegisterEventArgs)e).Password;
-            TaskUtility.NewTask(async () => await LoginController.LoginAccountAsync(username, password, encrypt: false));
-            if (RunTime.Login != null)
+            await LoginController.LoginAccountAsync(username, password, encrypt: false);
+            RunTime.Login?.Dispose();
+        }
+
+        private async void RegButton_Click(object sender, EventArgs e)
+        {
+            RegButton.Enabled = false;
+
+            string username = UsernameText.Text.Trim();
+            string password = PasswordText.Text.Trim();
+            string checkpassword = CheckPasswordText.Text.Trim();
+            string email = EmailText.Text.Trim();
+
+            if (!ValidateInput(username, password, checkpassword, email))
             {
-                RunTime.Login.InvokeUpdateUI(RunTime.Login.Close);
+                RegButton.Enabled = true;
+                return;
+            }
+
+            bool result = await Reg_HandlerAsync(username, password, email);
+
+            if (!result)
+            {
+                RegButton.Enabled = true;
+            }
+            else
+            {
+                Dispose();
             }
         }
 
-        private void RegButton_Click(object sender, EventArgs e)
+        private bool ValidateInput(string username, string password, string checkpassword, string email)
         {
-            RegButton.Enabled = false;
-            TaskUtility.NewTask(async () =>
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(checkpassword))
             {
-                if (!await Reg_Handler()) InvokeUpdateUI(() => RegButton.Enabled = true);
-                else InvokeUpdateUI(Close);
-            });
+                ShowMessage(ShowMessageType.Error, "请将账号和密码填写完整！");
+                UsernameText.Focus();
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(email))
+            {
+                ShowMessage(ShowMessageType.Error, "邮箱不能为空！");
+                EmailText.Focus();
+                return false;
+            }
+
+            if (!NetworkUtility.IsUserName(username))
+            {
+                ShowMessage(ShowMessageType.Error, "账号名不符合要求：不能包含特殊字符");
+                UsernameText.Focus();
+                return false;
+            }
+
+            int usernameLength = NetworkUtility.GetUserNameLength(username);
+            if (usernameLength < 3 || usernameLength > 12)
+            {
+                ShowMessage(ShowMessageType.Error, "账号名长度不符合要求：3~12个字符数（一个中文2个字符）");
+                UsernameText.Focus();
+                return false;
+            }
+
+            if (password != checkpassword)
+            {
+                ShowMessage(ShowMessageType.Error, "两个密码不相同，请重新输入！");
+                CheckPasswordText.Focus();
+                return false;
+            }
+
+            if (password.Length < 6 || password.Length > 15)
+            {
+                ShowMessage(ShowMessageType.Error, "密码长度不符合要求：6~15个字符数");
+                PasswordText.Focus();
+                return false;
+            }
+
+            if (!NetworkUtility.IsEmail(email))
+            {
+                ShowMessage(ShowMessageType.Error, "这不是一个邮箱地址！");
+                EmailText.Focus();
+                return false;
+            }
+            return true;
         }
 
         private void GoToLogin_Click(object sender, EventArgs e)

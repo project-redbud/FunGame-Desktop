@@ -4,6 +4,7 @@ namespace Milimoe.FunGame.Desktop.Library.Component
 {
     public partial class MinButton : Button
     {
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public GeneralForm? RelativeForm { get; set; }
 
         public MinButton()

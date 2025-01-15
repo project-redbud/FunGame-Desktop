@@ -4,6 +4,7 @@ namespace Milimoe.FunGame.Desktop.Library.Component
 {
     public partial class ExitButton : Button
     {
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public GeneralForm? RelativeForm { get; set; }
 
         public ExitButton()
