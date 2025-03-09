@@ -171,16 +171,15 @@ namespace Milimoe.FunGame.Desktop.Controller
         {
             try
             {
+                LoginEventArgs.Success = result;
                 if (UIForm.GetType() == typeof(Login))
                 {
                     Login login = (Login)UIForm;
-                    if (result) login.OnSucceedLoginEvent(UIForm, LoginEventArgs);
-                    else login.OnFailedLoginEvent(UIForm, LoginEventArgs);
                     login.OnAfterLoginEvent(UIForm, LoginEventArgs);
                 }
                 else if (UIForm.GetType() == typeof(Main))
                 {
-                    if (result) ((Main)UIForm).OnSucceedLoginEvent(UIForm, LoginEventArgs);
+                    if (result) ((Main)UIForm).OnAfterLoginEvent(UIForm, LoginEventArgs);
                 }
             }
             catch (Exception e)

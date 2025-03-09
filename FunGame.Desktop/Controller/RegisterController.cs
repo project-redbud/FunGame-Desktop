@@ -79,16 +79,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 }
                 request.Dispose();
 
-                if (result)
-                {
-                    Register.OnSucceedRegEvent(Register, RegEventArgs);
-                    RunTime.PluginLoader?.OnSucceedRegEvent(Register, RegEventArgs);
-                }
-                else
-                {
-                    Register.OnFailedRegEvent(Register, RegEventArgs);
-                    RunTime.PluginLoader?.OnFailedRegEvent(Register, RegEventArgs);
-                }
+                RegEventArgs.Success = result;
                 Register.OnAfterRegEvent(Register, RegEventArgs);
                 RunTime.PluginLoader?.OnAfterRegEvent(Register, RegEventArgs);
             }

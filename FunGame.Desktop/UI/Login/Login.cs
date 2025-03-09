@@ -23,8 +23,6 @@ namespace Milimoe.FunGame.Desktop.UI
             base.BindEvent();
             BeforeLogin += BeforeLoginEvent;
             AfterLogin += AfterLoginEvent;
-            FailedLogin += FailedLoginEvent;
-            SucceedLogin += SucceedLoginEvent;
         }
 
         private async Task<bool> Login_HandlerAsync(string username, string password)
@@ -80,11 +78,14 @@ namespace Milimoe.FunGame.Desktop.UI
             UsernameText.Focus();
         }
 
-        private void FailedLoginEvent(object sender, LoginEventArgs e)
+        private void AfterLoginEvent(object sender, LoginEventArgs e)
         {
-            UpdateFailedLoginUI();
-            RunTime.Main?.OnFailedLoginEvent(sender, e);
-            RunTime.PluginLoader?.OnFailedLoginEvent(sender, e);
+            if (!e.Success)
+            {
+                UpdateFailedLoginUI();
+            }
+            RunTime.Main?.OnAfterLoginEvent(sender, e);
+            RunTime.PluginLoader?.OnAfterLoginEvent(sender, e);
         }
 
         private void UpdateFailedLoginUI()
@@ -95,23 +96,11 @@ namespace Milimoe.FunGame.Desktop.UI
             });
         }
 
-        private void SucceedLoginEvent(object sender, LoginEventArgs e)
-        {
-            RunTime.Main?.OnSucceedLoginEvent(sender, e);
-            RunTime.PluginLoader?.OnSucceedLoginEvent(sender, e);
-        }
-
         private void BeforeLoginEvent(object sender, LoginEventArgs e)
         {
             RunTime.Main?.OnBeforeLoginEvent(sender, e);
             RunTime.PluginLoader?.OnBeforeLoginEvent(sender, e);
             if (e.Cancel) return;
-        }
-
-        private void AfterLoginEvent(object sender, LoginEventArgs e)
-        {
-            RunTime.Main?.OnAfterLoginEvent(sender, e);
-            RunTime.PluginLoader?.OnAfterLoginEvent(sender, e);
         }
     }
 }

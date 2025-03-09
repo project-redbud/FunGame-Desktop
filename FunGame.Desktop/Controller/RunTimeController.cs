@@ -83,7 +83,8 @@ namespace Milimoe.FunGame.Desktop.Controller
             Main.GetMessage(e.GetErrorInfo(), TimeType.None);
             Main.UpdateUI(MainInvokeType.Disconnected);
             ConnectEventArgs args = new(RunTime.Session.Server_Address, RunTime.Session.Server_Port, ConnectResult.ConnectFailed);
-            Main.OnFailedConnectEvent(Main, args);
+            args.Success = false;
+            Main.OnAfterConnectEvent(Main, args);
             Close_Socket();
         }
 

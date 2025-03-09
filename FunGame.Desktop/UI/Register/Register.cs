@@ -27,7 +27,7 @@ namespace Milimoe.FunGame.Desktop.UI
         protected override void BindEvent()
         {
             base.BindEvent();
-            SucceedReg += SucceedRegEvent;
+            AfterReg += AfterRegEvent;
         }
 
         private async Task<bool> Reg_HandlerAsync(string username, string password, string email)
@@ -48,12 +48,15 @@ namespace Milimoe.FunGame.Desktop.UI
             Dispose();
         }
 
-        private async void SucceedRegEvent(object sender, GeneralEventArgs e)
+        private async void AfterRegEvent(object sender, GeneralEventArgs e)
         {
-            string username = ((RegisterEventArgs)e).Username;
-            string password = ((RegisterEventArgs)e).Password;
-            await LoginController.LoginAccountAsync(username, password, encrypt: false);
-            RunTime.Login?.Dispose();
+            if (e.Success)
+            {
+                string username = ((RegisterEventArgs)e).Username;
+                string password = ((RegisterEventArgs)e).Password;
+                await LoginController.LoginAccountAsync(username, password, encrypt: false);
+                RunTime.Login?.Dispose();
+            }
         }
 
         private async void RegButton_Click(object sender, EventArgs e)
