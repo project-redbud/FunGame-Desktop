@@ -89,7 +89,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Exit
             // 
-            Exit.Anchor = AnchorStyles.None;
+            Exit.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             Exit.BackColor = Color.White;
             Exit.BackgroundImage = Properties.Resources.exit;
             Exit.FlatAppearance.BorderColor = Color.White;
@@ -110,7 +110,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // MinForm
             // 
-            MinForm.Anchor = AnchorStyles.None;
+            MinForm.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             MinForm.BackColor = Color.White;
             MinForm.BackgroundImage = Properties.Resources.min;
             MinForm.BackgroundImageLayout = ImageLayout.Center;
@@ -131,6 +131,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Connection
             // 
+            Connection.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             Connection.BackColor = Color.Transparent;
             Connection.Font = new Font("LanaPixel", 12F);
             Connection.Location = new Point(649, 424);
@@ -143,6 +144,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Light
             // 
+            Light.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             Light.BackColor = Color.Transparent;
             Light.Image = Properties.Resources.yellow;
             Light.Location = new Point(777, 426);
@@ -152,7 +154,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // SendTalkText
             // 
-            SendTalkText.Anchor = AnchorStyles.None;
+            SendTalkText.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             SendTalkText.BackColor = Color.Transparent;
             SendTalkText.BackgroundImage = Properties.Resources.send;
             SendTalkText.BackgroundImageLayout = ImageLayout.Center;
@@ -172,6 +174,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // TalkText
             // 
             TalkText.AllowDrop = true;
+            TalkText.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             TalkText.Font = new Font("LanaPixel", 12.75F);
             TalkText.ForeColor = Color.DarkGray;
             TalkText.Location = new Point(317, 422);
@@ -187,6 +190,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // StartMatch
             // 
+            StartMatch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             StartMatch.Font = new Font("LanaPixel", 12F);
             StartMatch.Location = new Point(665, 214);
             StartMatch.Name = "StartMatch";
@@ -198,6 +202,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // RoomSetting
             // 
+            RoomSetting.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             RoomSetting.Font = new Font("LanaPixel", 12F);
             RoomSetting.Location = new Point(665, 254);
             RoomSetting.Name = "RoomSetting";
@@ -210,6 +215,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Login
             // 
+            Login.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             Login.Font = new Font("LanaPixel", 15.75F);
             Login.Location = new Point(665, 380);
             Login.Name = "Login";
@@ -221,6 +227,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // NowAccount
             // 
+            NowAccount.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             NowAccount.BackColor = Color.Transparent;
             NowAccount.Font = new Font("LanaPixel", 12F);
             NowAccount.Location = new Point(551, 9);
@@ -232,6 +239,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // AccountSetting
             // 
+            AccountSetting.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             AccountSetting.Font = new Font("LanaPixel", 12F);
             AccountSetting.Location = new Point(665, 342);
             AccountSetting.Name = "AccountSetting";
@@ -242,6 +250,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // About
             // 
+            About.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             About.Font = new Font("LanaPixel", 12F);
             About.Location = new Point(733, 341);
             About.Name = "About";
@@ -252,6 +261,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Room
             // 
+            Room.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             Room.BackColor = Color.Transparent;
             Room.Font = new Font("LanaPixel", 12F);
             Room.Location = new Point(665, 293);
@@ -279,7 +289,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // PresetText
             // 
-            PresetText.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            PresetText.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             PresetText.DropDownStyle = ComboBoxStyle.DropDownList;
             PresetText.Font = new Font("LanaPixel", 11.25F);
             PresetText.FormattingEnabled = true;
@@ -292,7 +302,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // RoomBox
             // 
-            RoomBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            RoomBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             RoomBox.BackColor = Color.Transparent;
             RoomBox.Controls.Add(NowRoomID);
             RoomBox.Controls.Add(CopyRoomID);
@@ -338,7 +348,6 @@ namespace Milimoe.FunGame.Desktop.UI
             RoomList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             RoomList.BorderStyle = BorderStyle.FixedSingle;
             RoomList.FormattingEnabled = true;
-            RoomList.ItemHeight = 19;
             RoomList.Location = new Point(0, 26);
             RoomList.Name = "RoomList";
             RoomList.Size = new Size(186, 192);
@@ -369,7 +378,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Notice
             // 
-            Notice.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            Notice.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             Notice.BackColor = Color.Transparent;
             Notice.Controls.Add(NoticeText);
             Notice.Font = new Font("LanaPixel", 12F);
@@ -394,6 +403,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // InfoBox
             // 
+            InfoBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             InfoBox.BackColor = Color.Transparent;
             InfoBox.Controls.Add(TransparentRectControl);
             InfoBox.Font = new Font("LanaPixel", 12F);
@@ -435,6 +445,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // QuitRoom
             // 
+            QuitRoom.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             QuitRoom.Font = new Font("LanaPixel", 12F);
             QuitRoom.Location = new Point(665, 212);
             QuitRoom.Name = "QuitRoom";
@@ -447,6 +458,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // CreateRoom
             // 
+            CreateRoom.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             CreateRoom.Font = new Font("LanaPixel", 12F);
             CreateRoom.Location = new Point(666, 253);
             CreateRoom.Name = "CreateRoom";
@@ -458,6 +470,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Logout
             // 
+            Logout.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             Logout.Font = new Font("LanaPixel", 15.75F);
             Logout.Location = new Point(665, 380);
             Logout.Name = "Logout";
@@ -470,6 +483,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // CheckHasPass
             // 
+            CheckHasPass.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             CheckHasPass.BackColor = Color.Transparent;
             CheckHasPass.Font = new Font("LanaPixel", 12F);
             CheckHasPass.Location = new Point(737, 181);
@@ -482,6 +496,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Stock
             // 
+            Stock.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             Stock.Font = new Font("LanaPixel", 12F);
             Stock.Location = new Point(661, 56);
             Stock.Name = "Stock";
@@ -492,6 +507,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Store
             // 
+            Store.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             Store.Font = new Font("LanaPixel", 12F);
             Store.Location = new Point(732, 56);
             Store.Name = "Store";
@@ -503,7 +519,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // Copyright
             // 
             Copyright.ActiveLinkColor = Color.FromArgb(0, 64, 64);
-            Copyright.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            Copyright.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             Copyright.BackColor = Color.Transparent;
             Copyright.Font = new Font("LanaPixel", 10.5F);
             Copyright.LinkArea = new LinkArea(6, 8);
@@ -521,6 +537,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // StopMatch
             // 
+            StopMatch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             StopMatch.Font = new Font("LanaPixel", 12F);
             StopMatch.Location = new Point(665, 213);
             StopMatch.Name = "StopMatch";
@@ -535,6 +552,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // CheckIsRank
             // 
+            CheckIsRank.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             CheckIsRank.BackColor = Color.Transparent;
             CheckIsRank.Enabled = false;
             CheckIsRank.Font = new Font("LanaPixel", 12F);
@@ -548,7 +566,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // ComboRoomType
             // 
-            ComboRoomType.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            ComboRoomType.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             ComboRoomType.DropDownStyle = ComboBoxStyle.DropDownList;
             ComboRoomType.Font = new Font("LanaPixel", 11.25F);
             ComboRoomType.FormattingEnabled = true;
@@ -561,7 +579,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // ComboGameModule
             // 
-            ComboGameModule.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            ComboGameModule.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             ComboGameModule.DropDownStyle = ComboBoxStyle.DropDownList;
             ComboGameModule.Font = new Font("LanaPixel", 11.25F);
             ComboGameModule.FormattingEnabled = true;
@@ -574,7 +592,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // ComboGameMap
             // 
-            ComboGameMap.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            ComboGameMap.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             ComboGameMap.DropDownStyle = ComboBoxStyle.DropDownList;
             ComboGameMap.Font = new Font("LanaPixel", 11.25F);
             ComboGameMap.FormattingEnabled = true;
