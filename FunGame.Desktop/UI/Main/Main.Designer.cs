@@ -320,6 +320,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // NowRoomID
             // 
             NowRoomID.AllowDrop = true;
+            NowRoomID.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             NowRoomID.Font = new Font("LanaPixel", 12F);
             NowRoomID.ForeColor = Color.DarkGray;
             NowRoomID.Location = new Point(6, 226);
@@ -333,6 +334,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // CopyRoomID
             // 
+            CopyRoomID.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             CopyRoomID.Font = new Font("LanaPixel", 12F);
             CopyRoomID.Location = new Point(126, 225);
             CopyRoomID.Name = "CopyRoomID";
@@ -345,7 +347,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // RoomList
             // 
-            RoomList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            RoomList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             RoomList.BorderStyle = BorderStyle.FixedSingle;
             RoomList.FormattingEnabled = true;
             RoomList.Location = new Point(0, 26);
@@ -367,6 +369,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // RefreshRoomList
             // 
+            RefreshRoomList.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             RefreshRoomList.Font = new Font("LanaPixel", 12F);
             RefreshRoomList.Image = Properties.Resources.refresh;
             RefreshRoomList.Location = new Point(162, 248);
@@ -378,7 +381,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Notice
             // 
-            Notice.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            Notice.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             Notice.BackColor = Color.Transparent;
             Notice.Controls.Add(NoticeText);
             Notice.Font = new Font("LanaPixel", 12F);
@@ -391,7 +394,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // NoticeText
             // 
-            NoticeText.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            NoticeText.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             NoticeText.BorderStyle = BorderStyle.None;
             NoticeText.EmptyTextTip = null;
             NoticeText.Location = new Point(6, 24);
