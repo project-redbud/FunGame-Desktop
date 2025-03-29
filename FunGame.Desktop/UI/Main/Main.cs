@@ -35,6 +35,18 @@ namespace Milimoe.FunGame.Desktop.UI
         private int _MatchSeconds = 0; // 记录匹配房间的秒数
         private bool _InGame = false;
 
+        private const int WM_NCHITTEST = 0x0084;
+        private const int HTCAPTION = 0x0002;
+        private const int HTLEFT = 0x000A;
+        private const int HTRIGHT = 0x000B;
+        private const int HTTOP = 0x000C;
+        private const int HTTOPLEFT = 0x000D;
+        private const int HTTOPRIGHT = 0x000E;
+        private const int HTBOTTOM = 0x000F;
+        private const int HTBOTTOMLEFT = 0x0010;
+        private const int HTBOTTOMRIGHT = 0x0011;
+        private const int borderWidth = 5;
+
         public Main()
         {
             InitializeComponent();
@@ -46,8 +58,9 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         public void Init()
         {
-            Copyright.Text = FunGameInfo.FunGame_CopyRight;
+            Copyright.Text = FunGameInfo.FunGame_CopyRight_Desktop;
             RunTime.Main = this;
+            DoubleBuffered = true;
             SetButtonEnabled(false, ClientState.WaitConnect);
             SetRoomid(Usercfg.InRoom); // 房间号初始化
             ShowFunGameInfo(); // 显示FunGame信息
@@ -332,6 +345,41 @@ namespace Milimoe.FunGame.Desktop.UI
 
         #region 实现
 
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+
+            if (m.Msg == WM_NCHITTEST)
+            {
+                Point pos = new(m.LParam.ToInt32() & 0xffff, m.LParam.ToInt32() >> 16);
+                pos = this.PointToClient(pos);
+
+                if (pos.X > borderWidth && pos.X < Width - borderWidth && pos.Y > borderWidth && pos.Y < Height - borderWidth)
+                {
+                    // 鼠标在窗体内部，允许拖动
+                    m.Result = (IntPtr)HTCAPTION;
+                    return;
+                }
+
+                if (pos.X <= borderWidth && pos.Y <= borderWidth)
+                    m.Result = (IntPtr)HTTOPLEFT;
+                else if (pos.X >= Width - borderWidth && pos.Y <= borderWidth)
+                    m.Result = (IntPtr)HTTOPRIGHT;
+                else if (pos.X <= borderWidth && pos.Y >= Height - borderWidth)
+                    m.Result = (IntPtr)HTBOTTOMLEFT;
+                else if (pos.X >= Width - borderWidth && pos.Y >= Height - borderWidth)
+                    m.Result = (IntPtr)HTBOTTOMRIGHT;
+                else if (pos.X <= borderWidth)
+                    m.Result = (IntPtr)HTLEFT;
+                else if (pos.X >= Width - borderWidth)
+                    m.Result = (IntPtr)HTRIGHT;
+                else if (pos.Y <= borderWidth)
+                    m.Result = (IntPtr)HTTOP;
+                else if (pos.Y >= Height - borderWidth)
+                    m.Result = (IntPtr)HTBOTTOM;
+            }
+        }
+
         /// <summary>
         /// 获取FunGame配置文件设定
         /// </summary>
@@ -496,10 +544,10 @@ namespace Milimoe.FunGame.Desktop.UI
                     await Task.Delay(1000);
                 }
                 WritelnGameInfo("房间 [ " + room.Roomid + " (" + PlayerCount + "人" + RoomSet.GetTypeString(room.RoomType) + ") ] 的游戏正式开始！");
-                if (RunTime.GameModuleLoader?.Modules.ContainsKey(room.GameModule) ?? false)
+                if (RunTime.GameModuleLoader != null && RunTime.GameModuleLoader.Modules.TryGetValue(room.GameModule, out GameModule? value) && value is GameModule module)
                 {
-                    RunTime.Gaming = Core.Model.Gaming.StartGame(RunTime.GameModuleLoader[room.GameModule], room, RunTime.Session.LoginUser, users, RunTime.GameModuleLoader);
-                    Visible = false; // 隐藏主界面
+                    RunTime.Gaming = Core.Model.Gaming.StartGame(module, room, RunTime.Session.LoginUser, users, RunTime.GameModuleLoader);
+                    Visible = !module.HideMain; // 隐藏主界面
                 }
                 else
                 {

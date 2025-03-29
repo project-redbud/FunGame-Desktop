@@ -215,7 +215,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // Login
             // 
-            Login.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            Login.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             Login.Font = new Font("LanaPixel", 15.75F);
             Login.Location = new Point(665, 380);
             Login.Name = "Login";
@@ -274,6 +274,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // RoomText
             // 
             RoomText.AllowDrop = true;
+            RoomText.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             RoomText.Font = new Font("LanaPixel", 12F);
             RoomText.ForeColor = Color.DarkGray;
             RoomText.Location = new Point(6, 226);
@@ -304,11 +305,11 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             RoomBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             RoomBox.BackColor = Color.Transparent;
+            RoomBox.Controls.Add(RoomList);
             RoomBox.Controls.Add(NowRoomID);
             RoomBox.Controls.Add(CopyRoomID);
-            RoomBox.Controls.Add(RoomList);
-            RoomBox.Controls.Add(RoomText);
             RoomBox.Controls.Add(QueryRoom);
+            RoomBox.Controls.Add(RoomText);
             RoomBox.Font = new Font("LanaPixel", 12F);
             RoomBox.Location = new Point(3, 56);
             RoomBox.Name = "RoomBox";
@@ -320,7 +321,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // NowRoomID
             // 
             NowRoomID.AllowDrop = true;
-            NowRoomID.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            NowRoomID.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             NowRoomID.Font = new Font("LanaPixel", 12F);
             NowRoomID.ForeColor = Color.DarkGray;
             NowRoomID.Location = new Point(6, 226);
@@ -334,7 +335,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // CopyRoomID
             // 
-            CopyRoomID.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            CopyRoomID.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             CopyRoomID.Font = new Font("LanaPixel", 12F);
             CopyRoomID.Location = new Point(126, 225);
             CopyRoomID.Name = "CopyRoomID";
@@ -358,6 +359,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             // QueryRoom
             // 
+            QueryRoom.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             QueryRoom.Font = new Font("LanaPixel", 12F);
             QueryRoom.Location = new Point(126, 225);
             QueryRoom.Name = "QueryRoom";
@@ -450,7 +452,7 @@ namespace Milimoe.FunGame.Desktop.UI
             // 
             QuitRoom.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             QuitRoom.Font = new Font("LanaPixel", 12F);
-            QuitRoom.Location = new Point(665, 212);
+            QuitRoom.Location = new Point(665, 213);
             QuitRoom.Name = "QuitRoom";
             QuitRoom.Size = new Size(132, 35);
             QuitRoom.TabIndex = 9;
@@ -610,21 +612,17 @@ namespace Milimoe.FunGame.Desktop.UI
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             BackgroundImage = Properties.Resources.back;
+            BackgroundImageLayout = ImageLayout.Stretch;
             ClientSize = new Size(800, 450);
             Controls.Add(ComboGameMap);
             Controls.Add(ComboGameModule);
             Controls.Add(ComboRoomType);
             Controls.Add(CheckIsRank);
             Controls.Add(RefreshRoomList);
-            Controls.Add(StopMatch);
             Controls.Add(Copyright);
             Controls.Add(Store);
             Controls.Add(Stock);
-            Controls.Add(Logout);
-            Controls.Add(RoomSetting);
-            Controls.Add(QuitRoom);
             Controls.Add(InfoBox);
-            Controls.Add(CreateRoom);
             Controls.Add(Notice);
             Controls.Add(RoomBox);
             Controls.Add(PresetText);
@@ -634,25 +632,36 @@ namespace Milimoe.FunGame.Desktop.UI
             Controls.Add(About);
             Controls.Add(AccountSetting);
             Controls.Add(NowAccount);
-            Controls.Add(Login);
             Controls.Add(CheckHasPass);
-            Controls.Add(StartMatch);
             Controls.Add(Light);
             Controls.Add(Connection);
             Controls.Add(MinForm);
             Controls.Add(Exit);
+            Controls.Add(Logout);
+            Controls.Add(Login);
+            Controls.Add(StartMatch);
+            Controls.Add(StopMatch);
+            Controls.Add(QuitRoom);
+            Controls.Add(RoomSetting);
+            Controls.Add(CreateRoom);
             Icon = (Icon)resources.GetObject("$this.Icon");
+            MinimumSize = new Size(800, 450);
             Name = "Main";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "FunGame";
+            Controls.SetChildIndex(CreateRoom, 0);
+            Controls.SetChildIndex(RoomSetting, 0);
+            Controls.SetChildIndex(QuitRoom, 0);
+            Controls.SetChildIndex(StopMatch, 0);
+            Controls.SetChildIndex(StartMatch, 0);
+            Controls.SetChildIndex(Login, 0);
+            Controls.SetChildIndex(Logout, 0);
             Controls.SetChildIndex(Exit, 0);
             Controls.SetChildIndex(Title, 0);
             Controls.SetChildIndex(MinForm, 0);
             Controls.SetChildIndex(Connection, 0);
             Controls.SetChildIndex(Light, 0);
-            Controls.SetChildIndex(StartMatch, 0);
             Controls.SetChildIndex(CheckHasPass, 0);
-            Controls.SetChildIndex(Login, 0);
             Controls.SetChildIndex(NowAccount, 0);
             Controls.SetChildIndex(AccountSetting, 0);
             Controls.SetChildIndex(About, 0);
@@ -662,15 +671,10 @@ namespace Milimoe.FunGame.Desktop.UI
             Controls.SetChildIndex(PresetText, 0);
             Controls.SetChildIndex(RoomBox, 0);
             Controls.SetChildIndex(Notice, 0);
-            Controls.SetChildIndex(CreateRoom, 0);
             Controls.SetChildIndex(InfoBox, 0);
-            Controls.SetChildIndex(QuitRoom, 0);
-            Controls.SetChildIndex(RoomSetting, 0);
-            Controls.SetChildIndex(Logout, 0);
             Controls.SetChildIndex(Stock, 0);
             Controls.SetChildIndex(Store, 0);
             Controls.SetChildIndex(Copyright, 0);
-            Controls.SetChildIndex(StopMatch, 0);
             Controls.SetChildIndex(RefreshRoomList, 0);
             Controls.SetChildIndex(CheckIsRank, 0);
             Controls.SetChildIndex(ComboRoomType, 0);
