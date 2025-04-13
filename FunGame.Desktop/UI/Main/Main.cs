@@ -1052,7 +1052,7 @@ namespace Milimoe.FunGame.Desktop.UI
         private void ShowFunGameInfo()
         {
             WritelnGameInfo(FunGameInfo.GetInfo(Constant.FunGameType));
-            Title.Text = FunGameInfo.FunGame_Desktop + " " + FunGameInfo.FunGame_Version + " " + FunGameInfo.FunGame_VersionPatch;
+            Title.Text = FunGameInfo.FunGame_Desktop + " v" + FunGameInfo.FunGame_Version;
         }
 
         /// <summary>
