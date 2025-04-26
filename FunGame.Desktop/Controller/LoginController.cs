@@ -4,8 +4,6 @@ using Milimoe.FunGame.Core.Entity;
 using Milimoe.FunGame.Core.Library.Common.Event;
 using Milimoe.FunGame.Core.Library.Constant;
 using Milimoe.FunGame.Core.Library.Exception;
-using Milimoe.FunGame.Core.Library.SQLScript.Common;
-using Milimoe.FunGame.Core.Library.SQLScript.Entity;
 using Milimoe.FunGame.Desktop.Library.Component;
 using Milimoe.FunGame.Desktop.Model;
 using Milimoe.FunGame.Desktop.UI;
@@ -21,14 +19,13 @@ namespace Milimoe.FunGame.Desktop.Controller
             UIForm = form;
         }
 
-        public async Task<bool> LoginAccountAsync(string username, string password, string autokey = "", bool encrypt = true)
+        public async Task<bool> LoginAccountAsync(string username, string password, string autokey = "")
         {
             bool result = false;
             string msg = "";
 
             try
             {
-                if (encrypt) password = password.Encrypt(username);
                 LoginEventArgs args = new(username, password, autokey);
 
                 if (OnBeforeLoginEvent(args))
@@ -98,12 +95,12 @@ namespace Milimoe.FunGame.Desktop.Controller
             try
             {
                 DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.Login_GetFindPasswordVerifyCode);
-                request.AddRequestData(ForgetVerifyCodes.Column_Username, username);
-                request.AddRequestData(ForgetVerifyCodes.Column_Email, email);
+                request.AddRequestData("username", username);
+                request.AddRequestData("email", email);
                 if (verifycode.Trim() == "")
                 {
                     // 未发送verifycode，说明需要系统生成一个验证码
-                    request.AddRequestData(ForgetVerifyCodes.Column_ForgetVerifyCode, "");
+                    request.AddRequestData("forgetverifycode", "");
                     await request.SendRequestAsync();
                     if (request.Result == RequestResult.Success)
                     {
@@ -114,7 +111,7 @@ namespace Milimoe.FunGame.Desktop.Controller
                 else
                 {
                     // 发送verifycode，需要验证
-                    request.AddRequestData(ForgetVerifyCodes.Column_ForgetVerifyCode, verifycode);
+                    request.AddRequestData("forgetverifycode", verifycode);
                     await request.SendRequestAsync();
                     if (request.Result == RequestResult.Success)
                     {
@@ -139,8 +136,8 @@ namespace Milimoe.FunGame.Desktop.Controller
             try
             {
                 DataRequest request = RunTime.NewLongRunningDataRequest(DataRequestType.Login_UpdatePassword);
-                request.AddRequestData(UserQuery.Column_Username, username);
-                request.AddRequestData(UserQuery.Column_Password, password.Encrypt(username));
+                request.AddRequestData("username", username);
+                request.AddRequestData("password", password);
                 await request.SendRequestAsync();
                 if (request.Result == RequestResult.Success)
                 {

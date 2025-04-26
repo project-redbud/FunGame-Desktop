@@ -222,13 +222,13 @@ namespace Milimoe.FunGame.Desktop.Controller
 
             try
             {
-                CreateRoomRequest.AddRequestData("roomtype", roomType);
-                CreateRoomRequest.AddRequestData("gamemoduleserver", gameModuleServer);
-                CreateRoomRequest.AddRequestData("gamemap", gameMap);
+                CreateRoomRequest.AddRequestData("roomType", roomType);
+                CreateRoomRequest.AddRequestData("gameModuleServer", gameModuleServer);
+                CreateRoomRequest.AddRequestData("gameMap", gameMap);
                 CreateRoomRequest.AddRequestData("master", Usercfg.LoginUser);
                 CreateRoomRequest.AddRequestData("password", password);
-                CreateRoomRequest.AddRequestData("isrank", isRank);
-                CreateRoomRequest.AddRequestData("maxusers", maxUsers);
+                CreateRoomRequest.AddRequestData("isRank", isRank);
+                CreateRoomRequest.AddRequestData("maxUsers", maxUsers);
                 await CreateRoomRequest.SendRequestAsync();
                 if (CreateRoomRequest.Result == RequestResult.Success)
                 {
@@ -249,9 +249,9 @@ namespace Milimoe.FunGame.Desktop.Controller
 
             try
             {
-                MatchRoomRequest.AddRequestData("roomtype", roomType);
+                MatchRoomRequest.AddRequestData("roomType", roomType);
                 MatchRoomRequest.AddRequestData("matcher", Usercfg.LoginUser);
-                MatchRoomRequest.AddRequestData("iscancel", isCancel);
+                MatchRoomRequest.AddRequestData("isCancel", isCancel);
                 await MatchRoomRequest.SendRequestAsync();
                 if (MatchRoomRequest.Result == RequestResult.Success)
                 {

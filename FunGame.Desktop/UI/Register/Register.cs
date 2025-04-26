@@ -54,7 +54,7 @@ namespace Milimoe.FunGame.Desktop.UI
             {
                 string username = ((RegisterEventArgs)e).Username;
                 string password = ((RegisterEventArgs)e).Password;
-                await LoginController.LoginAccountAsync(username, password, encrypt: false);
+                await LoginController.LoginAccountAsync(username, password);
                 RunTime.Login?.Dispose();
             }
         }
