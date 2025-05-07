@@ -17,8 +17,19 @@ namespace Milimoe.FunGame.Desktop.UI
                         break;
                 }
             }
+            // 初始化 WinForms 配置
             ApplicationConfiguration.Initialize();
+
+            // 初始化 WPF Application
+            System.Windows.Application wpfApp = new()
+            {
+                ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown
+            };
+            wpfApp.Dispatcher.Invoke(() => { });
+
             Application.Run(new Main());
+
+            wpfApp.Shutdown();
         }
     }
 }

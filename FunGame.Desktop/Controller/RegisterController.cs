@@ -24,7 +24,6 @@ namespace Milimoe.FunGame.Desktop.Controller
 
             try
             {
-                password = password.Encrypt(username);
                 RegisterEventArgs RegEventArgs = new(username, password, email);
                 Register.OnBeforeRegEvent(Register, RegEventArgs);
                 RunTime.PluginLoader?.OnBeforeRegEvent(Register, RegEventArgs);
