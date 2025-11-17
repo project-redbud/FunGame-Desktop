@@ -387,7 +387,7 @@ namespace Milimoe.FunGame.Desktop.UI
         {
             try
             {
-                if (INIHelper.ExistINIFile())
+                if (INIHelper.INIFileExists())
                 {
                     string isAutoConnect = INIHelper.ReadINI("Config", "AutoConnect");
                     string isAutoLogin = INIHelper.ReadINI("Config", "AutoLogin");
@@ -797,7 +797,7 @@ namespace Milimoe.FunGame.Desktop.UI
                         {
                             GetMessage("匹配成功 -> 房间号： " + room.Roomid);
                             if (MainController != null) await MainController.UpdateRoomAsync();
-                            if (Rooms.IsExist(room.Roomid))
+                            if (Rooms.Exists(room.Roomid))
                             {
                                 Room target = Rooms[room.Roomid];
                                 await InvokeController_IntoRoom(target);
@@ -1624,7 +1624,7 @@ namespace Milimoe.FunGame.Desktop.UI
         /// </summary>
         /// <param name="roomid"></param>
         /// <returns></returns>
-        private bool CheckRoomIDExist(string roomid) => Rooms.IsExist(roomid);
+        private bool CheckRoomIDExist(string roomid) => Rooms.Exists(roomid);
 
         /// <summary>
         /// 获取房间对象

@@ -67,7 +67,7 @@ namespace Milimoe.FunGame.Desktop.Utility
                     default:
                         break;
                 }
-                if (Singleton.IsExist(form) || IsExist)
+                if (Singleton.Exists(form) || IsExist)
                 {
                     throw new FormHasBeenOpenedException();
                 }
@@ -86,7 +86,7 @@ namespace Milimoe.FunGame.Desktop.Utility
         {
             try
             {
-                if (!Singleton.IsExist(form))
+                if (!Singleton.Exists(form))
                 {
                     Singleton.AddOrUpdate(form);
                     if (opentype == OpenFormType.Dialog) form.ShowDialog();
