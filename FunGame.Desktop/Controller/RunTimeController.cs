@@ -85,7 +85,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             ConnectEventArgs args = new(RunTime.Session.Server_Address, RunTime.Session.Server_Port, ConnectResult.ConnectFailed);
             args.Success = false;
             Main.OnAfterConnectEvent(Main, args);
-            Close_Socket();
+            CloseSocket();
         }
 
         public override bool BeforeConnect(ref string ip, ref int port, ArrayList ConnectArgs)
@@ -183,7 +183,7 @@ namespace Milimoe.FunGame.Desktop.Controller
             if (ServerMessage.Parameters.Length > 0) msg = ServerMessage.GetParam<string>(0) ?? "";
             Main.GetMessage(msg);
             Main.UpdateUI(MainInvokeType.Disconnect);
-            Close_Socket();
+            CloseSocket();
         }
 
         protected override void SocketHandler_System(SocketObject ServerMessage)
